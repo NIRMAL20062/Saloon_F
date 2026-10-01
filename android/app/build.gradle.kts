@@ -21,6 +21,19 @@ android {
         versionName = "0.1.0"
     }
 
+    buildTypes.configureEach {
+        // The only thing the app knows about the backend is its URL. No keys or secrets, ever.
+        val apiBaseUrl =
+            when (name) {
+                // Phone/emulator reach the laptop via `adb reverse tcp:8080 tcp:8080` (DF-10).
+                "debug" -> "http://127.0.0.1:8080/"
+
+                // Placeholder until hosting is chosen (Q-004). `.invalid` can never resolve.
+                else -> "https://api.glide.invalid/"
+            }
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+    }
+
     buildTypes {
         release {
             // R8: shrinks and obfuscates release builds. Signing is added by CD (BE-013) from GitHub secrets.
@@ -37,6 +50,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
@@ -79,11 +93,19 @@ dependencies {
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging)
+
     testImplementation(libs.junit4)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.androidx.test.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.okhttp.bom))
+    testImplementation(libs.okhttp.mockwebserver)
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)

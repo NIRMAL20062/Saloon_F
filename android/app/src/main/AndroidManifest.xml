@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!--
         allowBackup / dataExtractionRules: salon and customer data must never be copied into device or cloud backups.
+        networkSecurityConfig: HTTPS only; debug builds may also use plain HTTP to localhost (see src/debug/res/xml).
         No launcher icon yet: waiting for the design asset (Figma).
     -->
     <application
@@ -12,6 +15,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
         android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.Glide"
         tools:targetApi="37">
