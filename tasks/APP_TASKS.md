@@ -19,8 +19,23 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 
 ## Phase 1: Outline only (details after Q-001, Q-003 in [DECISIONS.md](../docs/DECISIONS.md))
 
-- ⬜ **APP-1xx** Login with phone OTP (Firebase Auth) → backend JWT, stored securely
-- ⬜ **APP-1xx** Firebase project setup: Crashlytics + Analytics (needs `google-services.json` from the team)
+- ⬜ **APP-1xx** Login (provider: Q-007; plan said phone OTP) → backend session, stored securely
+- ⬜ **APP-1xx** Firebase project setup: Crashlytics + Analytics (in the plan, to prove design-partner usage; free Spark plan).
+  _Needs from team: create a Firebase project, add the app, send `google-services.json` privately (never via git)._
+- ⬜ **APP-1xx** **Offline plan**: decide which screens/actions must work without internet (salons often have weak signal), then
+  build them with Room (local cache + drafts) and WorkManager (sync + retry), both already in the stack.
+  _Needs from team: after the feature list, mark which screens must work offline._
+- ⬜ **APP-1xx** **Indian languages**: all app text is already in resource files; add translations + an in-app language switch.
+  _Needs from team: which languages (e.g. Hindi, Marathi…); a native speaker to review the translations I draft._
+
+## Pre-launch: Outline only
+
+- ⬜ **APP-9xx** **Staging build**: separate app (`com.glide.android.staging`) pointing at staging, with a visible **STAGING** banner,
+  shipped to testers through Firebase App Distribution by CD. _Needs from team: Firebase project, testers' emails, a Firebase
+  service-account key added as a GitHub secret (exact steps given then)._
+- ⬜ **APP-9xx** Launcher icon + brand colours/fonts. _Needs from team: icon and designs from Figma._
+- ⬜ **APP-9xx** Release signing + Play Store listing. _Needs from team: Google Play Console account (one-time US$25 fee, **not free**),
+  generating and safely storing the upload keystore (I'll give the commands), store texts and screenshots._
 
 ## Features: added by the team
 

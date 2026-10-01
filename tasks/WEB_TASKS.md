@@ -52,7 +52,12 @@ Workflow and template: [README.md](README.md) · Done so far: [WEB_TASKS_COMPLET
 
 ## Phase 1: Outline only (details after Q-001, Q-005 in [DECISIONS.md](../docs/DECISIONS.md))
 
-- ⬜ **WEB-1xx** Admin login for our team (method: Q-005)
+- ⬜ **WEB-1xx** Admin login by email, invite-only; existing admins add new admins (D-013, provider Q-007)
+- ⬜ **WEB-1xx** **Audit log viewer**: search who changed what, by salon / user / date (uses BE audit log). _Needs from team: nothing._
+
+## Pre-launch: Outline only
+
+- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login. _Needs from team: a free hosting account (e.g. Vercel), picked together._
 
 ## Features: added by the team
 

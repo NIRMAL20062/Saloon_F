@@ -47,8 +47,24 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 ## Phase 1: Outline only (details after Q-001, Q-003, Q-005 in [DECISIONS.md](../docs/DECISIONS.md))
 
 - ⬜ **BE-1xx** Multi-tenant base: `salons` table, `salon_id` scoping pattern for every table, tenant-isolation tests
-- ⬜ **BE-1xx** Auth: Firebase phone OTP → backend verifies → issues JWT
-- ⬜ **BE-1xx** Seed data: test users for every user type, for staging (D-008)
+- ⬜ **BE-1xx** Postgres **Row-Level Security** as a second tenant guard: even a buggy query can't return another salon's rows.
+  _Needs from team: nothing._
+- ⬜ **BE-1xx** Auth: login provider verified by the backend, roles per user type (provider: Q-007, plan said Firebase phone OTP → JWT)
+- ⬜ **BE-1xx** Roles and permissions for the user types in D-012 (owner, stylist, receptionist/manager, customer, internal admin)
+- ⬜ **BE-1xx** **Audit log**: an `audit_log` table recording who changed what, when, in which salon, for every create/update/delete.
+  Helps settle disputes ("who cancelled this booking?"). _Needs from team: nothing._
+- ⬜ **BE-1xx** Seed data: test users for every user type in two test salons (D-012, [TESTING.md](../docs/TESTING.md))
+
+## Pre-launch: Outline only (D-011: nothing is hosted before this phase)
+
+- ⬜ **BE-9xx** Free-tier hosting for backend + Postgres = **staging** (D-010).
+  _Needs from team: create accounts on the providers we pick together; add their secrets to GitHub (exact steps given then)._
+- ⬜ **BE-9xx** **Uptime monitor** on `/health` with alerts.
+  _Needs from team: a free UptimeRobot / Better Stack account and the email/phone that should get alerts._
+- ⬜ **BE-9xx** **Automated daily database backups** + one **practice restore** (a backup is only real once restored).
+  _Needs from team: a free storage bucket (e.g. Cloudflare R2, already in the stack for invoice PDFs); one teammate to watch the restore drill._
+- ⬜ **BE-9xx** Real client IP behind the host's proxy (forwarded headers) so the rate limit works per user. _Needs from team: nothing._
+- ⬜ **BE-9xx** Production environment + live keys (Razorpay live, WhatsApp business number). _Needs from team: business KYC on Razorpay and Meta._
 
 ## Features: added by the team
 

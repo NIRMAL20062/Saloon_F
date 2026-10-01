@@ -10,7 +10,12 @@
 
 ## Task IDs and status
 
-- IDs: `APP-001`, `WEB-001`, `BE-001`. Never reused, never renumbered.
+- IDs: `APP-001`, `WEB-001`, `BE-001`. Never reused, never renumbered. Outline items use placeholders
+  (`APP-1xx` = Phase 1, `APP-9xx` = Pre-launch) and get a real ID when they're written out in full.
+- Phases: **0** walking skeleton · **1** foundations (tenants, login, roles) · **2+** product features (from the team's plan) ·
+  **Pre-launch** hosting, monitoring, backups, store release (D-011: nothing is hosted before this)
+- **Needs from team** on a task = something only the team can do (create an account, provide a key or file, decide).
+  The AI asks for it when the task starts.
 - Status: ⬜ To do · 🔄 In progress · ⛔ Blocked (say on what) · ✅ Done (moved to the `_COMPLETED` file)
 - A feature that touches several areas is split into one task per area, linked through **Depends on**.
   Example: "Book appointment" = `BE-0xx` (API + table) → `APP-0xx` (screen) and `WEB-0xx` (admin view).
@@ -49,6 +54,7 @@ Copy this into the right `_TASKS.md` file:
 ### APP-0XX · Short title
 - **Phase:** N · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-0XX
 - **Why:** one line on the user or business need
+- **Needs from team:** accounts, keys, files, decisions or manual steps (or "nothing")
 - **Scope:**
   - what is included
   - what is explicitly NOT included
