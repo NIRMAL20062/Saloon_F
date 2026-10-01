@@ -1,0 +1,16 @@
+# Keep the Docker build context small and free of secrets.
+.git
+.gradle
+.kotlin
+.idea
+**/build
+**/node_modules
+**/.next
+android
+admin
+docs
+.env
+.env.*
+*.jks
+*.keystore
+google-services.json

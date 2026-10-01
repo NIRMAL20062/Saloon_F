@@ -18,5 +18,25 @@ services:
       timeout: 3s
       retries: 30
 
+  # Full stack (backend in Docker too), used by the end-to-end tests:
+  #   docker compose --profile full up -d --build
+  backend:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      APP_ENV: local
+      PORT: "8080"
+      DATABASE_URL: jdbc:postgresql://postgres:5432/glide
+      DATABASE_USER: glide
+      DATABASE_PASSWORD: glide_local_only
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata: {}
