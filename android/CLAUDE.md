@@ -14,7 +14,7 @@ Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feat
 - **No secrets in the app**: no API keys, Razorpay secret, WhatsApp tokens, signing passwords, in code, `BuildConfig` or
   resources. The app only knows the backend URL (rule from the product plan).
 - **Never call WhatsApp or create Razorpay orders from the app.** Ask the backend.
-- Release builds are HTTPS-only. Cleartext is allowed only to `10.0.2.2` in debug.
+- Release builds are HTTPS-only. Cleartext is allowed only to localhost in debug (phone/emulator reach the laptop via `adb reverse tcp:8080 tcp:8080`).
 - Add libraries (Room, WorkManager, Coil, Firebase, Razorpay) only in the task that needs them, through `gradle/libs.versions.toml`.
 - Strings in `res/values/strings.xml`, never hard-coded in Composables.
 
@@ -28,7 +28,8 @@ Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feat
 
 ```bash
 ./gradlew :android:app:assembleDebug
-./gradlew :android:app:installDebug              # emulator running; backend on the laptop at :8080
+./gradlew :android:app:installDebug              # phone (USB) or emulator connected
+adb reverse tcp:8080 tcp:8080                    # lets the app reach the backend on this laptop
 ./gradlew :android:app:testDebugUnitTest
 ./gradlew :android:app:lintDebug
 ```

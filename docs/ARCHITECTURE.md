@@ -60,7 +60,7 @@ Everything external is injected through `AppDependencies` so tests can swap in f
 ## Inside the Android app
 
 `Composable screen → ViewModel (StateFlow<UiState>) → UseCase → Repository → Retrofit (shared DTOs) / Room`.
-Hilt wires the graph. Debug builds call the laptop's backend at `http://10.0.2.2:8080`; release builds are HTTPS-only.
+Hilt wires the graph. Debug builds call `http://127.0.0.1:8080`, forwarded to the laptop's backend by `adb reverse tcp:8080 tcp:8080` (USB phone or emulator); release builds are HTTPS-only.
 
 ## Environments
 
