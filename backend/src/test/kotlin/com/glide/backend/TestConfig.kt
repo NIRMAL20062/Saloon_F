@@ -3,6 +3,7 @@ package com.glide.backend
 import com.glide.backend.config.AppConfig
 import com.glide.backend.config.AppEnv
 import com.glide.backend.config.DatabaseConfig
+import com.glide.backend.health.DatabaseHealthCheck
 
 /** Config for tests that don't touch a real database. */
 fun testConfig(
@@ -15,3 +16,9 @@ fun testConfig(
     database = database,
     corsAllowedOrigins = corsAllowedOrigins,
 )
+
+/** Dependencies with fakes, for route tests that don't need a real database. */
+fun fakeDependencies(databaseHealthy: Boolean = true) =
+    AppDependencies(
+        databaseHealthCheck = DatabaseHealthCheck { databaseHealthy },
+    )

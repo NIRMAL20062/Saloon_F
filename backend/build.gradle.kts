@@ -10,6 +10,8 @@ version = "0.1.0"
 
 application {
     mainClass.set("com.glide.backend.ApplicationKt")
+    // Netty loads native transport libraries; newer JDKs warn unless this is set.
+    applicationDefaultJvmArgs = listOf("--enable-native-access=ALL-UNNAMED")
 }
 
 kotlin {

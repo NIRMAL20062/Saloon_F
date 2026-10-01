@@ -1,5 +1,6 @@
 package com.glide.backend.health
 
+import com.glide.backend.fakeDependencies
 import com.glide.backend.module
 import com.glide.backend.testConfig
 import com.glide.shared.api.ApiJson
@@ -20,7 +21,7 @@ class LivenessRouteTest {
     @Test
     fun `liveness reports UP with version and no database field`() =
         testApplication {
-            application { module(testConfig()) }
+            application { module(testConfig(), fakeDependencies()) }
 
             val response = client.get(ApiRoutes.HEALTH_LIVE)
 
