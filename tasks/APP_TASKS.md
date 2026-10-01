@@ -5,22 +5,6 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
-### APP-001 · Android project skeleton
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-003, BE-004
-- **Why:** an empty app that builds, runs and is wired the way every later feature will be
-- **Scope:**
-  - `android/app` module in the root Gradle build: app name **Glide**, `applicationId com.glide.android`, minSdk 24, compile/target SDK 37
-  - Jetpack Compose + Material 3 theme, Hilt, Navigation Compose with one start screen
-  - debug and release build types; release uses R8 (minify + shrink)
-  - Docker/backend-only builds can skip the Android module (no Android SDK there)
-  - NOT included: Room, WorkManager, Coil, Firebase, Razorpay (each arrives with the feature that needs it)
-- **Done when:**
-  - [ ] `./gradlew :android:app:assembleDebug` and `assembleRelease` succeed
-  - [ ] app launches on an emulator and shows the start screen
-  - [ ] Tests: a Robolectric UI test renders the start screen
-  - [ ] Security: `allowBackup` off; no secrets in `BuildConfig` or resources
-  - [ ] Database: none
-
 ### APP-002 · Network layer on the shared contract
 - **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** APP-001, BE-008
 - **Why:** every feature talks to the backend the same way, with the same models as the server
@@ -54,4 +38,4 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 
 ## Features: added by the team
 
-<!-- Add feature tasks here using the template in README.md -->
+<!-- Add feature tasks here using the template in README.md and ChatGPT.md-->

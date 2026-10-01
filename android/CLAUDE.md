@@ -3,7 +3,8 @@
 Kotlin · Jetpack Compose + Material 3 · MVVM, layers UI → ViewModel → UseCase → Repository · Hilt · Navigation Compose ·
 Coroutines + Flow · Retrofit + OkHttp + kotlinx.serialization. minSdk 24, compile/target SDK 37. Stack: [docs/TECH_STACK.md](../docs/TECH_STACK.md)
 
-> The app module is created by task **APP-001**. Until then this folder only holds these instructions.
+Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feature>/` screens + ViewModels,
+`navigation/` routes, `ui/theme/` Material 3 theme. More packages (`data/`, `domain/`) arrive with APP-002/003.
 
 ## Rules
 
