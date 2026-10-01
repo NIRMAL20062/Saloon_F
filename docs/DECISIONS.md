@@ -33,6 +33,10 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | DF-08 | Error envelope for every non-2xx: `{"error":{"code","message","requestId"}}`. Never leak stack traces | One shape for Android, admin and logs |
 | DF-09 | Flyway migrations run on backend startup | Fine for a single instance; revisit before running multiple instances |
 | DF-10 | Android debug build calls `http://10.0.2.2:8080` (emulator → laptop); cleartext HTTP allowed **only** for that host in debug | Release builds are HTTPS-only |
+| DF-11 | Money is an integer number of **paise** everywhere (`bigint` in SQL, `Long` in Kotlin, `number` in TS), never floating point | Razorpay amounts are in paise; floats lose money in rounding |
+| DF-12 | Tables: plural `snake_case`, `uuid` primary keys (`gen_random_uuid()`), `created_at`/`updated_at` `timestamptz` on every table. API timestamps are ISO-8601 UTC strings | IDs can be created anywhere and can't be guessed by counting |
+| DF-13 | Tenant (`salon_id`) always comes from the authenticated user, never from request input; uniqueness is per salon (`UNIQUE (salon_id, …)`) | Enforces the multi-tenant rule in code **and** in the database |
+| DF-14 | Shared AI workflow in `.claude/skills/`: `/work-task`, `/add-task`, `/add-endpoint`, `/db-migration`, `/feature-security-check` | Every teammate and AI tool follows the same steps and Definition of Done |
 
 ## Open questions
 
