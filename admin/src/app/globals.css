@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Brand colours and fonts are not decided yet (Figma). System fonts until then. */
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
