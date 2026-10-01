@@ -26,3 +26,12 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Database:** none
 - **Changed from plan:** debug URL is `http://127.0.0.1:8080` + `adb reverse` instead of `10.0.2.2`, so real phones work too (DF-10 updated)
 
+### APP-003 · System status screen (end-to-end proof)
+- **Completed:** 2026-10-02 · **Commits:** `f8280b2` (+ `c052ed4` task notes)
+- **Built:** `ui/status/` (`StatusRoute`, stateless `StatusScreen`, `StatusViewModel` with Loading/Loaded/Error), `domain/status/GetSystemStatusUseCase` → `SystemStatus`, `data/health/NetworkHealthRepository` (503 from our backend = "database DOWN"; 503 from anything else = HTTP error), Hilt `DataModule`. Start route now opens the status screen
+- **Tests:** `StatusViewModelTest` (6), `StatusScreenTest` (7, Robolectric), `NetworkHealthRepositoryTest` (4, MockWebServer); `AppLaunchTest` runs the full Hilt graph with a fake repository. App total: 29 tests
+- **Verified on device (Claude, moto g54 5G, against the Docker backend):** "Server UP / Database UP / 0.1.0"; after `docker-compose stop postgres` + Refresh: "Database DOWN" with explanation. Backend-stopped → error + Retry is covered by tests and was in the team's phone-test steps; the team said to move ahead on 2026-10-02
+- **Security:** only the app's own wording is shown; HTTP status + request ID for support; raw server text never displayed
+- **Database:** none
+- **Fix found by tests:** Retry now switches to Loading synchronously, so a stale result is never shown after the tap
+
