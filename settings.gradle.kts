@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "glide"
 include(":shared")
+include(":backend")
