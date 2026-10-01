@@ -1,0 +1,117 @@
+openapi: 3.0.3
+info:
+  title: Glide API
+  version: 0.1.0
+  description: |
+    Backend API used by the Glide Android app and the internal admin panel.
+
+    - Android uses the Kotlin DTOs in `shared/` directly; the admin panel generates TypeScript types from this file.
+    - `backend/src/test/.../contract/OpenApiContractTest.kt` checks real responses against this file and fails on drift.
+    - Every non-2xx response uses the `ErrorResponse` envelope. Clients branch on `error.code`, never on `message`.
+    - Every response carries an `X-Request-Id` header. Quote it when reporting a problem.
+servers:
+  - url: http://localhost:8080
+    description: Local development
+tags:
+  - name: health
+    description: Liveness and readiness checks for hosting platforms, uptime monitors and the apps
+
+paths:
+  /health/live:
+    get:
+      operationId: getLiveness
+      tags: [health]
+      summary: Liveness. The process is up (no dependencies checked)
+      responses:
+        "200":
+          description: The backend process is running
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthResponse" }
+              example: { status: UP, version: 0.1.0 }
+        default: { $ref: "#/components/responses/Error" }
+
+  /health:
+    get:
+      operationId: getHealth
+      tags: [health]
+      summary: Readiness. The process is up and the database answers
+      responses:
+        "200":
+          description: Backend and database are up
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthResponse" }
+              example: { status: UP, version: 0.1.0, database: UP }
+        "503":
+          description: The database is not answering; stop routing traffic here
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthResponse" }
+              example: { status: DOWN, version: 0.1.0, database: DOWN }
+        default: { $ref: "#/components/responses/Error" }
+
+components:
+  headers:
+    XRequestId:
+      description: Request ID (echoed from the request if safe, otherwise generated)
+      schema: { type: string, maxLength: 64 }
+
+  responses:
+    Error:
+      description: Any error. See `ErrorBody.code` for the reason
+      headers:
+        X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { error: { code: NOT_FOUND, message: No such endpoint., requestId: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80 } }
+
+  schemas:
+    HealthStatus:
+      type: string
+      enum: [UP, DOWN]
+
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, version]
+      properties:
+        status:
+          $ref: "#/components/schemas/HealthStatus"
+        version:
+          type: string
+          description: Backend build version
+        database:
+          $ref: "#/components/schemas/HealthStatus"
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error: { $ref: "#/components/schemas/ErrorBody" }
+
+    ErrorBody:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: |
+            Stable machine-readable code. Shared codes: BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND,
+            METHOD_NOT_ALLOWED, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, RATE_LIMITED, INTERNAL.
+            Features add their own.
+        message:
+          type: string
+          description: Human-readable; may change; never contains stack traces or secrets
+        requestId:
+          type: string
+          description: Same as the X-Request-Id response header

@@ -15,6 +15,7 @@ flyway = "13.9.0"
 postgresql = "42.7.13"
 hikari = "7.1.0"
 testcontainers = "2.0.5"
+openapi-validator = "2.46.1"
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
@@ -46,6 +47,7 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+openapi-validator = { module = "com.atlassian.oai:swagger-request-validator-core", version.ref = "openapi-validator" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

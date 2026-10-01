@@ -58,6 +58,7 @@ dependencies {
     testImplementation(platform(libs.testcontainers.bom))
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.openapi.validator)
 }
 
 // Local dev convenience: `./gradlew :backend:run` picks up the repo-root .env file.
@@ -82,4 +83,8 @@ tasks.processResources {
 
 tasks.test {
     useJUnitPlatform()
+    // The contract test validates real responses against the API spec; re-run it whenever the spec changes.
+    val openApiSpec = rootProject.file("docs/api/openapi.yaml")
+    inputs.file(openApiSpec).withPathSensitivity(PathSensitivity.RELATIVE)
+    systemProperty("openapi.spec", openApiSpec.absolutePath)
 }
