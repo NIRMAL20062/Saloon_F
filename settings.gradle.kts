@@ -23,3 +23,8 @@ dependencyResolutionManagement {
 rootProject.name = "glide"
 include(":shared")
 include(":backend")
+
+// The backend Docker image has no Android SDK; it sets GLIDE_BACKEND_ONLY=true to skip the app.
+if (providers.environmentVariable("GLIDE_BACKEND_ONLY").orNull != "true") {
+    include(":android:app")
+}

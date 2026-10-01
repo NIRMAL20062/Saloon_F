@@ -1,0 +1,4 @@
+<resources>
+    <!-- Window theme only; all real styling is Material 3 in Compose (ui/theme). -->
+    <style name="Theme.Glide" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
