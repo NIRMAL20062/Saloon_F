@@ -18,8 +18,9 @@ Prerequisites: JDK 21+, Docker, Android Studio (for `android/`), Node 20+ with p
 cp .env.example .env                 # local defaults only
 docker compose up -d postgres        # or: docker-compose up -d postgres
 ./gradlew :backend:run               # API on http://localhost:8080/health
-./gradlew :android:app:installDebug  # app on a running emulator
-cd admin && pnpm install && pnpm dev # admin on http://localhost:3000
+./gradlew :android:app:installDebug  # app on a USB phone or emulator
+adb reverse tcp:8080 tcp:8080         # lets the app reach the backend on this laptop
+cd admin && cp .env.example .env.local && pnpm install && pnpm dev   # admin on http://localhost:3000
 ```
 
 Full checks, same as CI: `./gradlew check` and `cd admin && pnpm verify`.

@@ -8,7 +8,7 @@ Workflow and template: [README.md](README.md) · Done so far: [WEB_TASKS_COMPLET
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
 ### WEB-001 · Next.js admin skeleton
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** -
+- **Phase:** 0 · **Status:** 🔄 Built, waiting for the team's check · **Owner:** Claude · **Depends on:** - · **Commits:** `f347192` `e132055` `be02f86` `ac9be71`
 - **Why:** an empty panel that builds and runs, wired the way every later admin feature will be
 - **Scope:**
   - `admin/` created with the official Next.js generator: TypeScript, App Router, Tailwind, ESLint, pnpm
@@ -16,11 +16,11 @@ Workflow and template: [README.md](README.md) · Done so far: [WEB_TASKS_COMPLET
   - security headers (CSP, frame blocking, no-sniff, referrer policy) on every page
   - `pnpm verify` = lint + typecheck + tests + build (what CI runs)
 - **Done when:**
-  - [ ] `pnpm dev` serves the panel on `http://localhost:3000`
-  - [ ] `pnpm verify` passes
-  - [ ] Tests: Vitest + Testing Library set up with one component test
-  - [ ] Security: headers present on every page (tested); missing env var fails fast with a clear message
-  - [ ] Database: none (the panel never talks to Postgres directly, only through the backend API)
+  - [x] `pnpm dev` serves the panel on `http://localhost:3000` (verified: 200, "Glide Admin"; `pnpm start` too)
+  - [x] `pnpm verify` passes (lint, typegen + tsc, 9 tests, production build)
+  - [x] Tests: Vitest + Testing Library set up with one component test (`page.test.tsx`), plus `env.test.ts` (3) and `security.test.ts` (5)
+  - [x] Security: headers present on every page (unit-tested + checked with curl on `next start`: per-request nonce on every script, no `X-Powered-By`); invalid env var → clear message + exit code 1
+  - [x] Database: none (the panel never talks to Postgres directly, only through the backend API)
 
 ### WEB-002 · Typed API client from OpenAPI
 - **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** WEB-001, BE-010
