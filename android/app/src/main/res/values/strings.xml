@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">Glide</string>
-    <string name="home_title">Glide</string>
-    <string name="home_subtitle">Salon app: setup in progress</string>
+
+    <!-- System status screen (Phase 0 walking skeleton) -->
+    <string name="status_checking">Checking the server…</string>
+    <string name="status_server">Server</string>
+    <string name="status_database">Database</string>
+    <string name="status_database_down_explanation">The server is running but can\'t reach its database.</string>
+    <string name="status_version">Server version %1$s</string>
+    <string name="status_refresh">Refresh</string>
+    <string name="status_retry">Retry</string>
+    <string name="status_error_network">Can\'t reach the server. Check your connection and try again.</string>
+    <string name="status_error_server">The server had a problem (error %1$d).</string>
+    <string name="status_error_unexpected">The server sent a response this app doesn\'t understand. Please update the app.</string>
+    <string name="status_reference">Reference: %1$s</string>
 </resources>

@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.glide.android.ui.home.HomeScreen
+import com.glide.android.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
 
 /** Type-safe routes. Each screen gets one `@Serializable` route; arguments become its properties. */
@@ -15,6 +15,7 @@ data object HomeRoute
 fun GlideNavHost() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = HomeRoute) {
-        composable<HomeRoute> { HomeScreen() }
+        // Phase 0: the start screen is the system status check (APP-003).
+        composable<HomeRoute> { StatusRoute() }
     }
 }

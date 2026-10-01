@@ -100,6 +100,8 @@ dependencies {
     implementation(libs.okhttp.logging)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.hilt.android.testing)
+    kspTest(libs.hilt.compiler)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.androidx.test.espresso.core)
