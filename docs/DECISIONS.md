@@ -23,6 +23,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-012 | 2026-10-02 | **User types**: salon owner, staff/stylist, receptionist/manager, salon's customer, plus our internal admin (admin panel). Test users: one per type in **two** test salons | How customers interact (app login vs WhatsApp link only) is decided with the feature list (Q-001) |
 | D-013 | 2026-10-02 | **Admin panel login by email; existing admins can add new admins** (invite-only, no self sign-up) | Provider and email method: Q-007 |
 | D-014 | 2026-10-02 | **Phase-wise development; the AI stops after every task** and reports what was built, how to test it, and what it needs from the team. Next task only after the team's OK | See [tasks/README.md](../tasks/README.md) |
+| D-015 | 2026-10-02 | **Product spec v2 is [ChatGPT.md](../ChatGPT.md)** (committed by the team in `588f011`): customer Android app + salon Android app (multi-module `/android/app-customer`, `/app-salon`, `/core-*`, `/feature-booking`), admin web (React/TS: our Next.js fits), optional public booking web link, marketplace payments via Razorpay Route, disputes, double-entry ledger. **Customers log in with phone OTP** in their own app | Supersedes D-012's "customer may use WhatsApp link only". Converting it to tasks needs Q-008..Q-010 |
 
 ## Implementation defaults (veto-able)
 
@@ -48,10 +49,13 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 
 | ID | Question | Blocks |
 |---|---|---|
-| Q-001 | Product plan sections 1–3 (problem, features, MVP scope, user types) aren't in the repo yet. `ChatGPT.md` is empty on disk | Phase 1+ planning |
+| Q-001 | ~~Product plan not in the repo~~ **Partly answered 2026-10-02 → D-015** (ChatGPT.md v2). Still missing: the salon-side plan it builds on (Q-009) | Phase 1+ planning |
 | Q-002 | ~~Supabase only as hosted Postgres?~~ Partly answered 2026-10-02: free tiers (D-010), no hosting during development (D-011). Which free Postgres host at Pre-launch is decided together with Q-007 | Pre-launch |
 | Q-003 | ~~Which user types need test users?~~ **Answered 2026-10-02 → D-012** | - |
 | Q-004 | ~~Hosting provider?~~ **Answered 2026-10-02 → D-011**: none until development is done; free tier then. Provider picked at Pre-launch | Pre-launch |
 | Q-005 | ~~How does our team log in to the admin panel?~~ **Answered 2026-10-02 → D-013** (email, admins add admins) | - |
 | Q-006 | Final product name. **Not final** (team, 2026-10-02). "Glide" is also a well-known Android image library (bumptech/glide); check Play Store / trademark before launch | Play Store listing |
 | Q-007 | **Auth provider.** The plan says Firebase phone OTP → backend JWT; the team now prefers **Supabase Auth everywhere** (app users and admins) and asked for a researched recommendation. **Research done: [research/AUTH_OPTIONS.md](research/AUTH_OPTIONS.md)**, with 4 questions for the team at the end | Phase 1 auth tasks |
+| Q-008 | **API paths.** Spec v2 uses `/c/...` (customer), `/salon/...`, `/admin/...`, `/webhooks/razorpay`; Phase 0 used a `/v1` prefix (DF-07). Use `/v1/c/...`, `/v1/salon/...` (versioned, so old app versions keep working), or the spec's paths without a version? | First Phase 1 endpoint |
+| Q-009 | Spec v2 says it builds on **`Salon_App_Task_Wise_Development.md`** (salon onboarding, services, staff, customers, appointment engine, billing, subscriptions, admin; epics E2–E12). That file isn't in the repo | Salon-side tasks |
+| Q-010 | **Deadline.** Spec v2's sprint plan ends with **MVP submission on 2026-10-31**. Keep finishing Phase 0 in full, or do only CI next and jump to the salon core + customer booking? | Task order |
