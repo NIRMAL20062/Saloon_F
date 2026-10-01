@@ -18,3 +18,11 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Fixes along the way:** Espresso pinned to 3.7.0 (Compose's transitive 3.5.0 calls `InputManager.getInstance()`, removed in recent Android); test JVM `--add-opens java.base/jdk.internal.access` for Robolectric on JDK 25
 - **Follow-up (needs design):** launcher icon. Lint warns `MissingApplicationIcon` until the Figma asset exists
 
+### APP-002 · Network layer on the shared contract
+- **Completed:** 2026-10-01 · **Commits:** `e67dbdd` (DF-10 change), `41de918`
+- **Built:** `data/network/`: `GlideApi` (Retrofit, paths + models from `:shared`), `createOkHttpClient` / `createRetrofit` (plain functions, so tests use the exact app setup), `RequestIdInterceptor` (`X-Request-Id: android-<uuid>`), `apiCall {}` → `ApiResult` / `ApiError` (`Network`, `Http(status, code, requestId)`, `Unexpected`), Hilt `NetworkModule`; `BuildConfig.API_BASE_URL` per build type
+- **Tests:** `NetworkLayerTest` (8, MockWebServer): success, unknown fields ignored, error envelope, non-envelope error, no connection, contract violation, request ID format accepted by backend, `/health` 503 body readable. `NetworkSecurityConfigTest` (3): release has no cleartext, debug cleartext only to localhost, base URL per build type
+- **Security:** release HTTPS-only with system CAs; debug cleartext only to `127.0.0.1`/`localhost` (reached via `adb reverse`); body logging debug-only with `Authorization` redacted; raw server text never leaves the network layer (only error **codes**); release URL is a non-resolving `.invalid` placeholder until Q-004
+- **Database:** none
+- **Changed from plan:** debug URL is `http://127.0.0.1:8080` + `adb reverse` instead of `10.0.2.2`, so real phones work too (DF-10 updated)
+

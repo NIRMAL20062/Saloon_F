@@ -5,22 +5,8 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
-### APP-002 · Network layer on the shared contract
-- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-001, BE-008
-- **Why:** every feature talks to the backend the same way, with the same models as the server
-- **Scope:**
-  - Retrofit + OkHttp + kotlinx.serialization using `shared` DTOs and `ApiJson` (no duplicated models)
-  - API base URL per build type: debug → `http://127.0.0.1:8080` via `adb reverse` (USB phone or emulator → laptop, DF-10), release → HTTPS URL (placeholder until Q-004)
-  - every request sends an `X-Request-Id` so app and server logs line up
-  - backend error envelope mapped to one app-side error type
-  - HTTP body logging in debug builds only
-- **Done when:**
-  - [ ] Tests: MockWebServer tests for success, 503, error envelope and no network
-  - [ ] Security: network security config allows cleartext **only** to localhost and **only** in debug; release is HTTPS-only
-  - [ ] Database: none
-
 ### APP-003 · System status screen (end-to-end proof)
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** APP-002, BE-007
+- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-002, BE-007
 - **Why:** proves the whole chain works (screen → ViewModel → UseCase → Repository → API → Postgres) before real features
 - **Scope:**
   - start screen shows backend status, database status and backend version
