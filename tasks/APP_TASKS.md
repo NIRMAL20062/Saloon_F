@@ -6,16 +6,16 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
 ### APP-003 · System status screen (end-to-end proof)
-- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-002, BE-007
+- **Phase:** 0 · **Status:** 🔄 Built, waiting for the team's phone check · **Owner:** Claude · **Depends on:** APP-002, BE-007 · **Commits:** `f8280b2`
 - **Why:** proves the whole chain works (screen → ViewModel → UseCase → Repository → API → Postgres) before real features
 - **Scope:**
   - start screen shows backend status, database status and backend version
   - Loading, Success and Error states, plus a Retry button
 - **Done when:**
-  - [ ] Tests: ViewModel unit tests for every state; Compose UI tests (Robolectric) for every state
-  - [ ] Flow: on the phone (or an emulator) against the local backend, the screen shows `UP`; stopping Postgres shows `DOWN`; stopping the backend shows the error state with Retry
-  - [ ] Security: error messages shown to the user never include raw server responses
-  - [ ] Database: none
+  - [x] Tests: ViewModel unit tests for every state; Compose UI tests (Robolectric) for every state (`StatusViewModelTest` 6, `StatusScreenTest` 7, `NetworkHealthRepositoryTest` 4, `AppLaunchTest` with Hilt fake)
+  - [ ] Flow: on the phone (or an emulator) against the local backend, the screen shows `UP` ✅ (verified on moto g54); stopping Postgres shows `DOWN` ✅ (verified); stopping the backend shows the error state with Retry ⏳ (covered by tests, **team to confirm on phone**)
+  - [x] Security: error messages shown to the user never include raw server responses (`serverErrorShowsOnlyOurTextWithStatusAndReference`)
+  - [x] Database: none
 
 ## Phase 1: Outline only (details after Q-001, Q-003 in [DECISIONS.md](../docs/DECISIONS.md))
 

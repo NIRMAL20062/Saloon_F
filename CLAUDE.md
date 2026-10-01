@@ -16,6 +16,9 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
    Types: `feat`, `fix`, `test`, `docs`, `build`, `ci`, `refactor`, `chore`. Scopes: `android`, `backend`, `shared`, `admin`, `ci`, `docs`.
 4. **Finish the paperwork.** When a task is done, move its block to the matching `_COMPLETED.md` file with date, commit hashes,
    tests added, and security/database notes.
+5. **Stop and report after every task.** Never start the next task in the same session turn. Report to the team:
+   what was built, **exact steps to test it themselves** (on the phone or in the browser), and **what you need from them**
+   (API keys, accounts, answers). Then wait for their explicit go-ahead.
 
 ## Product rules: non-negotiable
 

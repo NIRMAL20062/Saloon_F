@@ -39,10 +39,19 @@ admin (`pnpm dev`). Confirm every "Done when → Flow" item by hand and say what
 
 Run `/feature-security-check` on the task's changes. Fix anything it finds before closing.
 
-## 6. Close
+## 6. Report and STOP
 
-1. Tick every box in the task's "Done when" list. If any can't be ticked, the task isn't done; say why.
-2. **Move** the task block from `*_TASKS.md` to the matching `*_COMPLETED.md` (bottom), and add:
-   `**Completed:** <date> · **Commits:** <hashes>`, what was built, tests added (class + count), security notes, database notes.
-3. Commit the task-file update: `docs(tasks): complete <ID>`.
-4. Report: what was built, test counts, anything deferred, and the next available task.
+Tick every "Done when" box you could verify. Then end your turn with a report, and **do not start another task**:
+
+1. **Built**: what changed, in plain words, with commit hashes and test counts.
+2. **Test it yourself**: numbered steps the team can follow on the phone (`adb reverse tcp:8080 tcp:8080`,
+   install, what to tap, what they should see) or in the browser. Include the failure cases worth trying.
+3. **Needed from you**: keys, accounts, files, or answers to open questions, or "nothing".
+4. **Next**: the next available task, waiting for their go-ahead.
+
+## 7. Close (after the team's OK)
+
+1. **Move** the task block from `*_TASKS.md` to the matching `*_COMPLETED.md` (bottom), and add:
+   `**Completed:** <date> · **Commits:** <hashes>`, what was built, tests added (class + count), security notes, database notes,
+   and "verified by <who> on <device>".
+2. Commit the task-file update: `docs(tasks): complete <ID>`.

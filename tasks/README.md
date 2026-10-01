@@ -24,7 +24,9 @@
    that builds and passes tests on its own. Every commit message ends with the task ID, e.g.
    `feat(android): show backend status on home screen (APP-003)`.
 4. **PR.** Open a pull request and tick the task's "Done when" list. CI must be green.
-5. **Close.** After merge, **move** the whole task block to the `_COMPLETED` file and add the date,
+5. **Report and wait.** Tell the team what was built, how to test it on the phone/browser step by step,
+   and what is needed from them (keys, accounts, answers). **The next task starts only after their OK.**
+6. **Close.** After the team's OK (and merge), **move** the whole task block to the `_COMPLETED` file and add the date,
    commit hashes, tests added, and security/database notes.
 
 ## Definition of Done (every task)
