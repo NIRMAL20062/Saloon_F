@@ -7,7 +7,7 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
 ### BE-009 · Backend Docker image
-- **Phase:** 0 · **Status:** 🔄 In progress (`backend/Dockerfile` written, not yet built or committed) · **Depends on:** BE-008
+- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-008
 - **Why:** CD needs one deployable artifact that runs the same on any host (Q-004 still open)
 - **Scope:**
   - multi-stage `backend/Dockerfile` (JDK 21 build → JRE 21 alpine runtime), non-root user, container health check
@@ -64,13 +64,6 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
   - [ ] image appears in GHCR after a merge
   - [ ] workflow passes with no Firebase secrets configured (step skipped, not failed)
   - [ ] Security: secrets only from GitHub Actions secrets / environments; nothing printed to logs
-
-### BE-014 · AI tooling: CLAUDE.md files, settings, skills
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** -
-- **Scope:** root `CLAUDE.md` + one per project folder (`android/`, `backend/`, `shared/`, `admin/`), `.claude/settings.json` (allowed commands; reading `.env`/keystores denied), skills for: working a task from these files, adding an API endpoint, writing a DB migration, per-feature security check
-- **Done when:**
-  - [ ] `CLAUDE.md` tells any AI tool to work only from `tasks/` and to ask when information is missing
-  - [ ] each skill can be run as `/skill-name` and follows the Definition of Done
 
 ### BE-015 · Project docs
 - **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** -

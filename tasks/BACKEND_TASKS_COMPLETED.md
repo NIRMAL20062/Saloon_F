@@ -47,3 +47,10 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Built:** request IDs (`X-Request-Id`), safe access log (path + status only), security headers, HSTS on staging/prod, CORS allowlist, per-IP rate limit (`RATE_LIMIT_PER_MINUTE`, default 300), 1 MB body limit, every error → `{"error":{"code","message","requestId"}}`
 - **Tests:** `SecurityBaselineTest` (11), one per control, plus `AppConfigTest` +1
 - **Security:** no stack traces, exception messages or class names ever reach clients
+
+### BE-014 · AI tooling: CLAUDE.md files, settings, skills
+- **Completed:** 2026-10-01 · **Commits:** `2c052a2`
+- **Built:** root [CLAUDE.md](../CLAUDE.md) (work only from `tasks/`, ask instead of guessing, small commits with task IDs, product rules), [shared/CLAUDE.md](../shared/CLAUDE.md), [backend/CLAUDE.md](../backend/CLAUDE.md), [android/CLAUDE.md](../android/CLAUDE.md); skills `/work-task`, `/add-task`, `/add-endpoint`, `/db-migration`, `/feature-security-check` in `.claude/skills/`; `.claude/settings.json`
+- **Security:** Claude Code is denied reading/editing `.env*` secrets files, keystores, `google-services.json`, service-account files
+- **Deferred:** `admin/CLAUDE.md` is created with WEB-001 (the Next.js generator needs an empty folder)
+- **Decisions logged:** DF-11 (money in paise), DF-12 (uuid keys, timestamps), DF-13 (tenant from auth only), DF-14 (skills)
