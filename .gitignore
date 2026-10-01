@@ -1,0 +1,49 @@
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+google-services.json
+service-account*.json
+local.properties
+
+# ---- Gradle / Kotlin ----
+.gradle/
+build/
+.kotlin/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ---- Android ----
+captures/
+*.apk
+*.aab
+.externalNativeBuild/
+.cxx/
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+
+# ---- Node / Next.js (admin) ----
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+blob-report/
+
+# ---- Logs ----
+*.log
+
+# ---- Claude Code (personal, not shared) ----
+.claude/settings.local.json
+CLAUDE.local.md
