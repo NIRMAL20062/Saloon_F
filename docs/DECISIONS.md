@@ -37,6 +37,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | DF-12 | Tables: plural `snake_case`, `uuid` primary keys (`gen_random_uuid()`), `created_at`/`updated_at` `timestamptz` on every table. API timestamps are ISO-8601 UTC strings | IDs can be created anywhere and can't be guessed by counting |
 | DF-13 | Tenant (`salon_id`) always comes from the authenticated user, never from request input; uniqueness is per salon (`UNIQUE (salon_id, …)`) | Enforces the multi-tenant rule in code **and** in the database |
 | DF-14 | Shared AI workflow in `.claude/skills/`: `/work-task`, `/add-task`, `/add-endpoint`, `/db-migration`, `/feature-security-check` | Every teammate and AI tool follows the same steps and Definition of Done |
+| DF-15 | PRs merge with a **merge commit** (not squash); `main` requires 1 approval + the `ci-ok` check | Keeps the small commits visible for debugging (D-007) |
 
 ## Open questions
 

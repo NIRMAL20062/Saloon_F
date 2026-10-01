@@ -66,7 +66,7 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
   - [ ] Security: secrets only from GitHub Actions secrets / environments; nothing printed to logs
 
 ### BE-015 · Project docs
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** -
+- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** - · **Progress:** docs written; final "new teammate" check after APP-001 and WEB-001 exist
 - **Scope:** `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT_WORKFLOW.md` (branches, small commits, PRs, environments), `docs/TESTING.md` (incl. staging on real services with test users per role, D-008), `docs/SECURITY.md`, `docs/DATABASE.md`, `.github` PR template linking to the task's "Done when" list
 - **Done when:**
   - [ ] a new teammate can set up and run all three projects from the docs alone
