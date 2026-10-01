@@ -6,33 +6,6 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
-### BE-009 · Backend Docker image
-- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-008
-- **Why:** CD needs one deployable artifact that runs the same on any host (Q-004 still open)
-- **Scope:**
-  - multi-stage `backend/Dockerfile` (JDK 21 build → JRE 21 alpine runtime), non-root user, container health check
-  - `.dockerignore` so secrets and unrelated folders never enter the build context
-  - `docker-compose.yml` `full` profile: backend + Postgres together (used by end-to-end tests)
-  - NOT included: pushing the image anywhere (that's BE-013)
-- **Done when:**
-  - [ ] `docker build -f backend/Dockerfile .` succeeds from a clean checkout
-  - [ ] container answers `/health` with `UP` against the compose Postgres
-  - [ ] Security: runs as non-root; `.env`, keystores and `google-services.json` excluded from the context
-  - [ ] Database: migrations apply on container start
-  - [ ] Flow: `docker compose --profile full up` → `curl /health` → `UP`
-
-### BE-010 · OpenAPI spec + contract test
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-008
-- **Why:** the web admin panel is TypeScript and can't use the Kotlin `shared` module; it generates its types from this spec (D-004)
-- **Scope:**
-  - `docs/api/openapi.yaml` describing `/health/live`, `/health` and the error envelope
-  - backend test that validates real responses against the spec, so the spec can't silently drift
-- **Done when:**
-  - [ ] spec covers every current endpoint and status code (200, 503, 404, 429, 500 envelope)
-  - [ ] Tests: contract test fails if a response doesn't match the spec
-  - [ ] Security: n/a (no auth yet)
-  - [ ] Database: none
-
 ### BE-011 · CI pipeline (GitHub Actions)
 - **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-009, APP-001, WEB-001
 - **Why:** every PR must prove it builds and passes all tests before merge

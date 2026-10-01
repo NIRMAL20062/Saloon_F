@@ -54,3 +54,16 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** Claude Code is denied reading/editing `.env*` secrets files, keystores, `google-services.json`, service-account files
 - **Deferred:** `admin/CLAUDE.md` is created with WEB-001 (the Next.js generator needs an empty folder)
 - **Decisions logged:** DF-11 (money in paise), DF-12 (uuid keys, timestamps), DF-13 (tenant from auth only), DF-14 (skills)
+
+### BE-009 · Backend Docker image
+- **Completed:** 2026-10-01 · **Commits:** `f4a8e94`
+- **Built:** multi-stage `backend/Dockerfile` (JDK 21 build → JRE 21 alpine, 245 MB), container health check on `/health/live`, `.dockerignore`, `docker-compose.yml` `full` profile (backend + Postgres)
+- **Verified:** `docker compose --profile full up -d --build` → container `healthy`, Flyway validated on start, `curl /health` → `{"status":"UP","version":"0.1.0","database":"UP"}` with all security headers
+- **Security:** runs as non-root (`uid=100(glide)`); `.env`, keystores, `google-services.json`, `android/`, `admin/`, `docs/` excluded from the build context; Flyway masks the JDBC URL in logs
+- **Database:** migrations run on container start (fresh-database run happens in CI end-to-end tests, BE-011)
+
+### BE-010 · OpenAPI spec + contract test
+- **Completed:** 2026-10-01 · **Commits:** `16596a2`
+- **Built:** [docs/api/openapi.yaml](../docs/api/openapi.yaml) (OpenAPI 3.0.3): `/health/live`, `/health` (200/503), error envelope as `default` response, `X-Request-Id` header; `additionalProperties: false` so undocumented fields fail
+- **Tests:** `OpenApiContractTest` (6): 200, 503 and 429 responses validated against the spec; the validator rejects a bad body (guards the guard); every registered backend route is in the spec and vice versa
+- **Notes:** validator `swagger-request-validator-core` 2.46.1 (3.0.0 on Maven Central has no jar)
