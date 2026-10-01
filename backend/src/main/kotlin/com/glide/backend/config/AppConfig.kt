@@ -22,6 +22,8 @@ data class AppConfig(
     val database: DatabaseConfig,
     /** Browser origins allowed to call the API, e.g. `https://admin.example.com`. Empty = none. */
     val corsAllowedOrigins: List<String>,
+    /** Max requests per minute from one client IP, across all endpoints. */
+    val rateLimitPerMinute: Int,
 ) {
     companion object {
         /**
@@ -74,11 +76,19 @@ data class AppConfig(
                 }
             }
 
+            val rateLimit =
+                env["RATE_LIMIT_PER_MINUTE"]?.let { raw ->
+                    raw.toIntOrNull()?.takeIf { it in 1..MAX_RATE_LIMIT }
+                        ?: 0.also { problems += "RATE_LIMIT_PER_MINUTE must be a number between 1 and $MAX_RATE_LIMIT" }
+                } ?: DEFAULT_RATE_LIMIT
+
             if (problems.isNotEmpty()) throw InvalidConfigException(problems)
-            return AppConfig(appEnv, port, version, database, origins)
+            return AppConfig(appEnv, port, version, database, origins, rateLimit)
         }
 
         private const val DEFAULT_PORT = 8080
+        private const val DEFAULT_RATE_LIMIT = 300
+        private const val MAX_RATE_LIMIT = 100_000
         private val ORIGIN_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
     }
 }

@@ -5,6 +5,9 @@ import com.glide.backend.db.DatabaseFactory
 import com.glide.backend.health.DatabaseHealthCheck
 import com.glide.backend.health.JdbcDatabaseHealthCheck
 import com.glide.backend.health.healthRoutes
+import com.glide.backend.plugins.configureErrorHandling
+import com.glide.backend.plugins.configureMonitoring
+import com.glide.backend.plugins.configureSecurity
 import com.glide.backend.plugins.configureSerialization
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -34,6 +37,9 @@ fun Application.module(
     config: AppConfig,
     dependencies: AppDependencies,
 ) {
+    configureMonitoring()
+    configureSecurity(config)
+    configureErrorHandling()
     configureSerialization()
     routing {
         healthRoutes(config.version, dependencies.databaseHealthCheck)

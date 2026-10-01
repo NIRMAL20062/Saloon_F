@@ -27,6 +27,9 @@ object ErrorCodes {
     const val UNAUTHORIZED = "UNAUTHORIZED"
     const val FORBIDDEN = "FORBIDDEN"
     const val NOT_FOUND = "NOT_FOUND"
+    const val METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED"
+    const val PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE"
+    const val UNSUPPORTED_MEDIA_TYPE = "UNSUPPORTED_MEDIA_TYPE"
     const val RATE_LIMITED = "RATE_LIMITED"
     const val INTERNAL = "INTERNAL"
 }

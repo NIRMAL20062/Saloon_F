@@ -25,6 +25,17 @@ class AppConfigTest {
         assertEquals(9000, config.port)
         assertEquals("1.2.3", config.version)
         assertEquals(listOf("https://admin.example.com", "http://localhost:3000"), config.corsAllowedOrigins)
+        assertEquals(300, config.rateLimitPerMinute)
+    }
+
+    @Test
+    fun `rejects an out-of-range rate limit`() {
+        val error =
+            assertFailsWith<InvalidConfigException> {
+                AppConfig.fromEnv(valid + ("RATE_LIMIT_PER_MINUTE" to "0"), "1")
+            }
+
+        assertEquals(listOf("RATE_LIMIT_PER_MINUTE must be a number between 1 and 100000"), error.problems)
     }
 
     @Test

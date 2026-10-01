@@ -9,12 +9,15 @@ import com.glide.backend.health.DatabaseHealthCheck
 fun testConfig(
     database: DatabaseConfig = DatabaseConfig("jdbc:postgresql://unused:5432/unused", "unused", "unused"),
     corsAllowedOrigins: List<String> = listOf("http://localhost:3000"),
+    env: AppEnv = AppEnv.TEST,
+    rateLimitPerMinute: Int = 10_000,
 ) = AppConfig(
-    env = AppEnv.TEST,
+    env = env,
     port = 0,
     version = "test",
     database = database,
     corsAllowedOrigins = corsAllowedOrigins,
+    rateLimitPerMinute = rateLimitPerMinute,
 )
 
 /** Dependencies with fakes, for route tests that don't need a real database. */
