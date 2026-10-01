@@ -1,6 +1,7 @@
 package com.glide.backend
 
 import com.glide.backend.config.AppConfig
+import com.glide.backend.db.DatabaseFactory
 import com.glide.backend.health.healthRoutes
 import com.glide.backend.plugins.configureSerialization
 import io.ktor.server.application.Application
@@ -11,6 +12,10 @@ import java.util.Properties
 
 fun main() {
     val config = AppConfig.fromEnv(System.getenv(), readBuildVersion())
+    val dataSource = DatabaseFactory.createDataSource(config.database)
+    DatabaseFactory.migrate(dataSource)
+    DatabaseFactory.connectExposed(dataSource)
+
     embeddedServer(Netty, port = config.port, host = "0.0.0.0") {
         module(config)
     }.start(wait = true)
