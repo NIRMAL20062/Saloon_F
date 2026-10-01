@@ -26,6 +26,7 @@ Full checks, same as CI: `./gradlew check` and `cd admin && pnpm verify`.
 
 ## Where to read next
 
+- **[tasks/](tasks/README.md): what to build next and what's done, for the App, Web and Backend. All work starts here.**
 - [docs/ROADMAP.md](docs/ROADMAP.md): phases and tasks, and what's being built now
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pieces fit, and how Android + web are built together
 - [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md): task → branch → small commits → PR → CI → deploy

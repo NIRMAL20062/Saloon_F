@@ -17,6 +17,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-006 | 2026-10-01 | **Phase 0 = walking skeleton**: all three apps run and talk end-to-end via `/health`; no business tables | Multi-tenant base + auth start in Phase 1 |
 | D-007 | 2026-10-01 | **Small commits**: one commit per unit of work, so the team can debug and revert easily | See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) |
 | D-008 | 2026-10-01 | **Hosting decided later.** CD publishes build artifacts now. **Test on real services from the start**: staging uses real Postgres, Razorpay test mode, Firebase test phone numbers, and seeded test users for every user type | See [TESTING.md](TESTING.md) § Environments |
+| D-009 | 2026-10-01 | **All work is driven by task files** in `tasks/`: To-do + Completed pairs for App, Web and Backend (+ Platform). Nothing is built unless it is a task there first | See [tasks/README.md](../tasks/README.md) |
 
 ## Implementation defaults (veto-able)
 
