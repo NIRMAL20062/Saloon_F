@@ -1,0 +1,17 @@
+# Single source of truth for every JVM/Android dependency version.
+# Change a version here, never inline in a build.gradle.kts. Record big upgrades in docs/DECISIONS.md.
+
+[versions]
+kotlin = "2.4.20"
+agp = "9.4.1"
+spotless = "8.10.3"
+ktlint = "1.8.0"
+
+[libraries]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
