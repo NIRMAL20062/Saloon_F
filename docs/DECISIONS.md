@@ -18,6 +18,11 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-007 | 2026-10-01 | **Small commits**: one commit per unit of work, so the team can debug and revert easily | See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) |
 | D-008 | 2026-10-01 | **Hosting decided later.** CD publishes build artifacts now. **Test on real services from the start**: staging uses real Postgres, Razorpay test mode, Firebase test phone numbers, and seeded test users for every user type | See [TESTING.md](TESTING.md) § Environments |
 | D-009 | 2026-10-01 | **All work is driven by task files** in `tasks/`: To-do + Completed pairs for App, Web and Backend (+ Platform). Nothing is built unless it is a task there first | See [tasks/README.md](../tasks/README.md) |
+| D-010 | 2026-10-02 | **Free tiers only** (database, auth, hosting, email, monitoring) until real user growth requires paid plans | Every new service must state its free-tier limits in the task that adds it |
+| D-011 | 2026-10-02 | **No hosting during development.** Backend, database and admin run locally; the app is tested on team phones over USB. Hosting starts in the *Pre-launch* phase. Managed services the app needs during development (e.g. auth, Razorpay test mode) are used on their free/test tiers | Replaces the "staging" part of D-008 until Pre-launch; webhooks reach the laptop through a free tunnel when needed |
+| D-012 | 2026-10-02 | **User types**: salon owner, staff/stylist, receptionist/manager, salon's customer, plus our internal admin (admin panel). Test users: one per type in **two** test salons | How customers interact (app login vs WhatsApp link only) is decided with the feature list (Q-001) |
+| D-013 | 2026-10-02 | **Admin panel login by email; existing admins can add new admins** (invite-only, no self sign-up) | Provider and email method: Q-007 |
+| D-014 | 2026-10-02 | **Phase-wise development; the AI stops after every task** and reports what was built, how to test it, and what it needs from the team. Next task only after the team's OK | See [tasks/README.md](../tasks/README.md) |
 
 ## Implementation defaults (veto-able)
 
@@ -44,8 +49,9 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | ID | Question | Blocks |
 |---|---|---|
 | Q-001 | Product plan sections 1–3 (problem, features, MVP scope, user types) aren't in the repo yet. `ChatGPT.md` is empty on disk | Phase 1+ planning |
-| Q-002 | "We will do all things like Supabase": use Supabase only as a **hosted Postgres** for staging/prod (works with Ktor + Exposed), or something else? | Staging setup |
-| Q-003 | Which user types need test users? (e.g. salon owner, staff/stylist, receptionist, our internal admin, a salon's customer) | Phase 1 seed data, roles |
-| Q-004 | Hosting for backend + Postgres + admin (Railway / Render / VPS / other) | CD deploy step |
-| Q-005 | How does our team log in to the admin panel? (e.g. Google Workspace SSO, Firebase email link) | Admin auth, Phase 1 |
-| Q-006 | Final product name. "Glide" is also a well-known Android image library (bumptech/glide). Fine as a working name, but check Play Store / trademark before launch | Play Store listing |
+| Q-002 | ~~Supabase only as hosted Postgres?~~ Partly answered 2026-10-02: free tiers (D-010), no hosting during development (D-011). Which free Postgres host at Pre-launch is decided together with Q-007 | Pre-launch |
+| Q-003 | ~~Which user types need test users?~~ **Answered 2026-10-02 → D-012** | - |
+| Q-004 | ~~Hosting provider?~~ **Answered 2026-10-02 → D-011**: none until development is done; free tier then. Provider picked at Pre-launch | Pre-launch |
+| Q-005 | ~~How does our team log in to the admin panel?~~ **Answered 2026-10-02 → D-013** (email, admins add admins) | - |
+| Q-006 | Final product name. **Not final** (team, 2026-10-02). "Glide" is also a well-known Android image library (bumptech/glide); check Play Store / trademark before launch | Play Store listing |
+| Q-007 | **Auth provider.** The plan says Firebase phone OTP → backend JWT; the team now prefers **Supabase Auth everywhere** (app users and admins) and asked for a researched recommendation (cost of phone OTP in India, DLT rules, free-tier limits, how other apps separate admin login) | Phase 1 auth tasks |

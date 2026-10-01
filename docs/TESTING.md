@@ -29,30 +29,37 @@ query bugs show up in tests, not in production.
 - no token → 401 · wrong role → 403
 - retry safety (same request/webhook twice → one effect) where retries can happen
 
-## Real-data testing: staging (D-008)
+## Real-data testing (D-008, D-011)
 
-Staging is a full copy of production running on **real services in test mode**:
+We test on **real services in test mode** from the start, but **without hosting** until the Pre-launch phase:
 
-| Service | Staging setup |
-|---|---|
-| PostgreSQL | real hosted database, never shared with production (provider: Q-002/Q-004) |
-| Razorpay | **test mode** keys: real API, real webhooks, no real money. Test cards/UPI from Razorpay docs |
-| Firebase Auth (phone OTP) | Firebase **test phone numbers** with fixed codes, plus team members' real phones |
-| WhatsApp Cloud API | Meta **test number** and test recipients |
-| FCM | real pushes to team devices |
-
-### Test users for every user type
-
-A seed script (Phase 1 task `BE-1xx`) creates the same named test users in staging every time:
-one per user type, in at least **two test salons** (so tenant isolation can be checked by hand too).
-The user types themselves are **open question Q-003**. The list will be filled in here once the team confirms it.
-
-| User type | Salon | Login (test phone) | Notes |
+| Phase | Backend + database | Phones | External services |
 |---|---|---|---|
-| _waiting for Q-003_ | Test Salon A | | |
-| | Test Salon B | | |
+| **Development (now)** | on the developer's laptop (`docker compose`) | team phones over USB (`adb reverse tcp:8080 tcp:8080`) | real services in **test mode**; webhooks (Razorpay, WhatsApp) reach the laptop through a free tunnel |
+| **Pre-launch** | free-tier hosting (provider picked then, D-010) = **staging** | Firebase App Distribution builds | test mode |
+| **Production** | hosted | Play Store | live keys |
 
-Rules: test credentials live in the team's password manager, not in git. Staging never holds real customer data.
+| Service | Test-mode setup |
+|---|---|
+| PostgreSQL | local Docker now; a separate free hosted database for staging later, never shared with production |
+| Razorpay | **test mode** keys: real API, real webhooks, no real money. Test cards/UPI from Razorpay docs |
+| Phone/email login | provider's **test numbers/emails** with fixed codes, plus team members' real phones (provider: Q-007) |
+| WhatsApp Cloud API | Meta **test number** and test recipients |
+
+### Test users for every user type (D-012)
+
+A seed script (Phase 1 task) creates the same named test users every time, in **two** test salons, so tenant isolation
+can also be checked by hand (log in as Salon A's owner and try to see Salon B's data: you must not).
+
+| User type | Test Salon A | Test Salon B | Can do (to be confirmed with the feature list) |
+|---|---|---|---|
+| Salon owner | `owner.a` | `owner.b` | everything in their salon: staff, services, prices, reports, subscription |
+| Staff / stylist | `stylist.a` | `stylist.b` | own appointments only |
+| Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; no prices, reports or subscription |
+| Salon's customer | `customer.a` | `customer.b` | book / pay (app login or WhatsApp link only: Q-001) |
+| Internal admin (our team) | `admin` | (all salons) | admin panel only |
+
+Logins (test phone numbers / emails and codes) live in the team's password manager, **not in git**. Test data is fake; real customer data never goes into development or staging.
 
 ## Writing good tests (house style)
 

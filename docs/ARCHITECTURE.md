@@ -67,14 +67,14 @@ Hilt wires the graph. Debug builds call `http://127.0.0.1:8080`, forwarded to th
 | | Local | Staging | Production |
 |---|---|---|---|
 | Purpose | development | real-data testing by the team and design partners | real salons |
-| Database | Docker Postgres | hosted Postgres (provider: Q-002/Q-004) | hosted Postgres |
+| Database | Docker Postgres | free-tier hosted Postgres (picked at Pre-launch) | hosted Postgres |
 | Razorpay | test keys | **test mode** | live keys |
-| Firebase Auth | test phone numbers | test phone numbers + real team phones | real |
+| Login provider (Q-007) | test numbers/emails | test numbers + real team phones | real |
 | WhatsApp | test number | test number | approved business number |
-| Users | none / seeded | **seeded test users for every user type** (Q-003) | real |
+| Users | seeded test users (D-012) | **seeded test users for every user type** (D-012) | real |
 | Android build | debug | staging build via Firebase App Distribution | Play Store |
 
-Hosting is decided later (Q-004). CD already produces the deployable artifacts.
+**Only Local exists during development (D-011).** Staging and Production start in the Pre-launch phase, on free tiers (D-010). CD already produces the deployable artifacts.
 
 ## Request lifecycle (backend)
 
