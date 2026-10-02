@@ -43,7 +43,7 @@ We test on **real services in test mode** from the start, but **without hosting*
 |---|---|
 | PostgreSQL | local Docker now; a separate free hosted database for staging later, never shared with production |
 | Razorpay | **test mode** keys: real API, real webhooks, no real money. Test cards/UPI from Razorpay docs |
-| Phone/email login | provider's **test numbers/emails** with fixed codes, plus team members' real phones (provider: Q-007) |
+| Phone/email login | **Supabase Auth test phone numbers** with fixed OTP codes (free, no SMS sent); team phones with real SMS through a Twilio trial account (D-016) |
 | WhatsApp Cloud API | Meta **test number** and test recipients |
 
 ### Test users for every user type (D-012)
@@ -56,7 +56,7 @@ can also be checked by hand (log in as Salon A's owner and try to see Salon B's 
 | Salon owner | `owner.a` | `owner.b` | everything in their salon: staff, services, prices, reports, subscription |
 | Staff / stylist | `stylist.a` | `stylist.b` | own appointments only |
 | Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; no prices, reports or subscription |
-| Salon's customer | `customer.a` | `customer.b` | book / pay (app login or WhatsApp link only: Q-001) |
+| Customer (customer app) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
 | Internal admin (our team) | `admin` | (all salons) | admin panel only |
 
 Logins (test phone numbers / emails and codes) live in the team's password manager, **not in git**. Test data is fake; real customer data never goes into development or staging.

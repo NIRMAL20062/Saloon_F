@@ -52,7 +52,7 @@ Workflow and template: [README.md](README.md) · Done so far: [WEB_TASKS_COMPLET
 
 ## Phase 1: Outline only (details after Q-001, Q-005 in [DECISIONS.md](../docs/DECISIONS.md))
 
-- ⬜ **WEB-1xx** Admin login by email, invite-only; existing admins add new admins (D-013, provider Q-007)
+- ⬜ **WEB-1xx** Admin login by email code + authenticator app (DF-16) through Supabase Auth (D-016), invite-only; admins add admins (D-013)
 - ⬜ **WEB-1xx** **Audit log viewer**: search who changed what, by salon / user / date (uses BE audit log). _Needs from team: nothing._
 
 ## Pre-launch: Outline only

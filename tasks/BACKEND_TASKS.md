@@ -49,7 +49,8 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 - ⬜ **BE-1xx** Multi-tenant base: `salons` table, `salon_id` scoping pattern for every table, tenant-isolation tests
 - ⬜ **BE-1xx** Postgres **Row-Level Security** as a second tenant guard: even a buggy query can't return another salon's rows.
   _Needs from team: nothing._
-- ⬜ **BE-1xx** Auth: login provider verified by the backend, roles per user type (provider: Q-007, plan said Firebase phone OTP → JWT)
+- ⬜ **BE-1xx** Auth: backend verifies **Supabase Auth** tokens (JWKS, ES256), users + roles in our own tables (D-016).
+  _Needs from team: a free Supabase project; its project URL + keys sent privately; a Twilio trial account when real SMS is needed._
 - ⬜ **BE-1xx** Roles and permissions for the user types in D-012 (owner, stylist, receptionist/manager, customer, internal admin)
 - ⬜ **BE-1xx** **Audit log**: an `audit_log` table recording who changed what, when, in which salon, for every create/update/delete.
   Helps settle disputes ("who cancelled this booking?"). _Needs from team: nothing._

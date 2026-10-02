@@ -7,14 +7,12 @@ Workflow and template: [README.md](README.md) · Done so far: [APP_TASKS_COMPLET
 
 ## Phase 1: Outline only (details after Q-001, Q-003 in [DECISIONS.md](../docs/DECISIONS.md))
 
-- ⬜ **APP-1xx** Login (provider: Q-007; plan said phone OTP) → backend session, stored securely
+- ⬜ **APP-1xx** Login with **phone OTP by SMS through Supabase Auth** (D-016) → backend verifies the Supabase token; session stored securely
 - ⬜ **APP-1xx** Firebase project setup: Crashlytics + Analytics (in the plan, to prove design-partner usage; free Spark plan).
-  _Needs from team: create a Firebase project, add the app, send `google-services.json` privately (never via git)._
-- ⬜ **APP-1xx** **Offline plan**: decide which screens/actions must work without internet (salons often have weak signal), then
-  build them with Room (local cache + drafts) and WorkManager (sync + retry), both already in the stack.
-  _Needs from team: after the feature list, mark which screens must work offline._
-- ⬜ **APP-1xx** **Indian languages**: all app text is already in resource files; add translations + an in-app language switch.
-  _Needs from team: which languages (e.g. Hindi, Marathi…); a native speaker to review the translations I draft._
+  _Team created the Firebase project (2026-10-02). Needs from team when this task starts: add the Android app(s) in Firebase, send `google-services.json` privately (never via git)._
+- ⬜ **APP-1xx** **No-internet mode = view only (D-019)**: the salon app keeps the last loaded appointments and customers in Room
+  and shows them with a "No internet, showing saved data" banner; add/edit buttons are disabled until online. _Needs from team: nothing._
+- ~~**APP-1xx** Indian languages~~: **not planned, English only (D-018)**. Text stays in resource files so it can be added later.
 
 ## Pre-launch: Outline only
 
