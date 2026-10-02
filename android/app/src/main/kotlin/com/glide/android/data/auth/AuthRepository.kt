@@ -1,5 +1,6 @@
 package com.glide.android.data.auth
 
+import com.glide.android.data.network.AccessTokens
 import com.glide.shared.api.ApiJson
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,7 +37,7 @@ class AuthRepository
         private val api: SupabaseAuthApi,
         private val store: SessionStore,
         private val clock: EpochClock,
-    ) {
+    ) : AccessTokens {
         private val _session = MutableStateFlow(store.load())
 
         /** Null = signed out. */
@@ -96,6 +97,10 @@ class AuthRepository
             runCatching { api.logout("Bearer ${current.accessToken}") }
             signOutLocally()
         }
+
+        override suspend fun current(): String? = accessToken()
+
+        override suspend fun refreshAfterRejection(rejected: String?): String? = refresh(staleToken = rejected)
 
         private fun signOutLocally() {
             store.clear()

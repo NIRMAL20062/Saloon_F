@@ -2,6 +2,7 @@ package com.glide.android.data.auth
 
 import android.content.Context
 import com.glide.android.BuildConfig
+import com.glide.android.data.network.AccessTokens
 import com.glide.android.data.network.createOkHttpClient
 import com.glide.android.data.network.createRetrofit
 import dagger.Module
@@ -23,6 +24,9 @@ object AuthModule {
             BuildConfig.SUPABASE_PUBLISHABLE_KEY,
             debugLogging = BuildConfig.DEBUG,
         )
+
+    @Provides
+    fun accessTokens(repository: AuthRepository): AccessTokens = repository
 
     @Provides
     @Singleton
