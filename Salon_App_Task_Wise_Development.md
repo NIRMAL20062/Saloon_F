@@ -134,7 +134,7 @@ Needs from team: Meta WhatsApp Business verification + approved templates (in pr
 |---|---|---|---|
 | E8.1 | Bill for a completed appointment: services (prefilled), ❓ products sold, ❓ discounts, ❓ tips, ❓ GST | A-S/B | Totals computed on the server, in paise |
 | E8.2 | Record payment: cash, UPI, card (at counter) and split payments | A-S/B | Bill status `UNPAID → PARTIAL → PAID` |
-| E8.3 | Collect online: Razorpay Payment Link / UPI QR (from the stack doc); ❓ whose Razorpay account (Q-011) | B/A-S | Paid only after verified webhook |
+| E8.3 | Collect online: Razorpay Payment Link / UPI QR through **our** Razorpay account with Route; platform fee to us, salon's share to its linked account (D-028). Needs the salon's KYC (spec v2 C4.2), so built in Phase 6 | B/A-S | Paid only after verified webhook; split matches the ledger |
 | E8.4 | Pay-at-salon remainder from customer-app advance carried into the bill (spec v2 C4.10) | B | Advance shown, remainder correct |
 | E8.5 | Day close: cash/UPI/card totals for the day | A-S/B | Matches the sum of bills |
 
@@ -230,8 +230,8 @@ WEBHOOKS        POST /webhooks/razorpay
 | 2 | E2, E3, E4 | a salon is fully set up: hours, services, staff, customers |
 | 3 | E5, E6.1 | salon books, reschedules, completes appointments on the calendar |
 | 4 | spec v2 EC1–EC3, E6.2, E7 | a customer finds a salon and books on the customer side of the app (no payment yet) |
-| 5 | E8, E9 | salon bills and shares invoices |
-| 6 | spec v2 EC4, E12 | online payments, hold/release, refunds, salon subscriptions (test mode) |
+| 5 | E8 (except E8.3), E9 | salon bills and shares invoices |
+| 6 | spec v2 EC4, E8.3, E12 | online payments in the app and at the counter, hold/release, refunds, salon subscriptions (test mode) |
 | 7 | spec v2 EC5–EC8, E10, E11 | disputes, reviews, admin console, reports |
 | Pre-launch | hosting, monitoring, backups, store release | design partners use staging builds |
 

@@ -82,10 +82,10 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - APP-3xx Home: nearby salons, categories, top rated · search + filters (service, price, rating, open now, men/women/unisex) · salon page (photos, services, staff, reviews, policies, map) · cart (services + staff or "any") · slot picker · order summary with policy · My bookings (upcoming/past, status, reschedule, cancel with refund amount shown first, directions, call salon)
 
 **Phase 5: Salon side, billing and invoices** (salon plan E8–E9)
-- APP-4xx Bill for a completed appointment · cash/UPI/card payments · payment link / UPI QR · day close · share invoice
+- APP-4xx Bill for a completed appointment · record cash/UPI/card payments · day close · share invoice
 
-**Phase 6: Payments, refunds, subscriptions** (spec v2 EC4; salon plan E12)
-- APP-5xx Razorpay Checkout on the customer side (UPI, cards, wallets; full / advance / pay at salon) · refund status · salon payouts screen · salon subscription
+**Phase 6: Payments, refunds, subscriptions** (spec v2 EC4; salon plan E8.3, E12; D-028: all online money through our Razorpay)
+- APP-5xx Razorpay Checkout on the customer side (UPI, cards, wallets; full / advance / pay at salon) · salon bank/KYC setup (linked account) · payment link / UPI QR at the counter · refund status · salon payouts screen · salon subscription
 
 **Phase 7: Disputes, reviews, reports** (spec v2 EC5–EC7; salon plan E10)
 - APP-6xx Report a problem (48 h, photos) · salon dispute inbox · reviews after visit, salon replies · notification preferences · owner reports
