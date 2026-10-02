@@ -7,7 +7,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and accounts
 
 ### BE-016 · Backend trusts Supabase logins + `GET /v1/me`
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-011 · Decision: D-016
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-011 · Decision: D-016
 - **Why:** the apps log in with Supabase; the backend must check every request's token itself.
 - **Needs from team:** Supabase project (free, region Mumbai) with Phone provider + Twilio + test phone numbers; project URL shared;
   secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
