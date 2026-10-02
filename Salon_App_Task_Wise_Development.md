@@ -15,8 +15,8 @@
 
 | Surface | Who | Tech | Lives in |
 |---|---|---|---|
-| **Salon Android app** | owner, receptionist/manager, stylist | Kotlin + Compose | `android/app-salon` |
-| Customer Android app | people booking salons | Kotlin + Compose | `android/app-customer` (spec v2) |
+| **Android app, salon side** | owner, receptionist/manager, stylist | Kotlin + Compose | `android/app` (one app, D-023) |
+| Android app, customer side | people booking salons | Kotlin + Compose | same app; side chosen at onboarding (D-024) |
 | Admin web | our team | Next.js (React + TS) | `admin/` |
 | Backend | all | Ktor + PostgreSQL | `backend/` |
 | Booking web link (optional) | customers via Instagram/WhatsApp | React | later |
@@ -47,7 +47,7 @@ Defaults (DF-17, team can veto any cell): least privilege; one person **may** be
 
 | ID | Task | Owner | Acceptance |
 |---|---|---|---|
-| E1.1 | Android multi-module split: `app-salon`, `app-customer`, `core-network`, `core-database`, `core-ui`, `core-common`, `feature-booking` (spec v2 C1.1) | A | Both apps build from one repo; existing tests still pass |
+| E1.1 | ~~Two apps / multi-module split~~ **dropped: one app (D-023)**; onboarding asks "customer or salon?" (D-024) | A | One app shows the right side per user |
 | E1.2 | Supabase Auth phone OTP (SMS via Twilio) in the salon app; backend verifies the token (D-016) | A-S/B | Login, logout, token refresh; test phone numbers work without SMS |
 | E1.3 | `salons`, `salon_members(user_id, salon_id, role)`; every query scoped by `salon_id`; Postgres row-level security as a second guard | B | Test: salon A can't read/change salon B's data, for every endpoint |
 | E1.4 | Roles and permissions from §1 enforced on the backend (not only hidden buttons) | B | Wrong role → 403 test per endpoint |

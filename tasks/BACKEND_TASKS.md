@@ -1,6 +1,6 @@
 # ⚙️ Backend + Platform: To Do
 
-Backend = API + database for both apps and the admin panel. API paths per D-017: `/v1/c/...` customer, `/v1/salon/...` salon,
+Backend = API + database for the app (customer side + salon side, D-023) and the admin panel. API paths per D-017: `/v1/c/...` customer, `/v1/salon/...` salon,
 `/v1/admin/...` admin. Flows from [ChatGPT.md](../ChatGPT.md) and [Salon_App_Task_Wise_Development.md](../Salon_App_Task_Wise_Development.md).
 Order across App / Web / Backend: [README.md § Build order](README.md#build-order) · Done so far: [BACKEND_TASKS_COMPLETED.md](BACKEND_TASKS_COMPLETED.md)
 
@@ -13,10 +13,11 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
 - **Scope:**
   - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
-  - `app_users` table (one row per Supabase user: id, phone, created_at), created on first request
-  - `GET /v1/me` → who is signed in
+  - `app_users` table (one row per Supabase user: id, phone, **side** CUSTOMER / SALON / not chosen yet, created_at), created on first request
+  - `GET /v1/me` → who is signed in, their chosen side, salon memberships and pending invites (the app picks the interface from this, D-024)
+  - `PUT /v1/me/side` → save the onboarding choice (customer or salon); switching later is allowed
 - **Done when:**
-  - [ ] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope
+  - [ ] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned
   - [ ] Database: migration for `app_users`; first-request creation is idempotent (two parallel first requests → one row)
   - [ ] Security: tokens never logged; JWKS cached with a timeout; no Supabase secret in the repo
   - [ ] OpenAPI spec updated; contract test passes

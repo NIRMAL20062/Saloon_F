@@ -1,5 +1,8 @@
 # android/: Glide Android app
 
+**One app for everyone (D-023):** onboarding asks "customer or salon?" and the app shows that side (D-024). Customer-side screens
+live under `ui/customer/`, salon-side screens under `ui/salon/`, shared ones (login, onboarding) under `ui/auth/` and `ui/common/`.
+
 Kotlin · Jetpack Compose + Material 3 · MVVM, layers UI → ViewModel → UseCase → Repository · Hilt · Navigation Compose ·
 Coroutines + Flow · Retrofit + OkHttp + kotlinx.serialization. minSdk 24, compile/target SDK 37. Stack: [docs/TECH_STACK.md](../docs/TECH_STACK.md)
 

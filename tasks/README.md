@@ -4,7 +4,7 @@
 
 | Area | To do | Done |
 |---|---|---|
-| 📱 Android app | [APP_TASKS.md](APP_TASKS.md) | [APP_TASKS_COMPLETED.md](APP_TASKS_COMPLETED.md) |
+| 📱 Android app (one app: customer side + salon side) | [APP_TASKS.md](APP_TASKS.md) | [APP_TASKS_COMPLETED.md](APP_TASKS_COMPLETED.md) |
 | 🖥️ Web admin panel | [WEB_TASKS.md](WEB_TASKS.md) | [WEB_TASKS_COMPLETED.md](WEB_TASKS_COMPLETED.md) |
 | ⚙️ Backend (API + database) and Platform (build, CI/CD, docs) | [BACKEND_TASKS.md](BACKEND_TASKS.md) | [BACKEND_TASKS_COMPLETED.md](BACKEND_TASKS_COMPLETED.md) |
 
@@ -14,16 +14,16 @@ What gets built next, across all three files. Each step is one task = one pull r
 
 | # | Task | What you'll see | Needs from team first |
 |---|---|---|---|
-| 1 | APP-004 | two apps on the phone: Glide Salon + Glide | nothing |
-| 2 | BE-016 | backend accepts Supabase logins (`/v1/me`) | **Supabase project + phone login with test numbers** |
-| 3 | APP-005 | salon app: phone → OTP → logged in | (same Supabase project) |
-| 4 | BE-018 + APP-006 | customer app: phone login + name/email profile | nothing |
-| 5 | BE-017 + APP-007 | owner creates a salon; stylist joins by invite | nothing (permissions per DF-17) |
-| 6 | WEB-002 → BE-020 → WEB-005 | admin panel: email code + authenticator login | first admin's email; Supabase email + MFA on |
+| 1 | BE-016 | backend accepts Supabase logins (`/v1/me`), remembers customer/salon choice | **Supabase project + phone login with test numbers** |
+| 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout | (same Supabase project) |
+| 3 | BE-018 + APP-005 | first login asks "customer or salon?"; customers enter name/email | nothing |
+| 4 | BE-017 + APP-006 | salon side: owner creates a salon; staff join by invite | nothing (permissions per DF-17) |
+| 5 | APP-007, APP-008 | customer side tabs; salon side home + menu (switch side, logout) | nothing |
+| 6 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on |
 | 7 | WEB-006 | admins invite admins | nothing |
-| 8 | APP-008, APP-009 | customer app tabs; location or city | launch city |
+| 8 | APP-009 | customer side: location or city | launch city |
 | 9 | BE-019, BE-021 | audit log; test users for every type | nothing |
-| 10 | APP-010 | crash reports in Firebase | two `google-services.json` files |
+| 10 | APP-010 | crash reports in Firebase | `google-services.json` |
 
 Then Phase 2 (salon setup), Phase 3 (appointments), Phase 4 (customer booking)… as outlined in each file.
 Platform backlog items (security scanning, CD) are done in between when useful; they never block features.
