@@ -42,7 +42,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Flow:**
   - this phone number was invited by a salon → "Join <salon name> as <role>?" → accept → salon side
   - otherwise → "Create your salon": name, phone, address, type (men / women / unisex, from spec v2 filters) → you are its **owner**
-  - member of more than one salon → pick one (switch later from the menu)
+  - member of more than one salon → pick one (switch later from the menu); the app sends the picked salon with every
+    salon-side request (`X-Salon-Id`, D-026)
 - **Done when:**
   - [ ] Tests: every screen state; owner, invited staff and no-invite paths
   - [ ] Security: an invite works only for the invited phone number; tenant isolation tests (BE-017)

@@ -28,16 +28,21 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Scope:**
   - `salons` (name, phone, address, type men/women/unisex), `salon_members` (user, salon, role OWNER / MANAGER / STYLIST, status), `salon_invites` (phone, role, expiry)
   - `POST /v1/salon/salons` (creator becomes OWNER) · `GET /v1/salon/me/salons` · `POST /v1/salon/staff/invites` (owner only) · `POST /v1/salon/invites/{id}/accept`
-  - every salon route takes the salon from the member's selection and checks membership + role; Postgres row-level security as a second guard
+  - every salon route reads the salon from the `X-Salon-Id` header and checks membership + role **before** using it (D-026)
+  - row-level security (D-027): Flyway keeps the owner user; the backend's queries run as a new limited database user (not superuser,
+    not owner; created by the local setup and Testcontainers, password from env); each transaction sets `app.salon_id`
 - **Done when:**
-  - [ ] Tests: create salon; invite → accept only by the invited phone; **salon A can't read or change salon B** (every route); wrong role → 403
-  - [ ] Database: migrations with constraints (one OWNER minimum, unique member per salon, invite expiry), RLS policies tested
+  - [ ] Tests: create salon; invite → accept only by the invited phone; **salon A can't read or change salon B** (every route); wrong role → 403;
+    `X-Salon-Id` of a salon the user isn't in → 404; missing header on a salon route → 400
+  - [ ] Database: migrations with constraints (one OWNER minimum, unique member per salon, invite expiry); RLS enabled + forced;
+    test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
   - [ ] Security: salon id never trusted from the request body; audit-logged once BE-019 lands
 
-### BE-018 · Customer profile API
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2, data model `customers_app_users`
-- **Scope:** `GET /v1/c/me`, `PUT /v1/c/me` (name required 2–60 chars, email optional + valid); `customers_app_users` table linked to `app_users`.
-- **Done when:** tests for validation, own-profile only, new vs returning customer; OpenAPI updated.
+### BE-018 · Profile: name and email
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2 · Decision: DF-18
+- **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
+  `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
+- **Done when:** tests for validation, own profile only, new vs returning user; OpenAPI updated.
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: E1.5; spec v2 "audit entry for every admin or system money action"
@@ -46,13 +51,15 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ### BE-020 · Admins: first admin, invites, admin-only routes
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Decisions: D-013, DF-16
-- **Needs from team:** the email of the first admin; Email provider turned on in Supabase (+ free SMTP, e.g. Brevo) and authenticator-app MFA enabled.
+- **Needs from team:** the email of the first admin; Email provider turned on in Supabase (+ free SMTP, e.g. Brevo) and authenticator-app MFA enabled;
+  the Supabase **service-role key** put into `.env` by the team (the backend needs it to send invites; never in chat or git).
 - **Scope:** `admins` table (our DB decides who is admin); first admin created by a one-off command; `GET /v1/admin/me`;
   `POST /v1/admin/admins/invites` (sends the Supabase invite email); every `/v1/admin` route requires an admin **with MFA completed**.
 - **Done when:** tests: non-admin → 403; admin without MFA → 403; invite creates a pending admin; audit-logged.
 
 ### BE-021 · Seed test users
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-018, BE-020 · Spec: E1.6, D-012
+- **Needs from team:** the service-role key from BE-020 (creating users in Supabase needs it); the test phone numbers set up in Supabase.
 - **Scope:** one command creates Test Salon A + B with owner, manager, stylist each, two customers and one admin, all on Supabase test numbers/emails.
 - **Done when:** running it twice changes nothing; [docs/TESTING.md](../docs/TESTING.md) lists the logins (codes live in the password manager).
 
@@ -61,7 +68,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase 2** BE-1xx working hours, closed days · services (duration, price in paise) · staff hours, leave · salon customers list (salon plan E2–E4)
 - **Phase 3** BE-2xx availability engine · appointments with **no double booking** (database-enforced) · statuses + state machine · push to salon staff (E5, E6.1)
 - **Phase 4** BE-3xx listing + geo search + filters · slot lock (10 min) · customer bookings, reschedule/cancel with policy engine · WhatsApp + reminders (EC2–EC3, E6–E7)
-- **Phase 5** BE-4xx bills, payments at counter, payment links, PDF invoices (E8–E9)
+- **Phase 5** BE-4xx bills, payments at counter, payment links (whose Razorpay account: Q-011), PDF invoices (E8–E9)
 - **Phase 6** BE-5xx Razorpay Route orders with hold, verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions (EC4, E12)
 - **Phase 7** BE-6xx disputes state machine + SLAs, payout freeze, chargebacks, reviews, reliability scores, reports (EC5–EC6, E10)
 

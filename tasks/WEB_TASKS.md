@@ -23,7 +23,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   Everything under the panel requires login; session expires after inactivity; logout.
 - **Done when:**
   - [ ] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
-  - [ ] Security: session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
+  - [ ] Security: Supabase is called only from the Next.js server (DF-19); session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
   - [ ] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
 
 ### WEB-006 · Admins page: invite more admins
