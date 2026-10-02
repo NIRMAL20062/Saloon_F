@@ -7,8 +7,9 @@ Writing a migration: use the `/db-migration` skill.
 
 | Topic | Rule | Decision |
 |---|---|---|
-| Tenancy | every business table has `salon_id uuid NOT NULL` + an index starting with `salon_id` | product rule |
-| Tenant source | `salon_id` comes from the authenticated user, never from the request | DF-13 |
+| Tenancy | **salon-owned** tables have `salon_id uuid NOT NULL` + an index starting with `salon_id`; a **customer's own** data is keyed by their `app_user_id`; **platform** tables (`app_users`, `admins`, `webhook_events`, …) have neither | D-025 |
+| Tenant source | `salon_id` from the `X-Salon-Id` header, used only after a membership + role check; never from the request body | D-026, DF-13 |
+| Row-level security | every salon-owned table has `ENABLE` + `FORCE ROW LEVEL SECURITY` and a policy on `current_setting('app.salon_id')`; Flyway runs as the owner user, the backend as a limited user that is neither superuser nor owner (from BE-017) | D-027 |
 | Uniqueness | per salon: `UNIQUE (salon_id, …)` | DF-13 |
 | Keys | `id uuid PRIMARY KEY DEFAULT gen_random_uuid()` | DF-12 |
 | Names | tables plural `snake_case`; columns `snake_case`; FKs `<thing>_id` | DF-12 |

@@ -43,8 +43,9 @@ _Last updated 2026-10-02._
 
 - **The app never calls WhatsApp directly.** Always via the backend.
 - **Razorpay orders are created and verified on the backend.** Trust the webhook (signature verified), never only the app's success callback.
-- **Multi-tenant from day 1.** Every business table has `salon_id`; every query is scoped by it; every feature has a test proving
-  salon A can't read or change salon B's data.
+- **Multi-tenant from day 1.** Every salon-owned table has `salon_id`; every query on it is scoped by it, after the backend checks
+  the user's membership (D-025, D-026); every feature has a test proving salon A can't read or change salon B's data, and
+  customer A can't see customer B's.
 - **Secrets only in environment variables.** Never in the app, in git, or in logs.
 
 ## Repo map
@@ -86,7 +87,8 @@ One feature usually spans several tasks (`BE-` → `APP-` / `WEB-`). Build in th
 ## Testing rules
 
 - Anything touching the database is tested against **real PostgreSQL** (Testcontainers). Never mock the database.
-- Every endpoint: happy path, validation failure, not-found, and (once auth exists) unauthenticated, wrong role, **other salon**.
+- Every endpoint: happy path, validation failure, not-found, and (once auth exists) unauthenticated, wrong role, **other salon**,
+  **other customer**.
 - Android: ViewModel unit tests for every UI state; Compose UI tests (Robolectric) for every screen state.
 - Never delete, skip or weaken a failing test to get green. Fix the code or ask.
 

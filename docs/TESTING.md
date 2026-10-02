@@ -26,6 +26,8 @@ query bugs show up in tests, not in production.
 - each validation rule → 400
 - not found → 404
 - **another salon's resource → 404** (tenant isolation, read and write)
+- **another customer's data → 404** (customer-side endpoints, D-025)
+- `X-Salon-Id` of a salon the user doesn't belong to → 404 (D-026)
 - no token → 401 · wrong role → 403
 - retry safety (same request/webhook twice → one effect) where retries can happen
 
