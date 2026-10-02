@@ -32,6 +32,7 @@ Writing a migration: use the `/db-migration` skill.
 | Version | What |
 |---|---|
 | V1 `baseline` | `set_updated_at()` trigger function. No business tables yet (Phase 0) |
+| V2 `app_users` | one row per signed-in person: Supabase user id, phone, onboarding side (CUSTOMER / SALON). Platform table: no `salon_id` (one person can be a customer and in several salons) (BE-016) |
 
 ## Local database
 

@@ -7,20 +7,21 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and accounts
 
 ### BE-016 · Backend trusts Supabase logins + `GET /v1/me`
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-011 · Decision: D-016
+- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-011 · Decision: D-016 · **Commits:** `3c507d6` `1468aed`
 - **Why:** the apps log in with Supabase; the backend must check every request's token itself.
 - **Needs from team:** Supabase project (free, region Mumbai) with Phone provider + Twilio + test phone numbers; project URL shared;
   secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
 - **Scope:**
   - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
   - `app_users` table (one row per Supabase user: id, phone, **side** CUSTOMER / SALON / not chosen yet, created_at), created on first request
-  - `GET /v1/me` → who is signed in, their chosen side, salon memberships and pending invites (the app picks the interface from this, D-024)
+  - `GET /v1/me` → who is signed in and their chosen side (the app picks the interface from this, D-024). Salon memberships and pending invites are added by BE-017, when salons exist (new fields; older app versions ignore them)
   - `PUT /v1/me/side` → save the onboarding choice (customer or salon); switching later is allowed
 - **Done when:**
-  - [ ] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned
-  - [ ] Database: migration for `app_users`; first-request creation is idempotent (two parallel first requests → one row)
-  - [ ] Security: tokens never logged; JWKS cached with a timeout; no Supabase secret in the repo
-  - [ ] OpenAPI spec updated; contract test passes
+  - [x] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned (`SupabaseTokenVerifierTest` 9, `MeRoutesTest` 6)
+  - [x] Database: `V2__app_users.sql`; first-request creation is idempotent: 10 parallel first requests → one row (`UserRepositoryTest` 5, real Postgres); side enforced by a CHECK constraint
+  - [x] Security: tokens and phone numbers never logged (checked in the real run's log); JWKS cached, 5 s download timeout, 5 s retry pause; only ES256/RS256 accepted (HS256 forgery refused); no Supabase secret in the repo or used by the backend
+  - [x] OpenAPI spec updated (`/v1/me`, `/v1/me/side`, bearer security, 401 envelope); contract tests pass
+  - [x] Flow (real Supabase project): test number OTP → real access token → `GET /v1/me` 200 → `PUT /v1/me/side` CUSTOMER saved and returned → tampered token 401
 
 ### BE-017 · Salons, members, roles and tenant isolation
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: E1.3, E1.4, E2.1, E3.2
