@@ -1,49 +1,47 @@
-# 🖥️ Web Admin Panel: To Do
+# 🖥️ Admin Web Panel: To Do
 
-Internal admin panel **for our team only** (D-002). Next.js (App Router) + TypeScript + Tailwind, pnpm. Lives in `admin/`.
-Workflow and template: [README.md](README.md) · Done so far: [WEB_TASKS_COMPLETED.md](WEB_TASKS_COMPLETED.md)
+Internal admin panel **for our team only** (D-002). Next.js + TypeScript in `admin/`. Admin features come from
+[ChatGPT.md](../ChatGPT.md) §6.8 (dispute console) and EC8, and the salon plan E11 (salons, design-partner tracking, audit log).
+Order across App / Web / Backend: [README.md § Build order](README.md#build-order) · Done so far: [WEB_TASKS_COMPLETED.md](WEB_TASKS_COMPLETED.md)
 
-> ⚠️ The admin panel must **not** be deployed on a public URL until admin login exists (Phase 1, Q-005).
+> ⚠️ Not deployable on a public URL until admin login (WEB-005) exists.
 
-## Phase 0: Walking skeleton (approved scope, D-006)
+## Now: Phase 1, Admin login
 
-### WEB-002 · Typed API client from OpenAPI
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** WEB-001, BE-010
-- **Why:** admin uses the same API contract as Android without hand-copying types (D-004)
-- **Scope:**
-  - TypeScript types generated from `docs/api/openapi.yaml`, plus a small typed fetch client
-  - backend error envelope mapped to one error type
-  - generated file checked in; CI fails if it's out of date with the spec
+### WEB-002 · Typed API client
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-010
+- **Why:** admin pages call the backend with types generated from `docs/api/openapi.yaml`, so nothing is hand-copied.
 - **Done when:**
-  - [ ] Tests: client tests for success, 503 and error envelope
+  - [ ] TypeScript types generated from the spec; small typed fetch client used only on the server
+  - [ ] backend error envelope mapped to one error type; tests for success, error envelope, backend down
   - [ ] changing the spec without regenerating fails `pnpm verify`
 
-### WEB-003 · System status page (end-to-end proof)
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** WEB-002, BE-007
-- **Why:** proves admin → backend → Postgres works before real features
-- **Scope:** home page shows backend status, database status and version, fetched on the server
+### WEB-005 · Admin login: email code + authenticator app
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
+- **Needs from team:** same Supabase project; the first admin's email.
+- **Flow:** email → 6-digit code from the email → first time: set up an authenticator app (QR) → enter its code → admin home.
+  Everything under the panel requires login; session expires after inactivity; logout.
 - **Done when:**
-  - [ ] Tests: component tests for UP, DOWN and unreachable backend
-  - [ ] Security: raw backend errors are never rendered to the page
-  - [ ] Flow: against the local backend the page shows `UP`; stopping Postgres shows `DOWN`
+  - [ ] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
+  - [ ] Security: session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
+  - [ ] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
 
-### WEB-004 · End-to-end browser test (Playwright)
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** WEB-003, BE-009
-- **Why:** one automated test of the full real flow: browser → admin → backend → Postgres
-- **Scope:** Playwright test against `docker compose --profile full` (real backend + real Postgres, no mocks)
-- **Done when:**
-  - [ ] `pnpm e2e` passes locally and in CI (BE-011)
-  - [ ] Flow: status page shows `UP` from the real stack
+### WEB-006 · Admins page: invite more admins
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
+- **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
+- **Done when:** tests for list/invite/errors; invite audit-logged; in the browser, admin A invites B and B logs in.
 
-## Phase 1: Outline only (details after Q-001, Q-005 in [DECISIONS.md](../docs/DECISIONS.md))
+## Next phases (outline)
 
-- ⬜ **WEB-1xx** Admin login by email code + authenticator app (DF-16) through Supabase Auth (D-016), invite-only; admins add admins (D-013)
-- ⬜ **WEB-1xx** **Audit log viewer**: search who changed what, by salon / user / date (uses BE audit log). _Needs from team: nothing._
+- **Phase 2+** WEB-1xx Salons list + detail (members, plan, activity), suspend/reactivate · **design-partner tracking** (logins, appointments, bills per week; spec v2 "never cut") · audit log viewer · support lookup by phone
+- **Phase 6** WEB-5xx payments explorer + manual refund with reason · payout monitoring · GMV / commission / refunds dashboard (EC8)
+- **Phase 7** WEB-6xx **dispute console**: queue, case view, decision, appeal, templates, money panel (spec v2 §6.8) · refund-policy settings · customer management · salon listing approval · review moderation
 
-## Pre-launch: Outline only
+## Platform backlog (done alongside features; never blocks them)
 
-- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login. _Needs from team: a free hosting account (e.g. Vercel), picked together._
+- ⬜ **WEB-003** System status page (Phase 0 proof; optional now that real admin pages are coming)
+- ⬜ **WEB-004** Playwright browser tests in CI: first for the WEB-005 login flow against the real backend
 
-## Features: added by the team
+## Pre-launch (outline)
 
-<!-- Add feature tasks here using the template in README.md -->
+- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login. _Needs from team: a free hosting account (e.g. Vercel)._

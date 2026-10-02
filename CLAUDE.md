@@ -1,7 +1,24 @@
 # Glide: instructions for AI coding tools (and humans)
 
-Multi-tenant salon management product. Android app for salons, Kotlin/Ktor backend, and an internal admin panel for our team.
+Multi-tenant salon marketplace for India. **One Android app** (customer side + salon side, chosen at onboarding), a Kotlin/Ktor
+backend, and an internal admin website for our team.
 Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [docs/DECISIONS.md](docs/DECISIONS.md)
+
+## Where we are (read this first; update it in every task's pull request)
+
+_Last updated 2026-10-02._
+
+- **Product plan:** [Salon_App_Task_Wise_Development.md](Salon_App_Task_Wise_Development.md) (salon side) + [ChatGPT.md](ChatGPT.md)
+  (customer side, marketplace payments, disputes). Where the team decided differently, [docs/DECISIONS.md](docs/DECISIONS.md) wins
+  (e.g. **D-023: one app, not two**; D-016 Supabase login by SMS; D-019 no-internet = view only).
+- **Done (Phase 0):** backend skeleton (Ktor, Postgres + Flyway, `/health`, security baseline, Docker image, OpenAPI contract test);
+  Android app skeleton with network layer and a system-status screen (tested on the team phone); admin website skeleton
+  (Next.js, nonce CSP); CI on GitHub (`ci-ok`). Details and commits: `tasks/*_COMPLETED.md`.
+- **Now: Phase 1, Login and onboarding.** Order and what each step needs: [tasks/README.md § Build order](tasks/README.md#build-order).
+- **Next task:** **BE-016** (backend checks Supabase logins, `/v1/me`, saves "customer or salon"), then **APP-004** (phone login screens).
+- **Blocked on the team:** a Supabase project (phone provider + Twilio + test phone numbers) for BE-016.
+- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
+- **Open pull requests:** `plan/phase-1-login` (this plan).
 
 ## Golden rules
 
@@ -11,12 +28,14 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 2. **Missing information → ask, never guess.** Don't invent features, user roles, screens, fields, prices, copy, providers or
    hosting. If a small technical gap must be filled to proceed, record it in `docs/DECISIONS.md` under *Implementation defaults*
    so the team can veto it.
-3. **Small commits.** One unit of work per commit; each commit builds and passes tests on its own.
+3. **One task = one pull request, made of small commits.** Work on `task/<ID>-short-name`, push, share the PR link; the team
+   merges after `ci-ok` is green. Never push to `main`. Each commit is one unit of work that builds and passes tests on its own.
    Message: `type(scope): summary (TASK-ID)`, e.g. `feat(backend): add salons table (BE-101)`.
    Types: `feat`, `fix`, `test`, `docs`, `build`, `ci`, `refactor`, `chore`. Scopes: `android`, `backend`, `shared`, `admin`, `ci`, `docs`.
 4. **Finish the paperwork.** When a task is done, move its block to the matching `_COMPLETED.md` file with date, commit hashes,
-   tests added, and security/database notes.
-5. **Stop and report after every task.** Never start the next task in the same session turn. Report to the team:
+   tests added, and security/database notes, **and update "Where we are" above** (done, next task, blockers, open PRs).
+5. **Test on the phone, then stop and report after every task.** Install the build on the team phone and run the flow yourself
+   (tap only inside our app). Never start the next task in the same session turn. Report to the team:
    what was built, **exact steps to test it themselves** (on the phone or in the browser), and **what you need from them**
    (API keys, accounts, answers). Then wait for their explicit go-ahead.
 
@@ -34,7 +53,7 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 |---|---|---|
 | `shared/` | API contract: DTOs used by backend **and** Android | [shared/CLAUDE.md](shared/CLAUDE.md) |
 | `backend/` | Ktor API, Exposed, Flyway migrations, PostgreSQL | [backend/CLAUDE.md](backend/CLAUDE.md) |
-| `android/` | Android app (Compose, Hilt, Retrofit) | [android/CLAUDE.md](android/CLAUDE.md) |
+| `android/` | The one Android app, customer side + salon side (Compose, Hilt, Retrofit) | [android/CLAUDE.md](android/CLAUDE.md) |
 | `admin/` | Internal admin panel (Next.js) | `admin/CLAUDE.md` |
 | `docs/api/openapi.yaml` | API contract for the admin panel (TypeScript types are generated from it) | |
 | `tasks/` | What to build and what's done | [tasks/README.md](tasks/README.md) |

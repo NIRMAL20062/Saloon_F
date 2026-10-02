@@ -9,7 +9,7 @@ Argument: a task ID (e.g. `APP-003`), or nothing for "the next one".
 
 ## 1. Pick
 
-1. Read `tasks/README.md`, then the relevant `tasks/*_TASKS.md` file(s).
+1. Read "Where we are" in the root `CLAUDE.md`, then `tasks/README.md` (build order), then the relevant `tasks/*_TASKS.md` file(s).
 2. With an ID: find that task. Without one: take the **first ⬜ task whose dependencies are all ✅** (check the
    `_COMPLETED.md` files). If several areas have candidates, ask which one.
 3. If the task is unclear, has unanswered open questions (see `docs/DECISIONS.md` § Open questions), or needs information
@@ -54,4 +54,5 @@ Tick every "Done when" box you could verify. Then end your turn with a report, a
 1. **Move** the task block from `*_TASKS.md` to the matching `*_COMPLETED.md` (bottom), and add:
    `**Completed:** <date> · **Commits:** <hashes>`, what was built, tests added (class + count), security notes, database notes,
    and "verified by <who> on <device>".
-2. Commit the task-file update: `docs(tasks): complete <ID>`.
+2. Update **"Where we are"** at the top of the root `CLAUDE.md`: what's done, the next task, blockers, open PRs, date.
+3. Commit both in the task's PR: `docs(tasks): complete <ID>`.

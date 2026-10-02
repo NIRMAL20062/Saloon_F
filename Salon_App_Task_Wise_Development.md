@@ -15,8 +15,8 @@
 
 | Surface | Who | Tech | Lives in |
 |---|---|---|---|
-| **Salon Android app** | owner, receptionist/manager, stylist | Kotlin + Compose | `android/app-salon` |
-| Customer Android app | people booking salons | Kotlin + Compose | `android/app-customer` (spec v2) |
+| **Android app, salon side** | owner, receptionist/manager, stylist | Kotlin + Compose | `android/app` (one app, D-023) |
+| Android app, customer side | people booking salons | Kotlin + Compose | same app; side chosen at onboarding (D-024) |
 | Admin web | our team | Next.js (React + TS) | `admin/` |
 | Backend | all | Ktor + PostgreSQL | `backend/` |
 | Booking web link (optional) | customers via Instagram/WhatsApp | React | later |
@@ -29,15 +29,15 @@ secrets only in environment variables, money in paise, every money/admin action 
 | Action | Owner | Receptionist / manager | Stylist |
 |---|---|---|---|
 | Salon profile, hours, policies | ✅ | ❌ | ❌ |
-| Services and prices | ✅ | ❓ view only? | view |
-| Staff (add, remove, hours) | ✅ | ❓ | ❌ (own hours ❓) |
-| Customers (salon's list) | ✅ | ✅ | ❓ only their own clients? |
+| Services and prices | ✅ | view only | view |
+| Staff (add, remove, hours) | ✅ | ❌ | ❌ (own hours: view) |
+| Customers (salon's list) | ✅ | ✅ | only customers of their own appointments |
 | Appointments: all staff | ✅ | ✅ | ❌ own only |
-| Billing, take payments | ✅ | ✅ | ❓ |
+| Billing, take payments | ✅ | ✅ | ❌ |
 | Reports, revenue | ✅ | ❌ | ❌ |
 | Subscription (pay Glide) | ✅ | ❌ | ❌ |
 
-❓ Q-S1: confirm or fix the ❓ cells. A person can belong to **more than one salon** (stored as `salon_members`), ❓ allowed?
+Defaults (DF-17, team can veto any cell): least privilege; one person **may** belong to more than one salon (stored as `salon_members`).
 
 ---
 
@@ -47,7 +47,7 @@ secrets only in environment variables, money in paise, every money/admin action 
 
 | ID | Task | Owner | Acceptance |
 |---|---|---|---|
-| E1.1 | Android multi-module split: `app-salon`, `app-customer`, `core-network`, `core-database`, `core-ui`, `core-common`, `feature-booking` (spec v2 C1.1) | A | Both apps build from one repo; existing tests still pass |
+| E1.1 | ~~Two apps / multi-module split~~ **dropped: one app (D-023)**; onboarding asks "customer or salon?" (D-024) | A | One app shows the right side per user |
 | E1.2 | Supabase Auth phone OTP (SMS via Twilio) in the salon app; backend verifies the token (D-016) | A-S/B | Login, logout, token refresh; test phone numbers work without SMS |
 | E1.3 | `salons`, `salon_members(user_id, salon_id, role)`; every query scoped by `salon_id`; Postgres row-level security as a second guard | B | Test: salon A can't read/change salon B's data, for every endpoint |
 | E1.4 | Roles and permissions from §1 enforced on the backend (not only hidden buttons) | B | Wrong role → 403 test per endpoint |
@@ -252,7 +252,7 @@ Money features also follow spec v2's money DoD (test-mode success/failure/timeou
 
 | ID | Before phase | Question |
 |---|---|---|
-| Q-S1 | 1 | Fill the ❓ cells in the permissions table (§1); can one person work at two salons? |
+| Q-S1 | 1 | ~~Permissions table~~ resolved with defaults (DF-17); veto any cell |
 | Q-S2 | 2 | Sign-up fields; does our team approve new salons first? |
 | Q-S3 | 2 | Price per stylist level? Service variants/add-ons? |
 | Q-S4 | 2 | Import existing customers? Marketing messages? |

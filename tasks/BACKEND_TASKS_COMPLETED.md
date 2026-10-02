@@ -67,3 +67,15 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Built:** [docs/api/openapi.yaml](../docs/api/openapi.yaml) (OpenAPI 3.0.3): `/health/live`, `/health` (200/503), error envelope as `default` response, `X-Request-Id` header; `additionalProperties: false` so undocumented fields fail
 - **Tests:** `OpenApiContractTest` (6): 200, 503 and 429 responses validated against the spec; the validator rejects a bad body (guards the guard); every registered backend route is in the spec and vice versa
 - **Notes:** validator `swagger-request-validator-core` 2.46.1 (3.0.0 on Maven Central has no jar)
+
+### BE-011 · CI pipeline (GitHub Actions)
+- **Completed:** 2026-10-02 · **Commits:** `e8f3d5f`, `2292889` (fix)
+- **Built:** `.github/workflows/ci.yml`: path-filtered jobs (backend + shared on real Postgres, Android lint/tests/debug+release builds with APK artifact, admin `pnpm verify`, end-to-end smoke with backend + fresh Postgres in Docker + admin), single required check `ci-ok`
+- **Verified:** run 36980498414 all green (~10 min); a real failure (run 36977637474, config bug) turned `ci-ok` red as designed
+- **Security:** least-privilege permissions, actions pinned to commit SHAs, Gradle wrapper validated, runner pinned to ubuntu-24.04
+- **Team:** made the repo public (unlimited free CI minutes) and protected `main` (PR + `ci-ok`)
+
+### BE-015 · Project docs
+- **Completed:** 2026-10-02 · **Commits:** `663db69` (+ README/CLAUDE.md updates in later commits)
+- **Built:** ARCHITECTURE, DEVELOPMENT_WORKFLOW, TESTING, SECURITY, DATABASE guides, PR template; README quick start covers backend, both apps and admin
+
