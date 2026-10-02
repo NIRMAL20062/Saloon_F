@@ -60,7 +60,7 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Built:** multi-stage `backend/Dockerfile` (JDK 21 build → JRE 21 alpine, 245 MB), container health check on `/health/live`, `.dockerignore`, `docker-compose.yml` `full` profile (backend + Postgres)
 - **Verified:** `docker compose --profile full up -d --build` → container `healthy`, Flyway validated on start, `curl /health` → `{"status":"UP","version":"0.1.0","database":"UP"}` with all security headers
 - **Security:** runs as non-root (`uid=100(glide)`); `.env`, keystores, `google-services.json`, `android/`, `admin/`, `docs/` excluded from the build context; Flyway masks the JDBC URL in logs
-- **Database:** migrations run on container start (fresh-database run happens in CI end-to-end tests, BE-011)
+- **Database:** migrations run on container start; on a **fresh** database verified in CI end-to-end run 36980498414 (2026-10-02)
 
 ### BE-010 · OpenAPI spec + contract test
 - **Completed:** 2026-10-01 · **Commits:** `16596a2`
