@@ -1,6 +1,7 @@
 # CI: proves every push to main and every pull request builds and passes all tests.
 # Jobs run only for the parts a change touches; `ci-ok` is the single check to require in branch protection.
 # Third-party actions are pinned to full commit SHAs (tag in the comment) so a moved tag can't change what runs.
+# Runner image pinned to ubuntu-24.04: `ubuntu-latest` moves to Ubuntu 26 from 2026-10-19; upgrade deliberately.
 name: CI
 
 on:
@@ -22,7 +23,7 @@ env:
 jobs:
   changes:
     name: Detect changed areas
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: read
@@ -31,9 +32,9 @@ jobs:
       android: ${{ steps.filter.outputs.android }}
       admin: ${{ steps.filter.outputs.admin }}
     steps:
+      # Keeps the (read-only) token so paths-filter can `git fetch` the previous commit to diff against.
+      # Without it the fetch fails on private repos and every job is skipped.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
@@ -63,7 +64,7 @@ jobs:
     name: Backend + shared (ktlint, tests on real Postgres)
     needs: changes
     if: needs.changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       # Skip configuring the Android app here; the android job covers it.
@@ -94,7 +95,7 @@ jobs:
     name: Android (ktlint, lint, unit + UI tests, builds)
     needs: changes
     if: needs.changes.outputs.android == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -132,7 +133,7 @@ jobs:
     name: Admin panel (lint, typecheck, tests, build)
     needs: changes
     if: needs.changes.outputs.admin == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
@@ -157,7 +158,7 @@ jobs:
     name: End-to-end smoke (Docker backend + Postgres + admin)
     needs: changes
     if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.admin == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -201,7 +202,7 @@ jobs:
     name: ci-ok
     if: always()
     needs: [changes, backend, android, admin, e2e]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: All required jobs passed or were skipped
         run: |
