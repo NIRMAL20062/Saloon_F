@@ -19,6 +19,11 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // Supabase project for logins (D-016). Both values are public by design (DF-19): the publishable key only lets
+        // the app ask Supabase to send and check OTPs. Secret keys never go into the app.
+        buildConfigField("String", "SUPABASE_URL", "\"https://uwvaebgbdqitbnymoqfq.supabase.co/\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_4SjiEzyCa5wA7sQQETlNtA_Gq0gQ7R_\"")
     }
 
     buildTypes.configureEach {

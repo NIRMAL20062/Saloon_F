@@ -9,7 +9,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and onboarding
 
 ### APP-004 · Phone login (everyone)
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2, E1.2
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016 · Spec: C1.2, E1.2
 - **Why:** customers and salon people all sign in the same way: phone number + OTP.
 - **Needs from team:** Supabase project with the phone provider on (Twilio) and test phone numbers (steps in the BE-016 report).
 - **Flow:** open app → enter phone number (+91) → receive OTP (test numbers: fixed code, no SMS) → enter OTP → signed in.

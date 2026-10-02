@@ -55,6 +55,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | DF-15 | PRs merge with a **merge commit** (not squash); `main` requires 1 approval + the `ci-ok` check | Keeps the small commits visible for debugging (D-007) |
 | DF-16 | Admin email login = **email one-time code + mandatory authenticator-app (TOTP) MFA**, both free in Supabase; only rows in our `admins` table are admins; admins invite admins through the backend | Recommended in the auth research; no passwords to leak. Veto if you prefer magic links |
 | DF-17 | Salon permissions = the table in the salon plan §1 with the open cells resolved conservatively: receptionist/manager **view** services and prices; only the **owner** manages staff, prices, reports and the subscription; a **stylist** sees only their own appointments and those customers; one person **may** belong to several salons | Least privilege first; widening a permission later is easy, taking one back isn't |
+| DF-19 | The app talks to Supabase Auth directly over its REST API (send OTP, verify, refresh, logout) with the project URL and the **publishable key** in `BuildConfig`; no Supabase SDK. The session is stored encrypted with an AES-256-GCM key kept in the Android Keystore | The publishable key is public by design (Supabase); a small client keeps the app's dependencies and behaviour fully under our control and testable |
 
 ## Open questions
 
