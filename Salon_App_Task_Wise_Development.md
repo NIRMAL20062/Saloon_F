@@ -29,15 +29,15 @@ secrets only in environment variables, money in paise, every money/admin action 
 | Action | Owner | Receptionist / manager | Stylist |
 |---|---|---|---|
 | Salon profile, hours, policies | ✅ | ❌ | ❌ |
-| Services and prices | ✅ | ❓ view only? | view |
-| Staff (add, remove, hours) | ✅ | ❓ | ❌ (own hours ❓) |
-| Customers (salon's list) | ✅ | ✅ | ❓ only their own clients? |
+| Services and prices | ✅ | view only | view |
+| Staff (add, remove, hours) | ✅ | ❌ | ❌ (own hours: view) |
+| Customers (salon's list) | ✅ | ✅ | only customers of their own appointments |
 | Appointments: all staff | ✅ | ✅ | ❌ own only |
-| Billing, take payments | ✅ | ✅ | ❓ |
+| Billing, take payments | ✅ | ✅ | ❌ |
 | Reports, revenue | ✅ | ❌ | ❌ |
 | Subscription (pay Glide) | ✅ | ❌ | ❌ |
 
-❓ Q-S1: confirm or fix the ❓ cells. A person can belong to **more than one salon** (stored as `salon_members`), ❓ allowed?
+Defaults (DF-17, team can veto any cell): least privilege; one person **may** belong to more than one salon (stored as `salon_members`).
 
 ---
 
@@ -252,7 +252,7 @@ Money features also follow spec v2's money DoD (test-mode success/failure/timeou
 
 | ID | Before phase | Question |
 |---|---|---|
-| Q-S1 | 1 | Fill the ❓ cells in the permissions table (§1); can one person work at two salons? |
+| Q-S1 | 1 | ~~Permissions table~~ resolved with defaults (DF-17); veto any cell |
 | Q-S2 | 2 | Sign-up fields; does our team approve new salons first? |
 | Q-S3 | 2 | Price per stylist level? Service variants/add-ons? |
 | Q-S4 | 2 | Import existing customers? Marketing messages? |

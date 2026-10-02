@@ -1,75 +1,80 @@
 # ⚙️ Backend + Platform: To Do
 
-Backend = API + database, shared by the Android app and the web admin panel.
-Platform = repo-wide work (build, CI/CD, docs, AI tooling) that belongs to neither app alone.
-Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COMPLETED.md](BACKEND_TASKS_COMPLETED.md)
+Backend = API + database for both apps and the admin panel. API paths per D-017: `/v1/c/...` customer, `/v1/salon/...` salon,
+`/v1/admin/...` admin. Flows from [ChatGPT.md](../ChatGPT.md) and [Salon_App_Task_Wise_Development.md](../Salon_App_Task_Wise_Development.md).
+Order across App / Web / Backend: [README.md § Build order](README.md#build-order) · Done so far: [BACKEND_TASKS_COMPLETED.md](BACKEND_TASKS_COMPLETED.md)
 
-## Phase 0: Walking skeleton (approved scope, D-006)
+## Now: Phase 1, Login and accounts
 
-### BE-011 · CI pipeline (GitHub Actions)
-- **Phase:** 0 · **Status:** 🔄 Built and green, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-009, APP-001, WEB-001 · **Commits:** `e8f3d5f` `2292889` (fix)
-- **Why:** every PR must prove it builds and passes all tests before merge
+### BE-016 · Backend trusts Supabase logins + `GET /v1/me`
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-011 · Decision: D-016
+- **Why:** the apps log in with Supabase; the backend must check every request's token itself.
+- **Needs from team:** Supabase project (free, region Mumbai) with Phone provider + Twilio + test phone numbers; project URL shared;
+  secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
 - **Scope:**
-  - `ci.yml` on every PR and push to `main`: ktlint, shared + backend tests (real Postgres via Testcontainers), Android lint + unit/UI tests + debug build, web lint + typecheck + tests + build, end-to-end tests
-  - jobs run only for the parts a PR touched; one final `ci-ok` check to require in branch protection
+  - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
+  - `app_users` table (one row per Supabase user: id, phone, created_at), created on first request
+  - `GET /v1/me` → who is signed in
 - **Done when:**
-  - [x] first run on `main` is green: run 36980498414 (2026-10-02), all 6 jobs ✅, ~10 min total (repo is public now, so Claude reads results via the GitHub API)
-  - [ ] a PR touching only `admin/` skips the Android job, and vice versa (`dorny/paths-filter`; confirm on the first real PR)
-  - [x] a failing job blocks `ci-ok`: seen for real in run 36977637474, where a config bug failed "Detect changed areas" and `ci-ok` went red
-  - [x] Security: workflows use least-privilege `permissions:` (`contents: read`); third-party actions pinned to commit SHAs; `persist-credentials: false`; Gradle wrapper validated by setup-gradle; actionlint clean
-  - [x] Flow: end-to-end job runs backend + **fresh** Postgres in Docker (all migrations on an empty database) and starts the admin against it (Playwright browser test comes with WEB-004)
-- **Free-tier note (D-010):** private repos get 2,000 Actions minutes/month free. A run that touches everything costs roughly 25 minutes; path filters keep most runs much shorter.
-- **Needs from team:** check the first run; turn on branch protection for `main` (Settings → Branches → require PR + status check `ci-ok`).
+  - [ ] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope
+  - [ ] Database: migration for `app_users`; first-request creation is idempotent (two parallel first requests → one row)
+  - [ ] Security: tokens never logged; JWKS cached with a timeout; no Supabase secret in the repo
+  - [ ] OpenAPI spec updated; contract test passes
 
-### BE-012 · Security scanning
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-011
-- **Scope:** gitleaks (secrets in commits), CodeQL (Kotlin + TypeScript), dependency review on PRs, Dependabot (Gradle, npm, GitHub Actions, Docker)
-- **Done when:**
-  - [ ] a committed fake secret fails the gitleaks check
-  - [ ] CodeQL runs on PRs and weekly
-  - [ ] Dependabot config covers all four ecosystems
-
-### BE-013 · CD pipeline
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-011
-- **Why:** D-008: hosting decided later, but artifacts must already be produced automatically
+### BE-017 · Salons, members, roles and tenant isolation
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: E1.3, E1.4, E2.1, E3.2
+- **Needs from team:** nothing; permissions follow the table in the salon plan §1 (DF-17, veto any cell).
 - **Scope:**
-  - on merge to `main`: backend image → GitHub Container Registry (tagged with commit SHA)
-  - Android build → Firebase App Distribution **when** Firebase secrets are added (skips cleanly until then)
-  - deploy step stubbed until hosting is chosen (Q-004)
+  - `salons` (name, phone, address, type men/women/unisex), `salon_members` (user, salon, role OWNER / MANAGER / STYLIST, status), `salon_invites` (phone, role, expiry)
+  - `POST /v1/salon/salons` (creator becomes OWNER) · `GET /v1/salon/me/salons` · `POST /v1/salon/staff/invites` (owner only) · `POST /v1/salon/invites/{id}/accept`
+  - every salon route takes the salon from the member's selection and checks membership + role; Postgres row-level security as a second guard
 - **Done when:**
-  - [ ] image appears in GHCR after a merge
-  - [ ] workflow passes with no Firebase secrets configured (step skipped, not failed)
-  - [ ] Security: secrets only from GitHub Actions secrets / environments; nothing printed to logs
+  - [ ] Tests: create salon; invite → accept only by the invited phone; **salon A can't read or change salon B** (every route); wrong role → 403
+  - [ ] Database: migrations with constraints (one OWNER minimum, unique member per salon, invite expiry), RLS policies tested
+  - [ ] Security: salon id never trusted from the request body; audit-logged once BE-019 lands
 
-### BE-015 · Project docs
-- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** - · **Progress:** docs written; final "new teammate" check after APP-001 and WEB-001 exist
-- **Scope:** `docs/ARCHITECTURE.md`, `docs/DEVELOPMENT_WORKFLOW.md` (branches, small commits, PRs, environments), `docs/TESTING.md` (incl. staging on real services with test users per role, D-008), `docs/SECURITY.md`, `docs/DATABASE.md`, `.github` PR template linking to the task's "Done when" list
-- **Done when:**
-  - [ ] a new teammate can set up and run all three projects from the docs alone
+### BE-018 · Customer profile API
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2, data model `customers_app_users`
+- **Scope:** `GET /v1/c/me`, `PUT /v1/c/me` (name required 2–60 chars, email optional + valid); `customers_app_users` table linked to `app_users`.
+- **Done when:** tests for validation, own-profile only, new vs returning customer; OpenAPI updated.
 
-## Phase 1: Outline only (details after Q-001, Q-003, Q-005 in [DECISIONS.md](../docs/DECISIONS.md))
+### BE-019 · Audit log
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: E1.5; spec v2 "audit entry for every admin or system money action"
+- **Scope:** `audit_log` (who, salon, action, entity, before/after, when); written by every create/update/delete from here on.
+- **Done when:** tests prove salon create, invite, accept write audit rows; rows can't be updated or deleted by the app.
 
-- ⬜ **BE-1xx** Multi-tenant base: `salons` table, `salon_id` scoping pattern for every table, tenant-isolation tests
-- ⬜ **BE-1xx** Postgres **Row-Level Security** as a second tenant guard: even a buggy query can't return another salon's rows.
-  _Needs from team: nothing._
-- ⬜ **BE-1xx** Auth: backend verifies **Supabase Auth** tokens (JWKS, ES256), users + roles in our own tables (D-016).
-  _Needs from team: a free Supabase project; its project URL + keys sent privately; a Twilio trial account when real SMS is needed._
-- ⬜ **BE-1xx** Roles and permissions for the user types in D-012 (owner, stylist, receptionist/manager, customer, internal admin)
-- ⬜ **BE-1xx** **Audit log**: an `audit_log` table recording who changed what, when, in which salon, for every create/update/delete.
-  Helps settle disputes ("who cancelled this booking?"). _Needs from team: nothing._
-- ⬜ **BE-1xx** Seed data: test users for every user type in two test salons (D-012, [TESTING.md](../docs/TESTING.md))
+### BE-020 · Admins: first admin, invites, admin-only routes
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Decisions: D-013, DF-16
+- **Needs from team:** the email of the first admin; Email provider turned on in Supabase (+ free SMTP, e.g. Brevo) and authenticator-app MFA enabled.
+- **Scope:** `admins` table (our DB decides who is admin); first admin created by a one-off command; `GET /v1/admin/me`;
+  `POST /v1/admin/admins/invites` (sends the Supabase invite email); every `/v1/admin` route requires an admin **with MFA completed**.
+- **Done when:** tests: non-admin → 403; admin without MFA → 403; invite creates a pending admin; audit-logged.
 
-## Pre-launch: Outline only (D-011: nothing is hosted before this phase)
+### BE-021 · Seed test users
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-018, BE-020 · Spec: E1.6, D-012
+- **Scope:** one command creates Test Salon A + B with owner, manager, stylist each, two customers and one admin, all on Supabase test numbers/emails.
+- **Done when:** running it twice changes nothing; [docs/TESTING.md](../docs/TESTING.md) lists the logins (codes live in the password manager).
 
-- ⬜ **BE-9xx** Free-tier hosting for backend + Postgres = **staging** (D-010).
-  _Needs from team: create accounts on the providers we pick together; add their secrets to GitHub (exact steps given then)._
-- ⬜ **BE-9xx** **Uptime monitor** on `/health` with alerts.
-  _Needs from team: a free UptimeRobot / Better Stack account and the email/phone that should get alerts._
-- ⬜ **BE-9xx** **Automated daily database backups** + one **practice restore** (a backup is only real once restored).
-  _Needs from team: a free storage bucket (e.g. Cloudflare R2, already in the stack for invoice PDFs); one teammate to watch the restore drill._
-- ⬜ **BE-9xx** Real client IP behind the host's proxy (forwarded headers) so the rate limit works per user. _Needs from team: nothing._
-- ⬜ **BE-9xx** Production environment + live keys (Razorpay live, WhatsApp business number). _Needs from team: business KYC on Razorpay and Meta._
+## Next phases (outline)
 
-## Features: added by the team
+- **Phase 2** BE-1xx working hours, closed days · services (duration, price in paise) · staff hours, leave · salon customers list (salon plan E2–E4)
+- **Phase 3** BE-2xx availability engine · appointments with **no double booking** (database-enforced) · statuses + state machine · push to salon staff (E5, E6.1)
+- **Phase 4** BE-3xx listing + geo search + filters · slot lock (10 min) · customer bookings, reschedule/cancel with policy engine · WhatsApp + reminders (EC2–EC3, E6–E7)
+- **Phase 5** BE-4xx bills, payments at counter, payment links, PDF invoices (E8–E9)
+- **Phase 6** BE-5xx Razorpay Route orders with hold, verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions (EC4, E12)
+- **Phase 7** BE-6xx disputes state machine + SLAs, payout freeze, chargebacks, reviews, reliability scores, reports (EC5–EC6, E10)
 
-<!-- Add feature tasks here using the template in README.md -->
+## Platform backlog (done alongside features; never blocks them)
+
+- ⬜ **BE-012** Security scanning: CodeQL (Kotlin + TypeScript), Dependabot (Gradle, npm, Actions, Docker), dependency review on PRs,
+  secret scanning. _Needs from team: Settings → Code security → turn on Secret scanning + Push protection (free on public repos)._
+- ⬜ **BE-013** CD: on merge to `main` publish the backend image to GitHub Container Registry and the Android builds to Firebase App
+  Distribution (skips until Firebase secrets exist); deploy step at Pre-launch.
+
+## Pre-launch (outline; D-011: nothing is hosted before this phase)
+
+- ⬜ **BE-9xx** Free-tier hosting for backend + Postgres = staging. _Needs from team: provider accounts, secrets added to GitHub._
+- ⬜ **BE-9xx** Uptime monitor on `/health`. _Needs from team: free UptimeRobot / Better Stack account._
+- ⬜ **BE-9xx** Daily database backups + one practice restore. _Needs from team: a free storage bucket (Cloudflare R2)._
+- ⬜ **BE-9xx** Real client IP behind the host's proxy so rate limiting works per user.
+- ⬜ **BE-9xx** Production + live keys (Razorpay live, WhatsApp business number). _Needs from team: Razorpay + Meta business KYC; a CA's advice on GST/TCS (spec v2)._

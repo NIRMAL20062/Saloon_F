@@ -29,6 +29,8 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-018 | 2026-10-02 | **App language: English only** | All text stays in resource files, so adding languages later is cheap |
 | D-019 | 2026-10-02 | **No internet in the salon app = view only**: the last loaded appointments and customers stay visible (Room cache); nothing can be added or changed until the connection is back | Simpler than drafts + sync; WorkManager still used for retries/background refresh |
 | D-020 | 2026-10-02 | **Deadline isn't the driver**: finish Phase 0 in order, then Phase 1+ (Q-010). Code lives at `git@github.com:NIRMAL20062/Saloon_F.git` (private, MIT license) | Team: "we can complete before it" |
+| D-021 | 2026-10-02 | **Every task arrives as a pull request.** Claude works on `task/<ID>-short-name` branches and shares the PR link; the team reviews and merges after `ci-ok` is green. `main` is protected | Small commits stay visible inside each PR (DF-15) |
+| D-022 | 2026-10-02 | **Tasks are product features first** (login, screens, flows from ChatGPT.md + salon plan). Platform work (security scanning, CD) sits in a backlog and never blocks features | Team feedback 2026-10-02 |
 
 ## Implementation defaults (veto-able)
 
@@ -50,6 +52,8 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | DF-14 | Shared AI workflow in `.claude/skills/`: `/work-task`, `/add-task`, `/add-endpoint`, `/db-migration`, `/feature-security-check` | Every teammate and AI tool follows the same steps and Definition of Done |
 | DF-15 | PRs merge with a **merge commit** (not squash); `main` requires 1 approval + the `ci-ok` check | Keeps the small commits visible for debugging (D-007) |
 | DF-16 | Admin email login = **email one-time code + mandatory authenticator-app (TOTP) MFA**, both free in Supabase; only rows in our `admins` table are admins; admins invite admins through the backend | Recommended in the auth research; no passwords to leak. Veto if you prefer magic links |
+| DF-17 | Salon permissions = the table in the salon plan §1 with the open cells resolved conservatively: receptionist/manager **view** services and prices; only the **owner** manages staff, prices, reports and the subscription; a **stylist** sees only their own appointments and those customers; one person **may** belong to several salons | Least privilege first; widening a permission later is easy, taking one back isn't |
+| DF-18 | App IDs and names: salon app `com.glide.salon` "Glide Salon", customer app `com.glide.customer` "Glide" (replaces `com.glide.android`, D-005). Kotlin packages `com.glide.salon`, `com.glide.customer`, `com.glide.core.*` | Placeholders like D-005; renamable before the first store upload |
 
 ## Open questions
 
