@@ -2,6 +2,7 @@ package com.glide.backend.db
 
 import com.glide.backend.config.DatabaseConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.jetbrains.exposed.v1.jdbc.Database
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 /**
@@ -23,4 +24,7 @@ object TestDatabase {
     val dataSource: HikariDataSource by lazy {
         DatabaseFactory.createDataSource(config).also { DatabaseFactory.migrate(it) }
     }
+
+    /** Exposed connection to the same migrated database, for repository tests. */
+    val exposed: Database by lazy { DatabaseFactory.connectExposed(dataSource) }
 }

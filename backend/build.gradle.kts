@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.rate.limit)
     implementation(libs.ktor.server.body.limit)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.nimbus.jose.jwt)
     implementation(libs.logback.classic)
 
     implementation(libs.exposed.core)
