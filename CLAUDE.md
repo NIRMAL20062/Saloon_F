@@ -10,7 +10,10 @@ _Last updated 2026-10-02._
 
 - **Product plan:** [Salon_App_Task_Wise_Development.md](Salon_App_Task_Wise_Development.md) (salon side) + [ChatGPT.md](ChatGPT.md)
   (customer side, marketplace payments, disputes). Where the team decided differently, [docs/DECISIONS.md](docs/DECISIONS.md) wins
-  (e.g. **D-023: one app, not two**; D-016 Supabase login by SMS; D-019 no-internet = view only).
+  (e.g. **D-023: one app, not two**; D-016 Supabase login by SMS; D-019 no-internet = view only). The salon plan is Claude's
+  reconstruction: only epics that became tasks are approved.
+- **Data rules (D-025–D-027):** `salon_id` only on salon-owned tables; the salon side picks the salon with the `X-Salon-Id`
+  header, checked against membership; row-level security with a limited database user from BE-017.
 - **Done (Phase 0):** backend skeleton (Ktor, Postgres + Flyway, `/health`, security baseline, Docker image, OpenAPI contract test);
   Android app skeleton with network layer and a system-status screen (tested on the team phone); admin website skeleton
   (Next.js, nonce CSP); CI on GitHub (`ci-ok`). Details and commits: `tasks/*_COMPLETED.md`.
@@ -18,7 +21,7 @@ _Last updated 2026-10-02._
 - **Next task:** **BE-016** (backend checks Supabase logins, `/v1/me`, saves "customer or salon"), then **APP-004** (phone login screens).
 - **Blocked on the team:** a Supabase project (phone provider + Twilio + test phone numbers) for BE-016.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** `plan/phase-1-login` (this plan).
+- **Open pull requests:** `docs/clarify-agent-rules` (docs and skills cleanup: the decisions above, outdated wording removed).
 
 ## Golden rules
 
