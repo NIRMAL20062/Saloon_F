@@ -40,15 +40,15 @@ secret scanning + CodeQL + Dependabot (BE-012), auth + roles + tenant isolation 
 
 | Gap | Why it's open | Task |
 |---|---|---|
-| Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | Q-004 |
-| No authentication yet | Phase 1 | BE-1xx / APP-1xx / WEB-1xx |
-| Admin panel must not be public until admin login exists | Phase 1 | WEB-1xx (Q-005) |
+| Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | BE-9xx (Pre-launch) |
+| No authentication yet | Phase 1 | BE-016 / APP-004 / WEB-005 |
+| Admin panel must not be public until admin login exists | Phase 1 | WEB-005 |
 
 ## Secrets
 
 | Secret | Lives in | Never in |
 |---|---|---|
-| DB password, JWT signing key, Razorpay key secret + webhook secret, WhatsApp token, R2 keys | hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
+| DB passwords, Supabase service-role key, Razorpay key secret + webhook secret, WhatsApp token, R2 keys | `.env` locally (put there by the team); hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
 | Android signing keystore + passwords | GitHub Actions secrets (base64) + team password manager | git |
 | `google-services.json` | GitHub Actions secret; local copy git-ignored | git |
 | Test-user credentials | team password manager | git |

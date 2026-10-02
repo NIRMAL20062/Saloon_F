@@ -1,5 +1,16 @@
 # Salon Platform v2: Customer App, Marketplace Payments and Disputes
 
+> **Read this with [docs/DECISIONS.md](docs/DECISIONS.md): where they differ, the decisions win.** Changed since this spec:
+> - §0 and C1.1: **one app** with a customer side and a salon side, not two apps and no multi-module split (D-023, D-024).
+> - Login (§2, C1.2, §8 `POST /c/auth/otp/verify`): **Supabase phone OTP on the phone**; our backend only checks Supabase's
+>   token, so it has **no** OTP endpoint (D-016).
+> - §8 paths get a `/v1` prefix: `/v1/c/...`, `/v1/salon/...`, `/v1/admin/...`; login, side and profile for everyone at `/v1/me` (D-017, DF-18).
+> - §7 `customers_app_users`: the profile lives on `app_users` instead (DF-18).
+> - Admin web is Next.js (D-002).
+> - The sprint plan's dates are history: the deadline doesn't set the order (D-020); the order is in [tasks/README.md](tasks/README.md).
+> - The next line refers to an earlier `Salon_App_Task_Wise_Development.md` that was never added to the repo. The current file
+>   with that name is Claude's reconstruction (Q-009). The "WhatsApp + web link only" decision is replaced anyway (D-015).
+
 **This file supersedes the "customers use WhatsApp + web link only" decision in `Salon_App_Task_Wise_Development.md`.** Everything else in that file (salon app, appointment engine, billing, admin) still stands unless changed here.
 
 ---

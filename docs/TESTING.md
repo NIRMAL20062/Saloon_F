@@ -15,7 +15,7 @@ Two promises: **every task ships with tests**, and **we test on real services fr
 | `android` | network layer against real Retrofit + `ApiJson` | MockWebServer | same |
 | `android` | screens, every state | Compose UI test on Robolectric | same |
 | `admin` | components, API client | Vitest + Testing Library | `pnpm test` |
-| whole system | browser → admin → backend → Postgres | Playwright + `docker compose --profile full` | `pnpm e2e` |
+| whole system | browser → admin → backend → Postgres | Playwright + `docker compose --profile full` | `pnpm e2e` (arrives with WEB-004; until then CI runs a smoke check) |
 
 **No database mocks.** Anything touching SQL runs on real Postgres 17 (same as production), so constraint, migration and
 query bugs show up in tests, not in production.
@@ -57,8 +57,8 @@ can also be checked by hand (log in as Salon A's owner and try to see Salon B's 
 |---|---|---|---|
 | Salon owner | `owner.a` | `owner.b` | everything in their salon: staff, services, prices, reports, subscription |
 | Staff / stylist | `stylist.a` | `stylist.b` | own appointments only |
-| Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; no prices, reports or subscription |
-| Customer (customer app) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
+| Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; sees services and prices but can't change them; no reports or subscription (DF-17) |
+| Customer (customer side) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
 | Internal admin (our team) | `admin` | (all salons) | admin panel only |
 
 Logins (test phone numbers / emails and codes) live in the team's password manager, **not in git**. Test data is fake; real customer data never goes into development or staging.

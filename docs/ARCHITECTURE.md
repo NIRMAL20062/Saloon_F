@@ -69,7 +69,7 @@ Hilt wires the graph. Debug builds call `http://127.0.0.1:8080`, forwarded to th
 | Purpose | development | real-data testing by the team and design partners | real salons |
 | Database | Docker Postgres | free-tier hosted Postgres (picked at Pre-launch) | hosted Postgres |
 | Razorpay | test keys | **test mode** | live keys |
-| Login provider (Q-007) | test numbers/emails | test numbers + real team phones | real |
+| Login (Supabase Auth, D-016) | test numbers/emails | test numbers + real team phones | real |
 | WhatsApp | test number | test number | approved business number |
 | Users | seeded test users (D-012) | **seeded test users for every user type** (D-012) | real |
 | Android build | debug | staging build via Firebase App Distribution | Play Store |

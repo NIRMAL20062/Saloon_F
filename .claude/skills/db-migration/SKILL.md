@@ -37,7 +37,7 @@ CREATE TRIGGER <table>_set_updated_at BEFORE UPDATE ON <table>
   policy `USING (salon_id = current_setting('app.salon_id')::uuid)`, plus a test that the limited user sees zero rows of
   another salon.
 - Uniqueness is per salon: `UNIQUE (salon_id, <col>)`, not global, unless the task says otherwise.
-- Foreign keys to other business tables should also carry `salon_id` so a row can't point into another salon
+- Foreign keys to other salon-owned tables should also carry `salon_id` so a row can't point into another salon
   (composite FK `(salon_id, x_id) REFERENCES x (salon_id, id)` where practical).
 - Decide `ON DELETE` explicitly (usually `RESTRICT`); never cascade-delete payments or invoices.
 

@@ -1,7 +1,9 @@
 # Salon Platform v1: Salon App, Appointment Engine, Billing, Admin
 
-> **Draft for team review**, written by Claude on 2026-10-02 at the team's request (Q-009).
-> [ChatGPT.md](ChatGPT.md) (spec v2: customer app, marketplace payments, disputes) builds on this file; together they are the product plan.
+> **Draft for team review**, written by Claude on 2026-10-02 at the team's request (Q-009). It is a reconstruction: the original
+> salon plan that ChatGPT.md refers to was never added to the repo. **Only what has become a task in `tasks/` is approved**;
+> every later epic is confirmed with the team when its phase starts.
+> [ChatGPT.md](ChatGPT.md) (spec v2: customer side, marketplace payments, disputes) builds on this file; together they are the product plan.
 > Built only from what the plan already says: spec v2 references (epics E2, E3, E4, E5, E8, E12; "salon app, appointment engine,
 > billing, admin"), [docs/TECH_STACK.md](docs/TECH_STACK.md) and the team decisions in [docs/DECISIONS.md](docs/DECISIONS.md).
 > **❓ = a detail the plan doesn't give. The team answers it before that epic starts. Nothing marked ❓ gets built on a guess.**
@@ -21,7 +23,7 @@
 | Backend | all | Ktor + PostgreSQL | `backend/` |
 | Booking web link (optional) | customers via Instagram/WhatsApp | React | later |
 
-Rules that apply to every epic: multi-tenant (`salon_id` everywhere), WhatsApp and Razorpay only through the backend,
+Rules that apply to every epic: multi-tenant (`salon_id` on every salon-owned table, D-025), WhatsApp and Razorpay only through the backend,
 secrets only in environment variables, money in paise, every money/admin action in the audit log.
 
 ## 1. Who can do what (user types, D-012)
@@ -48,12 +50,12 @@ Defaults (DF-17, team can veto any cell): least privilege; one person **may** be
 | ID | Task | Owner | Acceptance |
 |---|---|---|---|
 | E1.1 | ~~Two apps / multi-module split~~ **dropped: one app (D-023)**; onboarding asks "customer or salon?" (D-024) | A | One app shows the right side per user |
-| E1.2 | Supabase Auth phone OTP (SMS via Twilio) in the salon app; backend verifies the token (D-016) | A-S/B | Login, logout, token refresh; test phone numbers work without SMS |
-| E1.3 | `salons`, `salon_members(user_id, salon_id, role)`; every query scoped by `salon_id`; Postgres row-level security as a second guard | B | Test: salon A can't read/change salon B's data, for every endpoint |
+| E1.2 | Supabase Auth phone OTP (SMS via Twilio) in the app, both sides; backend verifies the token (D-016) | A-S/B | Login, logout, token refresh; test phone numbers work without SMS |
+| E1.3 | `salons`, `salon_members(user_id, salon_id, role)`; every query scoped by `salon_id`, picked with the `X-Salon-Id` header after a membership check (D-026); Postgres row-level security with a limited database user as a second guard (D-027) | B | Test: salon A can't read/change salon B's data, for every endpoint |
 | E1.4 | Roles and permissions from §1 enforced on the backend (not only hidden buttons) | B | Wrong role → 403 test per endpoint |
 | E1.5 | Audit log (`audit_log`): who changed what, when, in which salon | B | Every create/update/delete writes one row |
 | E1.6 | Seed script: 2 test salons × every user type (D-012) | B | Same users every run; documented in TESTING.md |
-| E1.7 | Firebase Crashlytics + Analytics in both apps (prove design-partner usage) | A | Test crash visible in Firebase |
+| E1.7 | Firebase Crashlytics + Analytics in the app (prove design-partner usage) | A | Test crash visible in Firebase |
 | E1.8 | No-internet = view only (D-019): Room cache of the last loaded appointments/customers + banner | A-S | Airplane mode shows saved data, edit buttons disabled |
 
 ## E2: Salon onboarding
@@ -89,7 +91,7 @@ photos, map pin, policies; those are spec v2 tasks C2.6 and C4.2 and come later.
 | E4.1 | Customer list per salon: name, phone, ❓ birthday, ❓ gender, notes | A-S/B | Phone unique per salon |
 | E4.2 | Search by name/phone; add a walk-in customer in seconds | A-S | Debounced search |
 | E4.3 | Customer detail: visit history, spend, upcoming appointments | A-S/B | Totals match bills |
-| E4.4 | Link to customer-app user with the same phone (spec v2: salons bring their regulars into the app via QR/WhatsApp link) | B | ❓ needs the customer's consent? (DPDP Act) |
+| E4.4 | Link to the app user (`app_users`, DF-18) with the same phone (spec v2: salons bring their regulars into the app via QR/WhatsApp link) | B | ❓ needs the customer's consent? (DPDP Act) |
 
 ❓ Q-S4: can a salon import existing customers (contacts/CSV)? Marketing messages to customers (needs consent and WhatsApp templates)?
 
@@ -132,7 +134,7 @@ Needs from team: Meta WhatsApp Business verification + approved templates (in pr
 |---|---|---|---|
 | E8.1 | Bill for a completed appointment: services (prefilled), ❓ products sold, ❓ discounts, ❓ tips, ❓ GST | A-S/B | Totals computed on the server, in paise |
 | E8.2 | Record payment: cash, UPI, card (at counter) and split payments | A-S/B | Bill status `UNPAID → PARTIAL → PAID` |
-| E8.3 | Collect online: Razorpay Payment Link / UPI QR (from the stack doc) | B/A-S | Paid only after verified webhook |
+| E8.3 | Collect online: Razorpay Payment Link / UPI QR (from the stack doc); ❓ whose Razorpay account (Q-011) | B/A-S | Paid only after verified webhook |
 | E8.4 | Pay-at-salon remainder from customer-app advance carried into the bill (spec v2 C4.10) | B | Advance shown, remainder correct |
 | E8.5 | Day close: cash/UPI/card totals for the day | A-S/B | Matches the sum of bills |
 
@@ -227,7 +229,7 @@ WEBHOOKS        POST /webhooks/razorpay
 | 1 | E1 | salon users log in; two test salons can't see each other |
 | 2 | E2, E3, E4 | a salon is fully set up: hours, services, staff, customers |
 | 3 | E5, E6.1 | salon books, reschedules, completes appointments on the calendar |
-| 4 | spec v2 EC1–EC3, E6.2, E7 | a customer finds a salon and books from the customer app (no payment yet) |
+| 4 | spec v2 EC1–EC3, E6.2, E7 | a customer finds a salon and books on the customer side of the app (no payment yet) |
 | 5 | E8, E9 | salon bills and shares invoices |
 | 6 | spec v2 EC4, E12 | online payments, hold/release, refunds, salon subscriptions (test mode) |
 | 7 | spec v2 EC5–EC8, E10, E11 | disputes, reviews, admin console, reports |

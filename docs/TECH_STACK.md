@@ -1,6 +1,7 @@
 # Tech Stack
 
 > Source: the team's product plan, sections 4–5 (copied verbatim below). Changes to the stack go through [DECISIONS.md](DECISIONS.md) first.
+> Where a later decision changed a row, the old text is ~~struck through~~ and the decision is named next to it.
 
 ## Android app
 
@@ -12,7 +13,7 @@
 | DI | Hilt |
 | Navigation | Navigation Compose |
 | Async | Kotlin Coroutines + Flow |
-| Local DB | Room (offline cache and drafts) |
+| Local DB | ~~Room (offline cache and drafts)~~ **Room, offline cache only: no internet = view only, no drafts** (D-019) |
 | Networking | Retrofit + OkHttp + Kotlin Serialization |
 | Background work | WorkManager (sync, retry) |
 | Images | Coil |
@@ -28,20 +29,21 @@
 | Language/framework | Kotlin + Ktor (same language as the app, easier for a small team) |
 | Database | PostgreSQL |
 | ORM | ~~Exposed or Ktorm~~ **Exposed** (decided, see D-003) |
-| Auth | Phone OTP (Firebase Auth) → backend issues JWT |
+| Auth | ~~Phone OTP (Firebase Auth) → backend issues JWT~~ **Supabase Auth: phone OTP by SMS (Twilio) on the phone; the backend only verifies Supabase's tokens and never issues its own** (D-016) |
 | Jobs/scheduler | Quartz or a simple cron worker for reminders |
 | Hosting | Railway / Render / a small VPS (start cheap): **not decided yet** |
 | File storage | Cloudflare R2 or S3 (invoice PDFs) |
 | Secrets | Environment variables only, never in the app |
 
 > Faster alternative: Supabase (Postgres + Auth + Edge Functions) cuts backend time a lot. Pick it if your team is weak on backend. Decide in week 1 and stick with it.
-> **Decided: Ktor + Exposed (D-003).** Supabase may still be used as a *hosted Postgres* provider (open question Q-002).
+> **Decided: Ktor + Exposed (D-003).** Supabase **Auth** is used for login only (D-016); the database is our own PostgreSQL
+> (local Docker during development). Supabase may still host that Postgres at Pre-launch (open question Q-002).
 
 ## Integrations
 
 | Need | Service |
 |---|---|
-| Customer payments (salon collects from clients) | Razorpay Payments: Payment Links / UPI QR / Standard Checkout |
+| Customer payments (salon collects from clients) | Razorpay Payments: Payment Links / UPI QR / Standard Checkout. _Bookings paid in the app go through Razorpay Route (spec v2 §5); whose account payments at the counter use is open (Q-011)_ |
 | Billing the salon (our subscription revenue) | Razorpay Subscriptions |
 | WhatsApp messages | WhatsApp Business Cloud API (Meta) directly, or a BSP such as Gupshup / Interakt / AiSensy to start faster |
 | SMS fallback | MSG91 or Twilio (optional) |
@@ -78,5 +80,5 @@ Admin Panel (Next.js) <──HTTPS/JSON──┘      └── Scheduler (remin
 
 1. **The app never calls WhatsApp directly.** Always via backend.
 2. **Razorpay order creation and payment verification happen on the backend.** Verify via webhook signature, not just the app's success callback.
-3. **Multi-tenant from day 1: every table has `salon_id`.**
+3. **Multi-tenant from day 1: ~~every table~~ every salon-owned table has `salon_id`** (D-025).
 4. **Secrets live in environment variables only, never in the app or in git.**

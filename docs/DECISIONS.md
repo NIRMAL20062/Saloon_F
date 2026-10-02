@@ -1,7 +1,8 @@
 # Decisions Log
 
 Every decision that shapes the codebase is recorded here, newest at the bottom of each section.
-**Rule:** if a decision isn't in the product plan ([TECH_STACK.md](TECH_STACK.md)) or below, ask the team before building it.
+**Rule:** if a decision isn't in the product plan ([salon plan](../Salon_App_Task_Wise_Development.md) + [ChatGPT.md](../ChatGPT.md)),
+the stack ([TECH_STACK.md](TECH_STACK.md)) or below, ask the team before building it. Where they disagree, this file wins.
 
 Status: **Decided** = agreed by the team · **Default** = picked by the developer/AI to fill a gap; anyone can veto it by opening a PR that changes this file · **Open** = waiting for an answer.
 
@@ -16,18 +17,18 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-005 | 2026-10-01 | Working name **Glide**, Kotlin package `com.glide`, Android `applicationId` `com.glide.android` | Placeholder, renamable before first Play Store upload |
 | D-006 | 2026-10-01 | **Phase 0 = walking skeleton**: all three apps run and talk end-to-end via `/health`; no business tables | Multi-tenant base + auth start in Phase 1 |
 | D-007 | 2026-10-01 | **Small commits**: one commit per unit of work, so the team can debug and revert easily | See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) |
-| D-008 | 2026-10-01 | **Hosting decided later.** CD publishes build artifacts now. **Test on real services from the start**: staging uses real Postgres, Razorpay test mode, Firebase test phone numbers, and seeded test users for every user type | See [TESTING.md](TESTING.md) § Environments |
+| D-008 | 2026-10-01 | **Hosting decided later.** CD publishes build artifacts now. **Test on real services from the start**: staging uses real Postgres, Razorpay test mode, Firebase test phone numbers, and seeded test users for every user type | See [TESTING.md](TESTING.md) § Environments. Login part replaced by D-016: **Supabase** test phone numbers, not Firebase |
 | D-009 | 2026-10-01 | **All work is driven by task files** in `tasks/`: To-do + Completed pairs for App, Web and Backend (+ Platform). Nothing is built unless it is a task there first | See [tasks/README.md](../tasks/README.md) |
 | D-010 | 2026-10-02 | **Free tiers only** (database, auth, hosting, email, monitoring) until real user growth requires paid plans | Every new service must state its free-tier limits in the task that adds it |
 | D-011 | 2026-10-02 | **No hosting during development.** Backend, database and admin run locally; the app is tested on team phones over USB. Hosting starts in the *Pre-launch* phase. Managed services the app needs during development (e.g. auth, Razorpay test mode) are used on their free/test tiers | Replaces the "staging" part of D-008 until Pre-launch; webhooks reach the laptop through a free tunnel when needed |
-| D-012 | 2026-10-02 | **User types**: salon owner, staff/stylist, receptionist/manager, salon's customer, plus our internal admin (admin panel). Test users: one per type in **two** test salons | How customers interact (app login vs WhatsApp link only) is decided with the feature list (Q-001) |
+| D-012 | 2026-10-02 | **User types**: salon owner, staff/stylist, receptionist/manager, salon's customer, plus our internal admin (admin panel). Test users: one per type in **two** test salons | How customers interact (app login vs WhatsApp link only) is decided with the feature list (Q-001). Answered by D-015: customers log in to the app |
 | D-013 | 2026-10-02 | **Admin panel login by email; existing admins can add new admins** (invite-only, no self sign-up) | Provider and email method: Q-007 |
 | D-014 | 2026-10-02 | **Phase-wise development; the AI stops after every task** and reports what was built, how to test it, and what it needs from the team. Next task only after the team's OK | See [tasks/README.md](../tasks/README.md) |
-| D-015 | 2026-10-02 | **Product spec v2 is [ChatGPT.md](../ChatGPT.md)** (committed by the team in `588f011`). Its two-app layout is **overridden by D-023 (one app)**. It also covers: customer side + salon side, admin web (React/TS: our Next.js fits), optional public booking web link, marketplace payments via Razorpay Route, disputes, double-entry ledger. **Customers log in with phone OTP** in their own app | Supersedes D-012's "customer may use WhatsApp link only". Converting it to tasks needs Q-008..Q-010 |
+| D-015 | 2026-10-02 | **Product spec v2 is [ChatGPT.md](../ChatGPT.md)** (committed by the team in `588f011`). Its two-app layout is **overridden by D-023 (one app)**. It also covers: customer side + salon side, admin web (React/TS: our Next.js fits), optional public booking web link, marketplace payments via Razorpay Route, disputes, double-entry ledger. **Customers log in with phone OTP**, on the customer side of the one app (D-023) | Supersedes D-012's "customer may use WhatsApp link only". Converting it to tasks needs Q-008..Q-010 |
 | D-016 | 2026-10-02 | **Login = Supabase Auth.** App users (customers, salon owner/staff) log in with **phone OTP by SMS only** (no WhatsApp OTP); SMS sent by **Twilio** configured inside Supabase. Admins log in by email (D-013) through the same Supabase project | Development uses Supabase **test phone numbers** (fixed codes, no SMS cost); Twilio India SMS ≈ ₹7 each later. See [research/AUTH_OPTIONS.md](research/AUTH_OPTIONS.md) |
-| D-017 | 2026-10-02 | **API paths** (team delegated the choice): `/v1/c/...` customer app, `/v1/salon/...` salon app, `/v1/admin/...` admin panel, `/webhooks/razorpay` (unversioned: the URL is registered with Razorpay) | Version prefix lets old app versions keep working after a breaking change (DF-07) |
+| D-017 | 2026-10-02 | **API paths** (team delegated the choice): `/v1/c/...` customer side, `/v1/salon/...` salon side, `/v1/admin/...` admin panel, `/webhooks/razorpay` (unversioned: the URL is registered with Razorpay) | Version prefix lets old app versions keep working after a breaking change (DF-07). Things every app user has (login, chosen side, profile) live at `/v1/me` (BE-016, DF-18) |
 | D-018 | 2026-10-02 | **App language: English only** | All text stays in resource files, so adding languages later is cheap |
-| D-019 | 2026-10-02 | **No internet in the salon app = view only**: the last loaded appointments and customers stay visible (Room cache); nothing can be added or changed until the connection is back | Simpler than drafts + sync; WorkManager still used for retries/background refresh |
+| D-019 | 2026-10-02 | **No internet on the salon side = view only**: the last loaded appointments and customers stay visible (Room cache); nothing can be added or changed until the connection is back | Simpler than drafts + sync; WorkManager still used for retries/background refresh |
 | D-020 | 2026-10-02 | **Deadline isn't the driver**: finish Phase 0 in order, then Phase 1+ (Q-010). Code lives at `git@github.com:NIRMAL20062/Saloon_F.git` (private, MIT license) | Team: "we can complete before it" |
 | D-021 | 2026-10-02 | **Every task arrives as a pull request.** Claude works on `task/<ID>-short-name` branches and shares the PR link; the team reviews and merges after `ci-ok` is green. `main` is protected | Small commits stay visible inside each PR (DF-15) |
 | D-022 | 2026-10-02 | **Tasks are product features first** (login, screens, flows from ChatGPT.md + salon plan). Platform work (security scanning, CD) sits in a backlog and never blocks features | Team feedback 2026-10-02 |
@@ -65,7 +66,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 
 | ID | Question | Blocks |
 |---|---|---|
-| Q-001 | ~~Product plan not in the repo~~ **Partly answered 2026-10-02 → D-015** (ChatGPT.md v2). Still missing: the salon-side plan it builds on (Q-009) | Phase 1+ planning |
+| Q-001 | ~~Product plan not in the repo~~ **Answered 2026-10-02 → D-015** (ChatGPT.md v2) + the salon-side plan written as a draft (Q-009) | - |
 | Q-002 | ~~Supabase only as hosted Postgres?~~ Partly answered 2026-10-02: free tiers (D-010), no hosting during development (D-011). Which free Postgres host at Pre-launch is decided together with Q-007 | Pre-launch |
 | Q-003 | ~~Which user types need test users?~~ **Answered 2026-10-02 → D-012** | - |
 | Q-004 | ~~Hosting provider?~~ **Answered 2026-10-02 → D-011**: none until development is done; free tier then. Provider picked at Pre-launch | Pre-launch |
