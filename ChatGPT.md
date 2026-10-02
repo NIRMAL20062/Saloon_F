@@ -7,6 +7,9 @@
 > - §8 paths get a `/v1` prefix: `/v1/c/...`, `/v1/salon/...`, `/v1/admin/...`; login, side and profile for everyone at `/v1/me` (D-017, DF-18).
 > - §7 `customers_app_users`: the profile lives on `app_users` instead (DF-18).
 > - Admin web is Next.js (D-002).
+> - Money (§3.4, §5): **online only, all through our Razorpay** (D-028, D-029). No cash: "pay at salon" means paying there by
+>   link / UPI QR. So the "fall back to pay-at-salon" in the risks and cut list no longer avoids Razorpay.
+> - The fee numbers in examples (10%, ₹50, 5–12%) are illustrations; the real platform fee is decided later (Q-013).
 > - The sprint plan's dates are history: the deadline doesn't set the order (D-020); the order is in [tasks/README.md](tasks/README.md).
 > - The next line refers to an earlier `Salon_App_Task_Wise_Development.md` that was never added to the repo. The current file
 >   with that name is Claude's reconstruction (Q-009). The "WhatsApp + web link only" decision is replaced anyway (D-015).

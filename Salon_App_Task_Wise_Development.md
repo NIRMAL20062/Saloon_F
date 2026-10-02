@@ -133,10 +133,10 @@ Needs from team: Meta WhatsApp Business verification + approved templates (in pr
 | ID | Task | Owner | Acceptance |
 |---|---|---|---|
 | E8.1 | Bill for a completed appointment: services (prefilled), ❓ products sold, ❓ discounts, ❓ tips, ❓ GST | A-S/B | Totals computed on the server, in paise |
-| E8.2 | Record payment: cash, UPI, card (at counter) and split payments | A-S/B | Bill status `UNPAID → PARTIAL → PAID` |
+| E8.2 | ~~Record payment: cash, UPI, card (at counter)~~ **Online only (D-029):** a bill is paid through E8.3 or the customer's in-app payment; split payments allowed | A-S/B | Bill status `UNPAID → PARTIAL → PAID` |
 | E8.3 | Collect online: Razorpay Payment Link / UPI QR through **our** Razorpay account with Route; platform fee to us, salon's share to its linked account (D-028). Needs the salon's KYC (spec v2 C4.2), so built in Phase 6 | B/A-S | Paid only after verified webhook; split matches the ledger |
 | E8.4 | Pay-at-salon remainder from customer-app advance carried into the bill (spec v2 C4.10) | B | Advance shown, remainder correct |
-| E8.5 | Day close: cash/UPI/card totals for the day | A-S/B | Matches the sum of bills |
+| E8.5 | Day summary: online payments for the day (no cash, D-029) | A-S/B | Matches the sum of bills and Razorpay |
 
 ❓ Q-S6: does the salon sell products (shampoo etc.) and track stock? GST registered salons only, or all?
 
@@ -195,7 +195,7 @@ appointments(id, salon_id, customer_id, source, status, starts_at, ends_at, crea
 appointment_services(id, salon_id, appointment_id, service_id, staff_id, price_paise, duration_min)
 bills(id, salon_id, appointment_id?, number, status, subtotal_paise, discount_paise, tax_paise, total_paise)
 bill_items(id, salon_id, bill_id, kind[SERVICE|PRODUCT], ref_id, qty, unit_price_paise)
-bill_payments(id, salon_id, bill_id, method[CASH|UPI|CARD|ONLINE], amount_paise, razorpay_payment_id?)
+bill_payments(id, salon_id, bill_id, amount_paise, razorpay_payment_id)      -- online only, no cash (D-029)
 invoices(id, salon_id, bill_id, number, pdf_key, issued_at)
 subscriptions(id, salon_id, razorpay_subscription_id, plan, status, current_period_end)
 notifications(id, salon_id, channel[PUSH|WHATSAPP|SMS], template, to_ref, status, sent_at)
@@ -230,15 +230,15 @@ WEBHOOKS        POST /webhooks/razorpay
 | 2 | E2, E3, E4 | a salon is fully set up: hours, services, staff, customers |
 | 3 | E5, E6.1 | salon books, reschedules, completes appointments on the calendar |
 | 4 | spec v2 EC1–EC3, E6.2, E7 | a customer finds a salon and books on the customer side of the app (no payment yet) |
-| 5 | E8 (except E8.3), E9 | salon bills and shares invoices |
-| 6 | spec v2 EC4, E8.3, E12 | online payments in the app and at the counter, hold/release, refunds, salon subscriptions (test mode) |
+| 5 | E8.1, E9 | salon makes bills and shares invoices (paying them comes in Phase 6: online only, D-029) |
+| 6 | spec v2 EC4, E8.2–E8.5, E12 | online payments in the app and at the counter, hold/release, refunds, salon subscriptions (test mode) |
 | 7 | spec v2 EC5–EC8, E10, E11 | disputes, reviews, admin console, reports |
 | Pre-launch | hosting, monitoring, backups, store release | design partners use staging builds |
 
 ## End-to-end scenarios (salon side; acceptance tests)
 
 1. **Setup:** owner signs up → adds hours, 3 services, 2 stylists → invites a stylist who logs in with OTP and sees only their own appointments.
-2. **Walk-in:** receptionist adds a walk-in customer → books "Haircut" with the first free stylist → stylist marks complete → bill paid in cash → invoice shared on WhatsApp.
+2. **Walk-in:** receptionist adds a walk-in customer → books "Haircut" with the first free stylist → stylist marks complete → customer pays the bill by UPI QR (online only, D-029) → invoice shared on WhatsApp.
 3. **Double booking:** two receptionists book the same stylist at the same time → exactly one succeeds, the other sees "slot just taken".
 4. **Tenant isolation:** owner of Salon A tries Salon B's appointment ID → 404.
 5. **No internet:** phone goes offline → today's appointments still visible with a banner; "new appointment" disabled.

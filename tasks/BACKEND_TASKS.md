@@ -68,8 +68,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase 2** BE-1xx working hours, closed days · services (duration, price in paise) · staff hours, leave · salon customers list (salon plan E2–E4)
 - **Phase 3** BE-2xx availability engine · appointments with **no double booking** (database-enforced) · statuses + state machine · push to salon staff (E5, E6.1)
 - **Phase 4** BE-3xx listing + geo search + filters · slot lock (10 min) · customer bookings, reschedule/cancel with policy engine · WhatsApp + reminders (EC2–EC3, E6–E7)
-- **Phase 5** BE-4xx bills, cash/UPI/card payments recorded at the counter, PDF invoices (E8 except E8.3, E9)
-- **Phase 6** BE-5xx all online money through our Razorpay (D-028): salon linked accounts (KYC), Route orders with hold, payment links / UPI QR at the counter (E8.3), verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions (EC4, E12)
+- **Phase 5** BE-4xx bills, PDF invoices (E8.1, E9); no cash: bills are paid online from Phase 6 (D-029)
+- **Phase 6** BE-5xx all online money through our Razorpay (D-028, D-029): salon linked accounts (KYC), Route orders with hold, bill payments by link / UPI QR at the counter + day summary (E8.2–E8.5), platform fee (Q-013), verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions (EC4, E12)
 - **Phase 7** BE-6xx disputes state machine + SLAs, payout freeze, chargebacks, reviews, reliability scores, reports (EC5–EC6, E10)
 
 ## Platform backlog (done alongside features; never blocks them)

@@ -43,7 +43,7 @@
 
 | Need | Service |
 |---|---|
-| Customer payments (salon collects from clients) | Razorpay Payments: Payment Links / UPI QR / Standard Checkout. _Every online customer payment, in the app or by link / UPI QR at the counter, goes through **our** Razorpay account with Route: platform fee to us, salon's share to its linked account (D-028)_ |
+| Customer payments (salon collects from clients) | Razorpay Payments: Payment Links / UPI QR / Standard Checkout. _Every online customer payment, in the app or by link / UPI QR at the counter, goes through **our** Razorpay account with Route: platform fee to us, salon's share to its linked account (D-028). Online only, no cash (D-029)_ |
 | Billing the salon (our subscription revenue) | Razorpay Subscriptions |
 | WhatsApp messages | WhatsApp Business Cloud API (Meta) directly, or a BSP such as Gupshup / Interakt / AiSensy to start faster |
 | SMS fallback | MSG91 or Twilio (optional) |
