@@ -7,7 +7,7 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
 ### BE-011 · CI pipeline (GitHub Actions)
-- **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-009, APP-001, WEB-001
+- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-009, APP-001, WEB-001
 - **Why:** every PR must prove it builds and passes all tests before merge
 - **Scope:**
   - `ci.yml` on every PR and push to `main`: ktlint, shared + backend tests (real Postgres via Testcontainers), Android lint + unit/UI tests + debug build, web lint + typecheck + tests + build, end-to-end tests
