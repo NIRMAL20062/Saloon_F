@@ -31,7 +31,8 @@ Platform backlog items (security scanning, CD) are done in between when useful; 
 ## Task IDs and status
 
 - IDs: `APP-001`, `WEB-001`, `BE-001`. Never reused, never renumbered. Outline items use placeholders
-  (`APP-1xx` = Phase 1, `APP-9xx` = Pre-launch) and get a real ID when they're written out in full.
+  (`APP-1xx` = Phase 2, `APP-2xx` = Phase 3 … `APP-6xx` = Phase 7, `APP-9xx` = Pre-launch; same for `BE-` and `WEB-`)
+  and get a real ID when they're written out in full.
 - Phases: **0** walking skeleton · **1** foundations (tenants, login, roles) · **2+** product features (from the team's plan) ·
   **Pre-launch** hosting, monitoring, backups, store release (D-011: nothing is hosted before this)
 - **Needs from team** on a task = something only the team can do (create an account, provide a key or file, decide).
@@ -52,8 +53,9 @@ Platform backlog items (security scanning, CD) are done in between when useful; 
    CI must be green. **The team merges it**; nobody pushes to `main` directly (D-021).
 5. **Test on the phone and report.** Install the build on the team phone and run the task's flow, then tell the team what was
    built, how to test it themselves, and what is needed from them (keys, accounts, answers). **The next task starts only after their OK.**
-6. **Close.** After the team's OK (and merge), **move** the whole task block to the `_COMPLETED` file and add the date,
-   commit hashes, tests added, and security/database notes.
+6. **Close.** After the team's OK, as the **last commit of the same PR** (before it's merged, DF-20): **move** the whole task
+   block to the `_COMPLETED` file and add the date, commit hashes, tests added, and security/database notes; update
+   "Where we are" in the root `CLAUDE.md`. Then the team merges.
 
 ## Definition of Done (every task)
 

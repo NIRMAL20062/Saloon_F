@@ -31,9 +31,10 @@ _Last updated 2026-10-02._
 3. **One task = one pull request, made of small commits.** Work on `task/<ID>-short-name`, push, share the PR link; the team
    merges after `ci-ok` is green. Never push to `main`. Each commit is one unit of work that builds and passes tests on its own.
    Message: `type(scope): summary (TASK-ID)`, e.g. `feat(backend): add salons table (BE-101)`.
-   Types: `feat`, `fix`, `test`, `docs`, `build`, `ci`, `refactor`, `chore`. Scopes: `android`, `backend`, `shared`, `admin`, `ci`, `docs`.
-4. **Finish the paperwork.** When a task is done, move its block to the matching `_COMPLETED.md` file with date, commit hashes,
-   tests added, and security/database notes, **and update "Where we are" above** (done, next task, blockers, open PRs).
+   Types: `feat`, `fix`, `test`, `docs`, `build`, `ci`, `refactor`, `chore`. Scopes: `android`, `backend`, `shared`, `admin`, `ci`, `docs`, `tasks`.
+4. **Finish the paperwork.** After the team's OK, as the last commit of the task's PR (before it's merged, DF-20), move its block
+   to the matching `_COMPLETED.md` file with date, commit hashes, tests added, and security/database notes, **and update
+   "Where we are" above** (done, next task, blockers, open PRs).
 5. **Test on the phone, then stop and report after every task.** Install the build on the team phone and run the flow yourself
    (tap only inside our app). Never start the next task in the same session turn. Report to the team:
    what was built, **exact steps to test it themselves** (on the phone or in the browser), and **what you need from them**

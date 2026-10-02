@@ -32,8 +32,9 @@ Use `/add-endpoint` for API work and `/db-migration` for schema changes.
 
 ## 4. Verify the flow
 
-Run the real flow, not just tests: `docker compose up -d postgres`, `./gradlew :backend:run`, then the app (emulator) or
-admin (`pnpm dev`). Confirm every "Done when → Flow" item by hand and say what you saw.
+Run the real flow, not just tests: `docker compose up -d postgres`, `./gradlew :backend:run`, then the app on the **team phone**
+over USB (`./gradlew :android:app:installDebug`, `adb reverse tcp:8080 tcp:8080`; tap only inside our app) or admin
+(`pnpm dev`). Confirm every "Done when → Flow" item by hand and say what you saw.
 
 ## 5. Security and integrity
 
@@ -49,10 +50,10 @@ Tick every "Done when" box you could verify. Then end your turn with a report, a
 3. **Needed from you**: keys, accounts, files, or answers to open questions, or "nothing".
 4. **Next**: the next available task, waiting for their go-ahead.
 
-## 7. Close (after the team's OK)
+## 7. Close (after the team's OK, before the merge: DF-20)
 
 1. **Move** the task block from `*_TASKS.md` to the matching `*_COMPLETED.md` (bottom), and add:
    `**Completed:** <date> · **Commits:** <hashes>`, what was built, tests added (class + count), security notes, database notes,
    and "verified by <who> on <device>".
 2. Update **"Where we are"** at the top of the root `CLAUDE.md`: what's done, the next task, blockers, open PRs, date.
-3. Commit both in the task's PR: `docs(tasks): complete <ID>`.
+3. Commit both as the last commit of the task's PR: `docs(tasks): complete <ID>`. Then the team merges.

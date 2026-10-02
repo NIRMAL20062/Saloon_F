@@ -7,7 +7,8 @@ Kotlin · Jetpack Compose + Material 3 · MVVM, layers UI → ViewModel → UseC
 Coroutines + Flow · Retrofit + OkHttp + kotlinx.serialization. minSdk 24, compile/target SDK 37. Stack: [docs/TECH_STACK.md](../docs/TECH_STACK.md)
 
 Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feature>/` screens + ViewModels,
-`navigation/` routes, `ui/theme/` Material 3 theme. More packages (`data/`, `domain/`) arrive with APP-002/003.
+`domain/<feature>/` use cases, `data/` repositories and the network layer (`data/network/`: Retrofit, `apiCall`, `ApiResult`),
+`navigation/` routes, `ui/theme/` Material 3 theme. Example of every layer: the status screen (APP-003).
 
 ## Rules
 
