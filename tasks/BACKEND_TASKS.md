@@ -7,16 +7,19 @@ Workflow and template: [README.md](README.md) · Done so far: [BACKEND_TASKS_COM
 ## Phase 0: Walking skeleton (approved scope, D-006)
 
 ### BE-011 · CI pipeline (GitHub Actions)
-- **Phase:** 0 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-009, APP-001, WEB-001
+- **Phase:** 0 · **Status:** 🔄 Pushed, waiting for the first GitHub run to be checked · **Owner:** Claude · **Depends on:** BE-009, APP-001, WEB-001 · **Commits:** `e8f3d5f`
 - **Why:** every PR must prove it builds and passes all tests before merge
 - **Scope:**
   - `ci.yml` on every PR and push to `main`: ktlint, shared + backend tests (real Postgres via Testcontainers), Android lint + unit/UI tests + debug build, web lint + typecheck + tests + build, end-to-end tests
   - jobs run only for the parts a PR touched; one final `ci-ok` check to require in branch protection
 - **Done when:**
-  - [ ] a PR touching only `admin/` skips the Android job, and vice versa
-  - [ ] a failing test anywhere blocks `ci-ok`
-  - [ ] Security: workflows use least-privilege `permissions:`; third-party actions pinned
-  - [ ] Flow: end-to-end job runs web → backend → Postgres
+  - [ ] first run on `main` is green (team to confirm in the Actions tab: the repo is private, Claude can't read run results)
+  - [ ] a PR touching only `admin/` skips the Android job, and vice versa (`dorny/paths-filter`; confirm on the first real PR)
+  - [x] a failing test anywhere blocks `ci-ok` (`ci-ok` fails on any failed/cancelled job; skipped jobs are fine)
+  - [x] Security: workflows use least-privilege `permissions:` (`contents: read`); third-party actions pinned to commit SHAs; `persist-credentials: false`; Gradle wrapper validated by setup-gradle; actionlint clean
+  - [ ] Flow: end-to-end job runs backend + fresh Postgres in Docker and starts the admin against it (Playwright browser test comes with WEB-004)
+- **Free-tier note (D-010):** private repos get 2,000 Actions minutes/month free. A run that touches everything costs roughly 25 minutes; path filters keep most runs much shorter.
+- **Needs from team:** check the first run; turn on branch protection for `main` (Settings → Branches → require PR + status check `ci-ok`).
 
 ### BE-012 · Security scanning
 - **Phase:** 0 · **Status:** ⬜ To do · **Depends on:** BE-011
