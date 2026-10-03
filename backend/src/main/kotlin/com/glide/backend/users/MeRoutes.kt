@@ -2,9 +2,12 @@ package com.glide.backend.users
 
 import com.glide.backend.auth.USER_AUTH
 import com.glide.backend.auth.user
+import com.glide.backend.plugins.respondError
 import com.glide.shared.api.ApiRoutes
+import com.glide.shared.me.MeErrorCodes
 import com.glide.shared.me.MeResponse
 import com.glide.shared.me.UpdateSideRequest
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -19,11 +22,20 @@ fun Route.meRoutes(users: UserRepository) {
             call.respond(users.ensure(call.user()).toResponse())
         }
 
-        // Onboarding answer: "customer or salon?". Can be changed later (switch side).
+        // Onboarding answer: "customer or salon?". Final once chosen (D-030); the same answer again is fine.
         put(ApiRoutes.ME_SIDE) {
             val request = call.receive<UpdateSideRequest>()
             val user = users.ensure(call.user())
-            call.respond(users.setSide(user.id, request.side).toResponse())
+            val saved = users.chooseSide(user.id, request.side)
+            if (saved == null) {
+                call.respondError(
+                    HttpStatusCode.Conflict,
+                    MeErrorCodes.SIDE_ALREADY_CHOSEN,
+                    "Your choice is already saved and can't be changed.",
+                )
+            } else {
+                call.respond(saved.toResponse())
+            }
         }
     }
 }

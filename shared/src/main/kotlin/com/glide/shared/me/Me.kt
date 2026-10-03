@@ -2,7 +2,7 @@ package com.glide.shared.me
 
 import kotlinx.serialization.Serializable
 
-/** Which interface the app shows this person (D-024). Chosen at onboarding; can be switched later. */
+/** Which interface the app shows this person (D-024). Chosen once at onboarding and final (D-030). */
 @Serializable
 enum class UserSide { CUSTOMER, SALON }
 
@@ -16,6 +16,12 @@ data class MeResponse(
     /** Null until the person answers "customer or salon?" at onboarding. */
     val side: UserSide? = null,
 )
+
+/** Error codes of the /v1/me endpoints (see ErrorCodes for the shared ones). */
+object MeErrorCodes {
+    /** `PUT /v1/me/side` with a different side than the one already chosen. The choice is final (D-030). */
+    const val SIDE_ALREADY_CHOSEN = "SIDE_ALREADY_CHOSEN"
+}
 
 /** Body of `PUT /v1/me/side`. */
 @Serializable
