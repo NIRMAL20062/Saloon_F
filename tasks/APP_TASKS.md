@@ -54,7 +54,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-011 · Decisions: D-040, D-041
 - **Why:** the team shared the design it wants ([docs/design/customer-flow-1.webp](../docs/design/customer-flow-1.webp)) and
   asked for no dark mode. Everything built so far takes that look, so later screens start from it.
-- **Needs from team:** the welcome photo (given, 2026-10-03; the team confirms it may be used in the app and the Play Store).
+- **Needs from team:** the welcome photo (given 2026-10-03; the team holds a licence for it, app and Play Store included).
 - **Scope:**
   - theme: brand red `#E02430`, warm white, light-pink tints, Poppins font, pill buttons; light mode only (dark removed everywhere)
   - "Glide" wordmark (red G) and the three-petal leaf mark, as vectors
