@@ -23,24 +23,22 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Security: OTP and tokens never logged; rate-limit message shown when Supabase limits OTPs
   - [ ] Flow: on the phone, log in with a test number → close and reopen (still logged in) → logout
 
-### APP-011 · Look and feel: the Glide design system
+### APP-011 · Look and feel: the rest of the design system
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004 · Decision: D-031
-- **Why:** the team wants screens that feel as modern and smooth as popular consumer apps. One shared design system keeps every
-  screen consistent and makes the later screens faster to build.
-- **Needs from team:** optional: 2–3 apps whose look you like, and a brand colour / logo. Until then a placeholder palette that
-  is swapped in one file.
+- **Why:** the team wants screens that feel as modern and smooth as popular consumer apps. APP-004 already built the base
+  (team, 2026-10-03: "everything polished"): theme in `ui/theme/` (placeholder brand colours, light + dark, type, shapes,
+  spacing) and `ui/components/` (buttons with press feedback + loading, +91 phone field, 6-box OTP field, field message,
+  brand header, sheet card, error state, loading skeleton). This task adds what the next screens need, so they don't
+  invent their own.
+- **Needs from team:** optional: 2–3 apps whose look you like, and a brand colour / logo (one file to swap: `ui/theme/Color.kt`).
 - **Scope:**
-  - theme in `ui/theme/`: colours (light + dark), type scale, shapes, spacing, elevation
-  - components in `ui/components/`: buttons (with loading state), text fields (phone, 6-box OTP input), cards, chips, bottom
-    sheet, top bar, loading skeletons, empty state, error state with retry, snackbar
-  - motion: screen transitions, press feedback, animated content changes; haptics on key actions
-  - accessibility: text contrast ≥ 4.5:1, touch targets ≥ 48 dp, TalkBack labels, works at the largest font size
-  - the APP-004 login screens restyled with it; a debug-only "components" screen showing every piece
+  - components: cards (incl. a salon card), chips, bottom sheet, top bar, list item, empty state, snackbar
+  - a debug-only "components" screen showing every piece in light and dark
   - not included: logo and launcher icon (Pre-launch), screens of later tasks
 - **Done when:**
   - [ ] Tests: Compose UI test per component state (normal, disabled, loading, error), light and dark
-  - [ ] Login screens use only design-system pieces (no one-off colours, sizes or animations)
-  - [ ] Flow: on the phone, the login screens look and move the new way in light and dark mode; the largest font still fits
+  - [ ] Accessibility: text contrast ≥ 4.5:1, touch targets ≥ 48 dp, TalkBack labels, works at the largest font size
+  - [ ] Flow: on the phone, the components screen looks right in light and dark mode; the largest font still fits
 
 ### APP-005 · Onboarding: customer or salon?
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-011, BE-016, BE-018 · Decisions: D-024, D-030, DF-23

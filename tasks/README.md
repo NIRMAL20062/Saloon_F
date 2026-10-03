@@ -15,8 +15,8 @@ What gets built next, across all three files. Each step is one task = one pull r
 | # | Task | What you'll see | Needs from team first |
 |---|---|---|---|
 | 1 | BE-016 | backend accepts Supabase logins (`/v1/me`), remembers customer/salon choice | **Supabase project + phone login with test numbers** |
-| 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout | (same Supabase project) |
-| 3 | APP-011 | the new look: design system; login screens restyled (D-031) | optional: apps you like, brand colour |
+| 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout; already in the new polished look (D-031) | (same Supabase project) |
+| 3 | APP-011 | the rest of the design system (cards, chips, sheets, empty states) | optional: apps you like, brand colour |
 | 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
 | 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
 | 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | answers to Q-014, Q-016; encryption key in `.env` |
