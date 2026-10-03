@@ -29,6 +29,9 @@ object AuthModule {
     fun accessTokens(repository: AuthRepository): AccessTokens = repository
 
     @Provides
+    fun phoneLogin(repository: AuthRepository): PhoneLogin = repository
+
+    @Provides
     @Singleton
     fun sessionStore(
         @ApplicationContext context: Context,

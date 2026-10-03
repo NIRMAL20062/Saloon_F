@@ -13,4 +13,28 @@
     <string name="status_error_server">The server had a problem (error %1$d).</string>
     <string name="status_error_unexpected">The server sent a response this app doesn\'t understand. Please update the app.</string>
     <string name="status_reference">Reference: %1$s</string>
+
+    <!-- Login (APP-004) -->
+    <string name="login_title">Welcome to Glide</string>
+    <string name="login_phone_prompt">Enter your mobile number. We\'ll send you a 6-digit code.</string>
+    <string name="login_phone_label">Mobile number</string>
+    <string name="login_send_code">Send code</string>
+    <string name="login_code_sent">Enter the 6-digit code sent to %1$s</string>
+    <string name="login_code_label">6-digit code</string>
+    <string name="login_verify">Verify</string>
+    <string name="login_resend">Resend code</string>
+    <string name="login_resend_in">Resend in %1$d s</string>
+    <string name="login_change_number">Change number</string>
+    <string name="login_error_invalid_phone">Enter a valid 10-digit mobile number.</string>
+    <string name="login_error_invalid_code">That code is wrong or has expired. Try again or resend it.</string>
+    <string name="login_error_rate_limited">Too many attempts. Please wait a minute and try again.</string>
+    <string name="login_error_network">No internet connection. Check it and try again.</string>
+    <string name="login_error_unexpected">Something went wrong. Please try again.</string>
+
+    <!-- Signed in (temporary home until onboarding, APP-005) -->
+    <string name="home_signed_in">You\'re signed in</string>
+    <string name="home_next_step">Choosing customer or salon comes in the next update.</string>
+    <string name="home_load_error">Couldn\'t load your account. Check your connection and try again.</string>
+    <string name="home_logout">Log out</string>
+    <string name="home_system_status">System status</string>
 </resources>

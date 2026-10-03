@@ -26,6 +26,22 @@ sealed interface AuthResult<out T> {
 /** Why a login step failed. The UI shows its own wording for each; Supabase's text is never shown. */
 enum class AuthError { INVALID_PHONE, INVALID_CODE, RATE_LIMITED, NETWORK, UNEXPECTED }
 
+/** What screens need from login. AuthRepository is the real one; tests use fakes. */
+interface PhoneLogin {
+    /** Null = signed out. */
+    val session: StateFlow<Session?>
+
+    /** [phone] in E.164 digits without "+", e.g. `919000000001`. */
+    suspend fun requestOtp(phone: String): AuthResult<Unit>
+
+    suspend fun verifyOtp(
+        phone: String,
+        code: String,
+    ): AuthResult<Session>
+
+    suspend fun logout()
+}
+
 /**
  * Phone login with Supabase Auth (D-016): send OTP → verify → session kept encrypted on the phone and refreshed
  * automatically. Everything else in the app asks [accessToken] for a valid token.
@@ -37,19 +53,18 @@ class AuthRepository
         private val api: SupabaseAuthApi,
         private val store: SessionStore,
         private val clock: EpochClock,
-    ) : AccessTokens {
+    ) : AccessTokens,
+        PhoneLogin {
         private val _session = MutableStateFlow(store.load())
 
-        /** Null = signed out. */
-        val session: StateFlow<Session?> = _session.asStateFlow()
+        override val session: StateFlow<Session?> = _session.asStateFlow()
 
         private val refreshLock = Mutex()
 
-        /** [phone] in E.164 digits without "+", e.g. `919000000001`. */
-        suspend fun requestOtp(phone: String): AuthResult<Unit> =
+        override suspend fun requestOtp(phone: String): AuthResult<Unit> =
             call(onClientError = AuthError.INVALID_PHONE) { api.sendOtp(OtpRequest(phone)) }.map { }
 
-        suspend fun verifyOtp(
+        override suspend fun verifyOtp(
             phone: String,
             code: String,
         ): AuthResult<Session> =
@@ -92,7 +107,7 @@ class AuthRepository
             }
 
         /** Ends the session on this phone; also tells Supabase, but signs out even if that fails (e.g. offline). */
-        suspend fun logout() {
+        override suspend fun logout() {
             val current = _session.value ?: return
             runCatching { api.logout("Bearer ${current.accessToken}") }
             signOutLocally()

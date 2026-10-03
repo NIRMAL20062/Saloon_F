@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import com.glide.shared.api.ApiJson
 import kotlinx.serialization.Serializable
 import java.security.KeyStore
@@ -61,11 +62,11 @@ class EncryptedSessionStore(
 
     override fun save(session: Session) {
         val sealed = cipher.encrypt(ApiJson.encodeToString(session).encodeToByteArray())
-        prefs.edit().putString(KEY, Base64.encodeToString(sealed, Base64.NO_WRAP)).apply()
+        prefs.edit { putString(KEY, Base64.encodeToString(sealed, Base64.NO_WRAP)) }
     }
 
     override fun clear() {
-        prefs.edit().remove(KEY).apply()
+        prefs.edit { remove(KEY) }
     }
 
     private companion object {
