@@ -70,6 +70,9 @@ android {
     lint {
         abortOnError = true
         checkDependencies = true
+        // App code is fully linted. Test code is skipped: lint's Kotlin analysis crashes on our Hilt/Robolectric tests
+        // intermittently (lintAnalyzeDebugUnitTest, AGP 9.4.1), and lint findings in tests don't reach users.
+        ignoreTestSources = true
     }
 }
 
