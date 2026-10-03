@@ -6,7 +6,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.isNull
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -40,10 +43,14 @@ interface UserRepository {
     /** Returns the user's row, creating it on their first request. Safe when two first requests race. */
     suspend fun ensure(user: AuthenticatedUser): AppUser
 
-    suspend fun setSide(
+    /**
+     * Saves the onboarding choice. Returns the user, or null when a *different* side was already chosen (the choice is
+     * final, D-030). Choosing the same side again is accepted, so app retries are safe.
+     */
+    suspend fun chooseSide(
         id: UUID,
         side: UserSide,
-    ): AppUser
+    ): AppUser?
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -68,14 +75,18 @@ class ExposedUserRepository(
             }
         }
 
-    override suspend fun setSide(
+    override suspend fun chooseSide(
         id: UUID,
         side: UserSide,
-    ): AppUser =
+    ): AppUser? =
         db {
             val kid = id.toKotlinUuid()
-            AppUsers.update({ AppUsers.id eq kid }) { it[AppUsers.side] = side }
-            find(kid).toAppUser()
+            // Only rows with no side yet (or the same side) match, so a switch updates nothing and never hits the trigger.
+            val updated =
+                AppUsers.update({ (AppUsers.id eq kid) and (AppUsers.side.isNull() or (AppUsers.side eq side)) }) {
+                    it[AppUsers.side] = side
+                }
+            if (updated == 1) find(kid).toAppUser() else null
         }
 
     private fun find(id: Uuid): ResultRow = AppUsers.selectAll().where { AppUsers.id eq id }.single()

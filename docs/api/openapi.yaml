@@ -83,7 +83,7 @@ paths:
     put:
       operationId: updateMySide
       tags: [me]
-      summary: Save the onboarding answer, customer or salon (can be switched later)
+      summary: Save the onboarding answer, customer or salon. Final once chosen (D-030); the same answer again is accepted
       security:
         - supabaseToken: []
       requestBody:
@@ -102,6 +102,13 @@ paths:
               schema: { $ref: "#/components/schemas/MeResponse" }
         "400": { $ref: "#/components/responses/Error" }
         "401": { $ref: "#/components/responses/Unauthorized" }
+        "409":
+          description: A different side was already chosen; it can't be changed (error code SIDE_ALREADY_CHOSEN)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
         default: { $ref: "#/components/responses/Error" }
 
 components:

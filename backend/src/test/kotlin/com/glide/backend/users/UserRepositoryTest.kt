@@ -12,6 +12,7 @@ import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 /** Real PostgreSQL (Testcontainers) with the real migrations. */
 class UserRepositoryTest {
@@ -51,15 +52,32 @@ class UserRepositoryTest {
         }
 
     @Test
-    fun `side is saved and can be switched`() =
+    fun `the side is saved once and is final`() =
         runBlocking {
             val id = UUID.randomUUID()
             repository.ensure(AuthenticatedUser(id, "919000000004"))
 
-            assertEquals(UserSide.SALON, repository.setSide(id, UserSide.SALON).side)
-            assertEquals(UserSide.CUSTOMER, repository.setSide(id, UserSide.CUSTOMER).side)
-            assertEquals(UserSide.CUSTOMER, repository.ensure(AuthenticatedUser(id, "919000000004")).side)
+            assertEquals(UserSide.SALON, repository.chooseSide(id, UserSide.SALON)?.side)
+            assertEquals(UserSide.SALON, repository.chooseSide(id, UserSide.SALON)?.side) // same answer again: fine
+            assertNull(repository.chooseSide(id, UserSide.CUSTOMER)) // a switch: refused
+            assertEquals(UserSide.SALON, repository.ensure(AuthenticatedUser(id, "919000000004")).side)
         }
+
+    @Test
+    fun `the database itself refuses to change a chosen side`() {
+        val id = UUID.randomUUID()
+        runBlocking { repository.ensure(AuthenticatedUser(id, "919000000005")) }
+        runBlocking { repository.chooseSide(id, UserSide.CUSTOMER) }
+
+        assertFailsWith<SQLException> {
+            TestDatabase.dataSource.connection.use { conn ->
+                conn.prepareStatement("UPDATE app_users SET side = 'SALON' WHERE id = ?").use {
+                    it.setObject(1, id)
+                    it.executeUpdate()
+                }
+            }
+        }
+    }
 
     @Test
     fun `the database itself rejects an unknown side`() {

@@ -16,8 +16,12 @@ class InMemoryUserRepository : UserRepository {
             existing?.copy(phone = user.phone ?: existing.phone) ?: AppUser(user.id, user.phone, null)
         }!!
 
-    override suspend fun setSide(
+    override suspend fun chooseSide(
         id: UUID,
         side: UserSide,
-    ): AppUser = users.computeIfPresent(id) { _, existing -> existing.copy(side = side) }!!
+    ): AppUser? {
+        val existing = users.getValue(id)
+        if (existing.side != null && existing.side != side) return null
+        return existing.copy(side = side).also { users[id] = it }
+    }
 }

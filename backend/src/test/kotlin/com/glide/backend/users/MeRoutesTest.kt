@@ -9,6 +9,7 @@ import com.glide.shared.api.ApiJson
 import com.glide.shared.api.ApiRoutes
 import com.glide.shared.error.ErrorCodes
 import com.glide.shared.error.ErrorResponse
+import com.glide.shared.me.MeErrorCodes
 import com.glide.shared.me.MeResponse
 import com.glide.shared.me.UserSide
 import io.ktor.client.request.bearerAuth
@@ -84,6 +85,21 @@ class MeRoutesTest {
         }
 
     @Test
+    fun `the choice is final - a different side is 409, the same side again is fine`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000003")
+            assertEquals(HttpStatusCode.OK, putSide(token, "CUSTOMER").status)
+
+            val again = putSide(token, "CUSTOMER")
+            val switch = putSide(token, "SALON")
+
+            assertEquals(HttpStatusCode.OK, again.status)
+            assertEquals(HttpStatusCode.Conflict, switch.status)
+            assertEquals(MeErrorCodes.SIDE_ALREADY_CHOSEN, switch.error().error.code)
+            assertEquals(UserSide.CUSTOMER, client.get(ApiRoutes.ME) { bearerAuth(token) }.me().side)
+        }
+
+    @Test
     fun `an unknown side is a 400`() =
         withApp {
             val response =
@@ -115,6 +131,15 @@ class MeRoutesTest {
             application { module(testConfig(database = TestDatabase.config), deps) }
             block()
         }
+
+    private suspend fun ApplicationTestBuilder.putSide(
+        token: String,
+        side: String,
+    ) = client.put(ApiRoutes.ME_SIDE) {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody("""{"side":"$side"}""")
+    }
 
     private suspend fun HttpResponse.me() = ApiJson.decodeFromString<MeResponse>(bodyAsText())
 

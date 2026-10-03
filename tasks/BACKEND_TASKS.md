@@ -15,7 +15,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
   - `app_users` table (one row per Supabase user: id, phone, **side** CUSTOMER / SALON / not chosen yet, created_at), created on first request
   - `GET /v1/me` → who is signed in and their chosen side (the app picks the interface from this, D-024). Salon memberships and pending invites are added by BE-017, when salons exist (new fields; older app versions ignore them)
-  - `PUT /v1/me/side` → save the onboarding choice (customer or salon); switching later is allowed
+  - `PUT /v1/me/side` → save the onboarding choice (customer or salon). **Final once chosen** (D-030, team 2026-10-03): a different side → 409 `SIDE_ALREADY_CHOSEN`, the same side again → 200; a database trigger refuses any change too
 - **Done when:**
   - [x] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned (`SupabaseTokenVerifierTest` 9, `MeRoutesTest` 6)
   - [x] Database: `V2__app_users.sql`; first-request creation is idempotent: 10 parallel first requests → one row (`UserRepositoryTest` 5, real Postgres); side enforced by a CHECK constraint
