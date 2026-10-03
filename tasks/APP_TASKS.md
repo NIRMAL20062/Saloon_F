@@ -9,49 +9,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and onboarding
 
-### APP-004 · Phone login (everyone)
-- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-016 · Spec: PRODUCT §4
-- **Why:** customers and salon people all sign in the same way: phone number + OTP.
-- **Needs from team:** Supabase project with the phone provider on (Twilio) and test phone numbers (steps in the BE-016 report).
-- **Flow:** open app → enter phone number (+91) → receive OTP (test numbers: fixed code, no SMS) → enter OTP → signed in.
-  Stays signed in after closing the app; logout from the menu.
-- **Look (team, 2026-10-03: "everything polished", D-031):** the login is built with the Glide theme and components now:
-  brand gradient header, rounded sheet, +91 chip, six code boxes (blinking caret, pop-in digits, shake + haptic on a wrong
-  code, SMS code autofill), auto-verify on the 6th digit, sliding steps, press feedback, light and dark mode.
-- **Done when:**
-  - [x] Screens: phone entry (10-digit Indian mobile), OTP entry (6 digits, resend after 60 s, wrong-code message), loading and error states (`LoginScreenTest` 12)
-  - [x] Session stored encrypted on the device (Android Keystore AES-GCM) and refreshed automatically; logout clears it (`EncryptedSessionStoreTest`, `AuthRepositoryTest`)
-  - [x] Every backend call sends the login token, refreshed once on 401; `GET /v1/me` answers with the signed-in user (`AuthenticatedClientTest`, `SignedInTest`)
-  - [x] Tests: ViewModel tests for every state; Compose UI tests for every screen state and every component state (`ComponentsTest` 12); 91 app tests in total
-  - [x] Security: OTP and tokens never logged (HTTP logs at BASIC level, debug only); rate-limit message shown when Supabase limits OTPs
-  - [x] Flow: on the phone, log in with a test number → close and reopen (still logged in) → logout. Verified by Claude on 2026-10-03,
-    moto g54 5G (Android 15, dark mode) against the local backend and the real Supabase project: test number 9000000001 →
-    code sent, 60 s countdown → wrong code 111111 auto-checked, red boxes + our message → 123456 → signed in, `GET /v1/me` 200 →
-    force-stop + reopen: still signed in → Log out → login screen, still logged out after another restart. No code or token in
-    the app's logs or the backend log
-
-### APP-011 · Look and feel: the rest of the design system
-- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** APP-004 · Decision: D-031
-- **Why:** the team wants screens that feel as modern and smooth as popular consumer apps. APP-004 already built the base
-  (team, 2026-10-03: "everything polished"): theme in `ui/theme/` (placeholder brand colours, light + dark, type, shapes,
-  spacing) and `ui/components/` (buttons with press feedback + loading, +91 phone field, 6-box OTP field, field message,
-  brand header, sheet card, error state, loading skeleton). This task adds what the next screens need, so they don't
-  invent their own.
-- **Needs from team:** optional: 2–3 apps whose look you like, and a brand colour / logo (one file to swap: `ui/theme/Color.kt`).
-- **Scope:**
-  - components: cards (incl. a salon card), chips, bottom sheet, top bar, list item, empty state, snackbar
-  - a debug-only "components" screen showing every piece in light and dark
-  - not included: logo and launcher icon (Pre-launch), screens of later tasks
-- **Done when:**
-  - [x] Tests: Compose UI test per component state (normal, disabled, loading, error), light and dark (`DesignSystemTest` 28 = 14 × light/dark, `ComponentsGalleryTest` 7, `ColorContrastTest` 3); app total 129
-  - [x] Accessibility: text contrast ≥ 4.5:1 for every text/background pair, light and dark (`ColorContrastTest`); touch targets ≥ 48 dp, TalkBack labels (back button, rating), largest font size (tests + on the phone)
-  - [x] Flow: on the phone, the components screen looks right in light and dark mode; the largest font still fits. Verified by
-    Claude on 2026-10-03, moto g54 5G: signed in → Design components → light, dark switch, bottom sheet, "Saved" message;
-    font size 2.0 (restored to the user's 1.3 afterwards) everything fits, long title shortens with "…". Found and fixed:
-    status-bar icons invisible on light screens (`StatusBarIcons`)
-
 ### APP-005 · Onboarding: customer or salon?
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-011, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
 - **Why:** one app, two kinds of users; each sees only their own interface.
 - **Needs from team:** nothing.
 - **Flow (first login only):** "How will you use Glide?"

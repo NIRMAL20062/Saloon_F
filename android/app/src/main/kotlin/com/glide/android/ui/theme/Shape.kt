@@ -4,15 +4,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-/** Soft, rounded corners everywhere (cards 24 dp, sheets 32 dp). */
+/** Corners as in the mockup (D-041): fields and chips 12 dp, cards 16 dp, sheets 24 dp; buttons are pills. */
 internal val GlideShapes =
     Shapes(
         extraSmall = RoundedCornerShape(8.dp),
-        small = RoundedCornerShape(12.dp),
-        medium = RoundedCornerShape(16.dp),
-        large = RoundedCornerShape(24.dp),
-        extraLarge = RoundedCornerShape(32.dp),
+        small = RoundedCornerShape(10.dp),
+        medium = RoundedCornerShape(12.dp),
+        large = RoundedCornerShape(16.dp),
+        extraLarge = RoundedCornerShape(24.dp),
     )
+
+/** Fully rounded ends: every button and filter chip. */
+val PillShape = RoundedCornerShape(percent = 50)
 
 /** Spacing steps. Screens use these instead of one-off numbers. */
 object Spacing {

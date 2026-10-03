@@ -12,23 +12,20 @@ _Last updated 2026-10-03._
   anything disagrees, [docs/DECISIONS.md](docs/DECISIONS.md) wins.
 - **Key rules:** one app, the customer/salon choice is final (D-023, D-030); one salon per person (D-035); our admins verify a
   salon before it goes live (D-033); two roles: the Owner has full control, Staff only see and handle their own appointments (D-039); online payments only, all through our Razorpay (D-028, D-029);
-  modern, interactive screens from one design system (D-031).
+  modern, interactive screens from one design system, looking like the team's mockup, light mode only (D-031, D-040, D-041).
 - **Done (Phase 0):** backend skeleton, database, Android app skeleton, admin website skeleton, CI (`ci-ok`). Details:
   `tasks/*_COMPLETED.md`.
-- **Phase 1 (login and onboarding):** **BE-016** built (Supabase logins, `GET /v1/me`, `PUT /v1/me/side`, side final), PR #2
-  waiting for the team's OK. **APP-004** built (phone login in the polished look; theme + components in `ui/theme`,
-  `ui/components`), verified on the moto g54, waiting for the team's OK.
-- **APP-011** built (rest of the design system + debug-only "Design components" screen), verified on the phone, waiting for
-  the team's OK.
-- **Next task:** BE-018 + APP-005 ("customer or salon?"). Full order:
+- **Phase 1 (login and onboarding), merged 2026-10-03:** **BE-016** (Supabase logins, `/v1/me`, side final),
+  **APP-004** (phone login), **APP-011** (design system), **APP-013** (the team's mockup look, welcome screen, light only).
+  Details: `tasks/*_COMPLETED.md`.
+- **Next task:** BE-018 + APP-005 ("How will you use Glide?", mockup 4). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
   with code `123456` (no SMS sent). Public keys only in the repo; secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Pull requests (merge in this order):** #2 BE-016 → #3 APP-004 → #4 docs cleanup → #5 APP-011 (each stacked on the one
-  before).
+- **Open pull requests:** none.
 
 ## Golden rules
 

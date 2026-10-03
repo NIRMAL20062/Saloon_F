@@ -15,13 +15,16 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -45,6 +48,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -60,7 +65,7 @@ import com.glide.android.ui.theme.Spacing
 import com.glide.android.ui.theme.TouchTarget
 
 /**
- * Indian mobile number: a fixed country-code chip ([countryCode], e.g. "+91") next to a digits-only field. Tag the
+ * Indian mobile number as in the mockup: a flag + country-code box ([countryCode], e.g. "+91") next to a digits-only field. Tag the
  * field through [fieldModifier].
  */
 @Composable
@@ -74,29 +79,37 @@ fun PhoneNumberField(
     fieldModifier: Modifier = Modifier,
     isError: Boolean = false,
     enabled: Boolean = true,
+    /** Focus the field (and open the keyboard) as soon as it appears. */
+    autoFocus: Boolean = false,
 ) {
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
     Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
+        // Intrinsic height so the +91 box is exactly as tall as the number field.
+        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Min),
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            modifier = Modifier.heightIn(min = TouchTarget),
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            modifier = Modifier.fillMaxHeight(),
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.heightIn(min = TouchTarget).padding(horizontal = Spacing.m),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                modifier = Modifier.fillMaxHeight().padding(horizontal = Spacing.m),
             ) {
+                IndiaFlag()
                 Text(countryCode, style = MaterialTheme.typography.titleMedium)
             }
         }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            placeholder = { Text(label) },
             singleLine = true,
             isError = isError,
             enabled = enabled,
@@ -105,7 +118,11 @@ fun PhoneNumberField(
             colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onDone() }),
-            modifier = fieldModifier.weight(1f).semantics { contentType = ContentType.PhoneNumberNational },
+            modifier =
+                fieldModifier.weight(1f).focusRequester(focus).semantics {
+                    contentType =
+                        ContentType.PhoneNumberNational
+                },
         )
     }
 }
@@ -125,9 +142,13 @@ fun OtpCodeField(
     length: Int = 6,
     isError: Boolean = false,
     enabled: Boolean = true,
+    /** Focus the boxes (and open the number keyboard) as soon as they appear. */
+    autoFocus: Boolean = false,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
     val shake = remember { Animatable(0f) }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(isError) {
@@ -159,6 +180,7 @@ fun OtpCodeField(
         modifier =
             modifier
                 .fillMaxWidth()
+                .focusRequester(focus)
                 .offset(x = shake.value.dp)
                 .semantics {
                     contentDescription = label

@@ -20,8 +20,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Every screen starts with the dark brand gradient under the status bar, so its icons are always light.
-        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
+        // Light screens (D-040, D-041): dark status-bar icons. The welcome photo switches them to light (StatusBarIcons).
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         setContent {
             GlideTheme {
                 val signedIn by appViewModel.signedIn.collectAsStateWithLifecycle()

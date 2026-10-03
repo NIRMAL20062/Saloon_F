@@ -79,3 +79,26 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Completed:** 2026-10-02 · **Commits:** `663db69` (+ README/CLAUDE.md updates in later commits)
 - **Built:** ARCHITECTURE, DEVELOPMENT_WORKFLOW, TESTING, SECURITY, DATABASE guides, PR template; README quick start covers backend, both apps and admin
 
+## Phase 1: Login and onboarding
+
+### BE-016 · Backend trusts Supabase logins + `GET /v1/me`
+- **Completed:** 2026-10-03 (team's OK and merge) · **Commits:** `3c507d6` `1468aed` `5bb5301` `69fa583`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-011 · Decision: D-016
+- **Why:** the apps log in with Supabase; the backend must check every request's token itself.
+- **Needs from team:** Supabase project (free, region Mumbai) with Phone provider + Twilio + test phone numbers; project URL shared;
+  secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
+- **Scope:**
+  - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
+  - `app_users` table (one row per Supabase user: id, phone, **side** CUSTOMER / SALON / not chosen yet, created_at), created on first request
+  - `GET /v1/me` → who is signed in and their chosen side (the app picks the interface from this, D-024). The person's salon and role are added by BE-017, when salons exist (new fields; older app versions ignore them)
+  - `PUT /v1/me/side` → save the onboarding choice (customer or salon). **Final once chosen** (D-030, team 2026-10-03): a different side → 409 `SIDE_ALREADY_CHOSEN`, the same side again → 200; a database trigger refuses any change too
+- **Done when:**
+  - [x] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned (`SupabaseTokenVerifierTest` 9, `MeRoutesTest` 6)
+  - [x] Database: `V2__app_users.sql`; first-request creation is idempotent: 10 parallel first requests → one row (`UserRepositoryTest`, real Postgres); side enforced by a CHECK constraint; `V3__app_users_side_final.sql`: a trigger refuses changing a chosen side (D-030). A new migration, not an edit of V2, so local databases that already ran V2 keep working
+  - [x] Security: tokens and phone numbers never logged (checked in the real run's log); JWKS cached, 5 s download timeout, 5 s retry pause; only ES256/RS256 accepted (HS256 forgery refused); no Supabase secret in the repo or used by the backend
+  - [x] OpenAPI spec updated (`/v1/me`, `/v1/me/side`, bearer security, 401 envelope); contract tests pass
+  - [x] Flow (real Supabase project): test number OTP → real access token → `GET /v1/me` 200 → `PUT /v1/me/side` CUSTOMER saved and returned → tampered token 401. After D-030 (2026-10-03, on the local database that had run V2): V3 applied without a reset; same side again → 200, other side → 409 `SIDE_ALREADY_CHOSEN`, side unchanged
+- **Tests:** backend 59 (`SupabaseTokenVerifierTest` 9, `MeRoutesTest`, `UserRepositoryTest` on real Postgres)
+- **Security:** tokens and phone numbers never logged; only ES256/RS256 accepted; no Supabase secret used by the backend
+- **Database:** `V2__app_users`, `V3__app_users_side_final` (side is final, D-030)
+- **Verified by:** Claude, real Supabase project + local database (2026-10-02/03)

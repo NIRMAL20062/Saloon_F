@@ -9,12 +9,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.glide.android.BuildConfig
 import com.glide.android.ui.auth.LoginRoute
+import com.glide.android.ui.auth.WelcomeScreen
 import com.glide.android.ui.gallery.ComponentsGalleryScreen
 import com.glide.android.ui.home.SignedInRoute
 import com.glide.android.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
 
 /** Type-safe routes. Each screen gets one `@Serializable` route; arguments become its properties. */
+@Serializable
+data object WelcomeDestination
+
 @Serializable
 data object LoginDestination
 
@@ -29,16 +33,17 @@ data object StatusDestination
 data object ComponentsDestination
 
 /**
- * Signed out → login; signed in → home. When the session changes (login, logout, refresh token rejected) the back stack
- * is replaced, so Back never returns to a screen of the other state.
+ * Signed out → welcome (→ Get Started → login); signed in → home. When the session changes (login, logout, refresh token
+ * rejected) the back stack is replaced, so Back never returns to a screen of the other state.
  */
 @Composable
 fun GlideNavHost(
     signedIn: Boolean,
     navController: NavHostController = rememberNavController(),
 ) {
-    NavHost(navController = navController, startDestination = if (signedIn) HomeDestination else LoginDestination) {
-        composable<LoginDestination> { LoginRoute() }
+    NavHost(navController = navController, startDestination = if (signedIn) HomeDestination else WelcomeDestination) {
+        composable<WelcomeDestination> { WelcomeScreen(onGetStarted = { navController.navigate(LoginDestination) }) }
+        composable<LoginDestination> { LoginRoute(onBack = { navController.popBackStack() }) }
         composable<HomeDestination> {
             SignedInRoute(
                 onOpenStatus = { navController.navigate(StatusDestination) },
@@ -52,8 +57,17 @@ fun GlideNavHost(
     }
 
     LaunchedEffect(signedIn) {
-        val target: Any = if (signedIn) HomeDestination else LoginDestination
-        if (navController.currentDestination?.hasRoute(target::class) != true) {
+        val current = navController.currentDestination
+        // Signed out, the welcome and login screens are both right (e.g. after the phone rotates mid-login).
+        val alreadyRight =
+            if (signedIn) {
+                current?.hasRoute(HomeDestination::class) == true
+            } else {
+                current?.hasRoute(WelcomeDestination::class) == true ||
+                    current?.hasRoute(LoginDestination::class) == true
+            }
+        val target: Any = if (signedIn) HomeDestination else WelcomeDestination
+        if (!alreadyRight) {
             navController.navigate(target) {
                 popUpTo(navController.graph.id) { inclusive = true }
                 launchSingleTop = true
