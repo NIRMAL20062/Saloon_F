@@ -51,8 +51,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2 · Decision: DF-18
 - **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
   `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
-  `PUT /v1/me/side` (built in BE-016) refuses a change once a side is saved: the choice is final (D-030).
-- **Done when:** tests for validation, own profile only, new vs returning user, second side change → 409; OpenAPI updated.
+  `PUT /v1/me/side` refuses a change once a side is saved: the choice is final (D-030). The team asked for this fix in BE-016
+  (PR #2); if it's already there, only check it here.
+- **Done when:** tests for validation, own profile only, new vs returning user, a different side after one is saved → 409; OpenAPI updated.
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: E1.5; spec v2 "audit entry for every admin or system money action"
