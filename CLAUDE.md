@@ -6,7 +6,7 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 
 ## Where we are (read this first; update it in every task's pull request)
 
-_Last updated 2026-10-03._
+_Last updated 2026-10-04._
 
 - **What we build:** [docs/PRODUCT.md](docs/PRODUCT.md), the whole MVP as decided (D-038). The old planning files are gone; where
   anything disagrees, [docs/DECISIONS.md](docs/DECISIONS.md) wins.
@@ -18,14 +18,16 @@ _Last updated 2026-10-03._
 - **Phase 1 (login and onboarding), merged 2026-10-03:** **BE-016** (Supabase logins, `/v1/me`, side final),
   **APP-004** (phone login), **APP-011** (design system), **APP-013** (the team's mockup look, welcome screen, light only).
   Details: `tasks/*_COMPLETED.md`.
-- **Next task:** BE-018 + APP-005 ("How will you use Glide?", mockup 4). Full order:
+- **BE-018 + APP-005** built (profile API; "How will you use Glide?" and the customer profile, mockups 4–5), verified on the
+  phone, waiting for the team's OK.
+- **Next task:** WEB-002 → BE-020 → WEB-005 (admin website login). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
   with code `123456` (no SMS sent). Public keys only in the repo; secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** none.
+- **Open pull requests:** #7 BE-018 → #8 APP-005 (stacked on #7).
 
 ## Golden rules
 
