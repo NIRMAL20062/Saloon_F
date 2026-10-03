@@ -5,12 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.glide.android.data.auth.AuthError
@@ -47,10 +48,11 @@ class LoginScreenTest {
     fun phoneStepShowsCountryCodeAndSendsTypedDigits() {
         show(LoginUiState.EnterPhone())
 
-        compose.onNodeWithText("Welcome to Glide").assertIsDisplayed()
+        compose.onNodeWithText("Enter your mobile number").assertIsDisplayed()
+        compose.onNodeWithText("We'll send you a 6-digit code").assertIsDisplayed()
         compose.onNodeWithText("+91").assertIsDisplayed()
         compose.onNodeWithTag("phone").performTextInput("9")
-        compose.onNodeWithText("Send code").performClick()
+        compose.onNodeWithText("Send Code").performClick()
 
         assertEquals(listOf("phone:9", "send"), events)
     }
@@ -66,22 +68,34 @@ class LoginScreenTest {
     fun codeStepShowsTheFormattedNumber() {
         show(LoginUiState.EnterCode("9000000001"))
 
-        compose.onNodeWithText("Enter the 6-digit code sent to +91 90000 00001").assertIsDisplayed()
+        compose.onNodeWithText("Enter the 6-digit code").assertIsDisplayed()
+        compose.onNodeWithText("We've sent a code to +91 90000 00001").assertIsDisplayed()
     }
 
     @Test
-    fun verifyIsEnabledOnlyWithSixDigits() {
-        show(LoginUiState.EnterCode("9000000001", code = "12345"))
-        compose.onNodeWithText("Verify").assertIsNotEnabled()
+    fun whileCheckingTheCodeItSaysSoAndThereIsNoVerifyButton() {
+        show(LoginUiState.EnterCode("9000000001", code = "123456", loading = true))
+
+        compose.onNodeWithText("Verifying automatically…").assertIsDisplayed()
+        compose.onNodeWithText("Verify").assertDoesNotExist()
     }
 
     @Test
-    fun verifyWithSixDigits() {
+    fun keyboardDoneVerifies() {
         show(LoginUiState.EnterCode("9000000001", code = "123456"))
 
-        compose.onNodeWithText("Verify").assertIsEnabled().performClick()
+        compose.onNodeWithTag("code").performImeAction()
 
         assertEquals(listOf("verify"), events)
+    }
+
+    @Test
+    fun backOnTheCodeStepReturnsToThePhoneStep() {
+        show(LoginUiState.EnterCode("9000000001"))
+
+        compose.onNodeWithContentDescription("Back").performClick()
+
+        assertEquals(listOf("change"), events)
     }
 
     @Test
@@ -149,12 +163,21 @@ class LoginScreenTest {
     }
 
     @Test
-    fun darkModeShowsTheSameLogin() {
+    fun backOnThePhoneStepLeavesLogin() {
+        var left = false
         compose.setContent {
-            GlideTheme(darkTheme = true) { LoginScreen(LoginUiState.EnterPhone(), {}, {}, {}, {}, {}, {}) }
+            GlideTheme { LoginScreen(LoginUiState.EnterPhone(), {}, {}, {}, {}, {}, {}, onBack = { left = true }) }
         }
 
-        compose.onNodeWithText("Welcome to Glide").assertIsDisplayed()
-        compose.onNodeWithText("Send code").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Back").performClick()
+
+        assertEquals(true, left)
+    }
+
+    @Test
+    fun theWordmarkIsOnTop() {
+        show(LoginUiState.EnterPhone())
+
+        compose.onNodeWithContentDescription("Glide").assertIsDisplayed()
     }
 }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,10 +24,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glide.android.R
 import com.glide.android.data.network.ApiError
 import com.glide.android.domain.status.SystemStatus
-import com.glide.android.ui.components.BrandHeader
+import com.glide.android.ui.components.GlideHeader
 import com.glide.android.ui.components.PrimaryButton
+import com.glide.android.ui.components.ScreenTitle
 import com.glide.android.ui.components.SecondaryButton
-import com.glide.android.ui.components.SheetCard
 import com.glide.android.ui.theme.GlideTheme
 import com.glide.android.ui.theme.Spacing
 import com.glide.shared.health.HealthStatus
@@ -53,8 +53,12 @@ fun StatusScreen(
                 .background(MaterialTheme.colorScheme.surface)
                 .verticalScroll(rememberScrollState()),
     ) {
-        BrandHeader(brandName = stringResource(R.string.app_name), title = stringResource(R.string.home_system_status))
-        SheetCard(modifier = Modifier.offset(y = -Spacing.xl).navigationBarsPadding()) {
+        GlideHeader(brandName = stringResource(R.string.app_name))
+        Column(
+            verticalArrangement = Arrangement.spacedBy(Spacing.m),
+            modifier = Modifier.padding(Spacing.l).navigationBarsPadding(),
+        ) {
+            ScreenTitle(title = stringResource(R.string.home_system_status))
             when (state) {
                 StatusUiState.Loading -> Loading()
                 is StatusUiState.Loaded -> Loaded(state.status, onRetry)

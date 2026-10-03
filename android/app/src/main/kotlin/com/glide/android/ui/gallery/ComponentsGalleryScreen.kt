@@ -14,18 +14,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -48,24 +45,18 @@ import com.glide.android.ui.components.PrimaryButton
 import com.glide.android.ui.components.QuietButton
 import com.glide.android.ui.components.SalonCard
 import com.glide.android.ui.components.SecondaryButton
-import com.glide.android.ui.components.StatusBarIcons
 import com.glide.android.ui.components.StatusChip
 import com.glide.android.ui.theme.GlideTheme
 import com.glide.android.ui.theme.Spacing
 import kotlinx.coroutines.launch
 
 /**
- * Debug builds only (opened from the signed-in screen): every design-system piece on one page, with a light/dark switch,
- * so the team can see the look on a real phone and new screens can copy from it (APP-011, D-031).
+ * Debug builds only (opened from the signed-in screen): every design-system piece on one page, so the team can see the
+ * look on a real phone and new screens can copy from it (APP-011, D-031, D-041). Light only (D-040).
  */
 @Composable
-fun ComponentsGalleryScreen(
-    onBack: () -> Unit,
-    startDark: Boolean = false,
-) {
-    var dark by rememberSaveable { mutableStateOf(startDark) }
-    GlideTheme(darkTheme = dark) {
-        StatusBarIcons(darkIcons = !dark)
+fun ComponentsGalleryScreen(onBack: () -> Unit) {
+    GlideTheme {
         val snackbar = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         Scaffold(
@@ -74,23 +65,6 @@ fun ComponentsGalleryScreen(
                     title = stringResource(R.string.gallery_title),
                     onBack = onBack,
                     backLabel = stringResource(R.string.common_back),
-                    actions = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(end = Spacing.s),
-                        ) {
-                            Text(
-                                stringResource(R.string.gallery_dark_mode),
-                                style = MaterialTheme.typography.labelLarge,
-                                modifier = Modifier.padding(end = Spacing.s),
-                            )
-                            Switch(
-                                checked = dark,
-                                onCheckedChange = { dark = it },
-                                modifier = Modifier.testTag("darkSwitch"),
-                            )
-                        }
-                    },
                 )
             },
             snackbarHost = { GlideSnackbarHost(snackbar) },
@@ -207,11 +181,12 @@ private fun Cards() {
     Section(stringResource(R.string.gallery_cards)) {
         SalonCard(
             name = stringResource(R.string.gallery_salon_name),
-            area = stringResource(R.string.gallery_salon_area),
-            typeLabel = stringResource(R.string.gallery_chip_unisex),
-            rating = "4.6",
+            tags = stringResource(R.string.gallery_salon_tags),
+            rating = "4.8",
+            reviewCount = stringResource(R.string.gallery_salon_reviews),
             ratingLabel = stringResource(R.string.gallery_salon_rating_label),
             distance = stringResource(R.string.gallery_salon_distance),
+            priceFrom = stringResource(R.string.gallery_salon_price),
             onClick = {},
         )
         GlideCard { Text(stringResource(R.string.gallery_plain_card), style = MaterialTheme.typography.bodyLarge) }

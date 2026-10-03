@@ -8,11 +8,14 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -21,18 +24,21 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import com.glide.android.ui.theme.PillShape
 import com.glide.android.ui.theme.TouchTarget
 
 /** How much a button shrinks while pressed: a small, tactile "push". */
 private const val PRESSED_SCALE = 0.97f
 
 /**
- * The main call to action: full width, 56 dp tall, rounded. Shrinks slightly and gives a light haptic tick when pressed;
+ * The main call to action, as in the mockup: a red pill, full width, 56 dp tall. Shrinks slightly and gives a light haptic tick when pressed;
  * while [loading] it shows a spinner and can't be tapped again.
  */
 @Composable
@@ -42,6 +48,8 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     loading: Boolean = false,
+    /** An icon after the text, e.g. the arrow of "Get Started →". Decorative. */
+    trailingIcon: ImageVector? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val haptics = LocalHapticFeedback.current
@@ -52,7 +60,7 @@ fun PrimaryButton(
         },
         enabled = enabled && !loading,
         interactionSource = interaction,
-        shape = MaterialTheme.shapes.large,
+        shape = PillShape,
         modifier = modifier.fillMaxWidth().heightIn(min = TouchTarget).pressScale(interaction),
     ) {
         AnimatedContent(
@@ -67,7 +75,13 @@ fun PrimaryButton(
                     color = LocalContentColor.current,
                 )
             } else {
-                Text(text, style = MaterialTheme.typography.labelLarge)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(text, style = MaterialTheme.typography.titleMedium)
+                    trailingIcon?.let { Icon(it, contentDescription = null, modifier = Modifier.size(20.dp)) }
+                }
             }
         }
     }
@@ -86,9 +100,9 @@ fun SecondaryButton(
         onClick = onClick,
         enabled = enabled,
         interactionSource = interaction,
-        shape = MaterialTheme.shapes.large,
+        shape = PillShape,
         modifier = modifier.fillMaxWidth().heightIn(min = TouchTarget).pressScale(interaction),
-    ) { Text(text, style = MaterialTheme.typography.labelLarge) }
+    ) { Text(text, style = MaterialTheme.typography.titleMedium) }
 }
 
 /** A low-emphasis action ("Change number", "Resend code"). */

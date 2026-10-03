@@ -14,15 +14,22 @@
     <string name="status_error_unexpected">The server sent a response this app doesn\'t understand. Please update the app.</string>
     <string name="status_reference">Reference: %1$s</string>
 
-    <!-- Login (APP-004) -->
-    <string name="login_title">Welcome to Glide</string>
+    <!-- Welcome (APP-013, mockup 1) -->
+    <string name="welcome_line_1">Look Good</string>
+    <string name="welcome_line_2">Feel Amazing</string>
+    <string name="welcome_tagline">Book trusted salons near you</string>
+    <string name="welcome_get_started">Get Started</string>
+
+    <!-- Login (APP-004; wording from the mockup, APP-013) -->
+    <string name="login_title">Enter your mobile number</string>
     <string name="login_country_code">+91</string>
-    <string name="login_phone_prompt">Enter your mobile number. We\'ll send you a 6-digit code.</string>
+    <string name="login_phone_prompt">We\'ll send you a 6-digit code</string>
     <string name="login_phone_label">Mobile number</string>
-    <string name="login_send_code">Send code</string>
-    <string name="login_code_sent">Enter the 6-digit code sent to %1$s</string>
+    <string name="login_send_code">Send Code</string>
+    <string name="login_code_title">Enter the 6-digit code</string>
+    <string name="login_code_sent">We\'ve sent a code to %1$s</string>
     <string name="login_code_label">6-digit code</string>
-    <string name="login_verify">Verify</string>
+    <string name="login_verifying">Verifying automatically…</string>
     <string name="login_resend">Resend code</string>
     <string name="login_resend_in">Resend in %1$d s</string>
     <string name="login_change_number">Change number</string>
@@ -45,7 +52,6 @@
     <!-- Design components gallery (debug builds only, APP-011) -->
     <string name="home_components">Design components</string>
     <string name="gallery_title">Design components</string>
-    <string name="gallery_dark_mode">Dark</string>
     <string name="gallery_buttons">Buttons</string>
     <string name="gallery_show_snackbar">Show a message</string>
     <string name="gallery_saved">Saved</string>
@@ -66,10 +72,12 @@
     <string name="gallery_status_cancelled">Cancelled</string>
     <string name="gallery_status_completed">Completed</string>
     <string name="gallery_cards">Cards and lists</string>
-    <string name="gallery_salon_name">Glow Studio</string>
-    <string name="gallery_salon_area">Indiranagar</string>
+    <string name="gallery_salon_name">The Glam Studio</string>
+    <string name="gallery_salon_tags">Unisex • Hair • Beauty • Nails</string>
+    <string name="gallery_salon_reviews">(320)</string>
     <string name="gallery_salon_distance">1.2 km</string>
-    <string name="gallery_salon_rating_label">Rated 4.6 from 128 reviews</string>
+    <string name="gallery_salon_price">₹500 onwards</string>
+    <string name="gallery_salon_rating_label">Rated 4.8 from 320 reviews</string>
     <string name="gallery_plain_card">A plain card holds any content.</string>
     <string name="gallery_customer_name">Priya Sharma</string>
     <string name="gallery_customer_detail">+91 90000 00002 · 6 visits</string>

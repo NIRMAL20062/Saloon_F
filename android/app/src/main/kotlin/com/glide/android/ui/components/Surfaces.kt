@@ -9,14 +9,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -25,91 +24,69 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.glide.android.ui.theme.BrandGradient
 import com.glide.android.ui.theme.Spacing
 
 /**
- * The brand hero at the top of a screen: the gradient runs under the status bar (edge to edge), with the brand mark and
- * a heading in white. [bottomOverlap] leaves room for a [SheetCard] that slides up over its lower edge.
+ * The top of a light screen, as in the mockup: a back arrow on the left (when [onBack] is given; [backLabel] is what
+ * TalkBack reads) and the "Glide" wordmark in the middle. Sits below the status bar.
  */
 @Composable
-fun BrandHeader(
+fun GlideHeader(
     brandName: String,
-    title: String,
     modifier: Modifier = Modifier,
-    subtitle: String? = null,
-    bottomOverlap: Dp = Spacing.xl,
+    onBack: (() -> Unit)? = null,
+    backLabel: String? = null,
 ) {
     Box(
+        contentAlignment = Alignment.Center,
         modifier =
             modifier
                 .fillMaxWidth()
-                .background(BrandGradient),
+                .statusBarsPadding()
+                .height(56.dp)
+                .padding(horizontal = Spacing.s),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(start = Spacing.l, end = Spacing.l, top = Spacing.xl, bottom = Spacing.xl + bottomOverlap),
-        ) {
-            BrandMark(brandName)
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.semantics { heading() },
-            )
-            subtitle?.let {
-                Text(
-                    it,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.9f),
-                    textAlign = TextAlign.Center,
-                )
+        if (onBack != null) {
+            IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart).size(48.dp)) {
+                Icon(GlideIcons.Back, contentDescription = backLabel)
             }
         }
+        GlideWordmark(name = brandName)
     }
 }
 
-/** Placeholder logo: the brand's first letter on a frosted circle, until the team's logo exists (Pre-launch). */
+/** A screen's big centred title with an optional line under it ("Enter your mobile number" / "We'll send you…"). */
 @Composable
-fun BrandMark(
-    brandName: String,
+fun ScreenTitle(
+    title: String,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
 ) {
-    Surface(shape = CircleShape, color = Color.White.copy(alpha = 0.18f), modifier = modifier.size(72.dp)) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(brandName.take(1), style = MaterialTheme.typography.headlineLarge, color = Color.White)
-        }
-    }
-}
-
-/** The rounded sheet that holds a screen's content, sliding up over a [BrandHeader]. */
-@Composable
-fun SheetCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Surface(
-        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-        color = MaterialTheme.colorScheme.surface,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Spacing.s),
         modifier = modifier.fillMaxWidth(),
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(Spacing.m),
-            modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.xl),
-            content = content,
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.semantics { heading() },
         )
+        subtitle?.let {
+            Text(
+                it,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

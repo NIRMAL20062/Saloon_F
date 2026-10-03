@@ -21,21 +21,19 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.glide.android.ui.theme.GlideTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.ParameterizedRobolectricTestRunner
 
 /**
- * APP-011 components in every state, each run in light **and** dark mode. Also checks touch targets (≥ 48 dp),
+ * APP-011 / APP-013 components in every state (light only, D-040). Also checks touch targets (≥ 48 dp),
  * TalkBack labels and the largest font size.
  */
-@RunWith(ParameterizedRobolectricTestRunner::class)
-class DesignSystemTest(
-    private val dark: Boolean,
-) {
+@RunWith(AndroidJUnit4::class)
+class DesignSystemTest {
     @get:Rule
     val compose = createComposeRule()
 
@@ -45,7 +43,7 @@ class DesignSystemTest(
     ) = compose.setContent {
         val density = LocalDensity.current
         CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
-            GlideTheme(darkTheme = dark, content = content)
+            GlideTheme(content = content)
         }
     }
 
@@ -54,30 +52,32 @@ class DesignSystemTest(
         var opened = 0
         show {
             SalonCard(
-                name = "Glow Studio",
-                area = "Indiranagar",
-                typeLabel = "Unisex",
-                rating = "4.6",
-                ratingLabel = "Rated 4.6 from 128 reviews",
+                name = "The Glam Studio",
+                tags = "Unisex • Hair • Beauty",
+                rating = "4.8",
+                reviewCount = "(320)",
+                ratingLabel = "Rated 4.8 from 320 reviews",
                 distance = "1.2 km",
+                priceFrom = "₹500 onwards",
                 onClick = { opened++ },
             )
         }
 
-        compose.onNodeWithText("Glow Studio").assertIsDisplayed()
-        compose.onNodeWithText("Indiranagar · 1.2 km").assertIsDisplayed()
-        compose.onNodeWithText("Unisex").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Rated 4.6 from 128 reviews").assertIsDisplayed()
-        compose.onNodeWithText("Glow Studio").performClick()
+        compose.onNodeWithText("The Glam Studio").assertIsDisplayed()
+        compose.onNodeWithText("1.2 km").assertIsDisplayed()
+        compose.onNodeWithText("Unisex • Hair • Beauty").assertIsDisplayed()
+        compose.onNodeWithText("₹500 onwards").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Rated 4.8 from 320 reviews").assertIsDisplayed()
+        compose.onNodeWithText("The Glam Studio").performClick()
 
         assertEquals(1, opened)
     }
 
     @Test
     fun salonCardWithoutRatingOrDistance() {
-        show { SalonCard(name = "New Salon", area = "Koramangala", typeLabel = "Women", onClick = {}) }
+        show { SalonCard(name = "New Salon", tags = "Women • Hair", onClick = {}) }
 
-        compose.onNodeWithText("Koramangala").assertIsDisplayed()
+        compose.onNodeWithText("Women • Hair").assertIsDisplayed()
     }
 
     @Test
@@ -232,10 +232,9 @@ class DesignSystemTest(
         show(fontScale = LARGEST_FONT_SCALE) {
             Column {
                 SalonCard(
-                    name = "Glow Studio",
-                    area = "Indiranagar",
-                    typeLabel = "Unisex",
-                    rating = "4.6",
+                    name = "The Glam Studio",
+                    tags = "Unisex • Hair",
+                    rating = "4.8",
                     onClick = {},
                 )
                 GlideListItem(title = "Priya Sharma", supporting = "Haircut at 4:30 pm", onClick = {})
@@ -243,7 +242,7 @@ class DesignSystemTest(
             }
         }
 
-        compose.onNodeWithText("Glow Studio").assertIsDisplayed()
+        compose.onNodeWithText("The Glam Studio").assertIsDisplayed()
         compose.onNodeWithText("Priya Sharma").assertIsDisplayed()
         compose.onNodeWithText("Book now").assertIsDisplayed().assertHeightIsAtLeast(48.dp)
     }
@@ -251,9 +250,5 @@ class DesignSystemTest(
     companion object {
         /** Android's biggest "Font size" setting. */
         private const val LARGEST_FONT_SCALE = 2f
-
-        @JvmStatic
-        @ParameterizedRobolectricTestRunner.Parameters(name = "dark={0}")
-        fun modes() = listOf(arrayOf<Any>(false), arrayOf<Any>(true))
     }
 }

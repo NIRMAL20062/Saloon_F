@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -60,7 +61,7 @@ import com.glide.android.ui.theme.Spacing
 import com.glide.android.ui.theme.TouchTarget
 
 /**
- * Indian mobile number: a fixed country-code chip ([countryCode], e.g. "+91") next to a digits-only field. Tag the
+ * Indian mobile number as in the mockup: a flag + country-code box ([countryCode], e.g. "+91") next to a digits-only field. Tag the
  * field through [fieldModifier].
  */
 @Composable
@@ -77,26 +78,29 @@ fun PhoneNumberField(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             modifier = Modifier.heightIn(min = TouchTarget),
         ) {
-            Box(
-                contentAlignment = Alignment.Center,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 modifier = Modifier.heightIn(min = TouchTarget).padding(horizontal = Spacing.m),
             ) {
+                IndiaFlag()
                 Text(countryCode, style = MaterialTheme.typography.titleMedium)
             }
         }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            label = { Text(label) },
+            placeholder = { Text(label) },
             singleLine = true,
             isError = isError,
             enabled = enabled,

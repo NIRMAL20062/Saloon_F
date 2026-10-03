@@ -21,6 +21,15 @@ object GlideIcons {
             lineTo(15f, 19f)
         }
     }
+    val ArrowForward: ImageVector by lazy {
+        outline("arrow") {
+            moveTo(5f, 12f)
+            lineTo(19f, 12f)
+            moveTo(13f, 6f)
+            lineTo(19f, 12f)
+            lineTo(13f, 18f)
+        }
+    }
     val Close: ImageVector by lazy {
         outline("close") {
             moveTo(6f, 6f)

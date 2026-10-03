@@ -1,16 +1,9 @@
 package com.glide.android.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,9 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
+import com.glide.android.ui.theme.PillShape
 import com.glide.android.ui.theme.Spacing
 
-/** A filter the person turns on and off (Search: "Open now", "Unisex"…). A check mark slides in when selected. */
+/** A filter the person turns on and off (Search: "All", "Near me", "Open now"…): a red pill when on, as in the mockup. */
 @Composable
 fun GlideFilterChip(
     label: String,
@@ -39,17 +33,21 @@ fun GlideFilterChip(
         },
         enabled = enabled,
         label = { Text(label, style = MaterialTheme.typography.labelLarge) },
-        leadingIcon = {
-            AnimatedVisibility(
-                selected,
-                enter = fadeIn() + expandHorizontally(),
-                exit =
-                    fadeOut() + shrinkHorizontally(),
-            ) {
-                Icon(GlideIcons.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize))
-            }
-        },
-        shape = MaterialTheme.shapes.extraLarge,
+        colors =
+            FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+        border =
+            FilterChipDefaults.filterChipBorder(
+                enabled = enabled,
+                selected = selected,
+                borderColor = MaterialTheme.colorScheme.outlineVariant,
+                selectedBorderColor = MaterialTheme.colorScheme.primary,
+            ),
+        shape = PillShape,
         modifier = modifier.heightIn(min = 48.dp),
     )
 }

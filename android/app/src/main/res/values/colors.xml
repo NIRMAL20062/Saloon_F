@@ -1,0 +1,4 @@
+<resources>
+    <!-- Only for the window behind Compose; the real palette is ui/theme/Color.kt. -->
+    <color name="glide_window">#FFFDF9F9</color>
+</resources>

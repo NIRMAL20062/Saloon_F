@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.glide.android.ui.theme.Spacing
 import com.glide.android.ui.theme.TouchTarget
 
-/** Top bar for inner screens: optional back arrow ([backLabel] is what TalkBack reads), title, actions on the right. */
+/** Top bar for inner screens, title centred as in the mockup: optional back arrow ([backLabel] is what TalkBack reads), title, actions on the right. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlideTopBar(
@@ -46,7 +46,7 @@ fun GlideTopBar(
     backLabel: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             Text(
                 title,
@@ -65,7 +65,7 @@ fun GlideTopBar(
             }
         },
         actions = actions,
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
         modifier = modifier,
     )
 }

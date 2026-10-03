@@ -7,8 +7,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 /**
- * Status-bar icon colour for the current screen. The app's default is light icons, because most screens start with the
- * dark brand gradient (MainActivity). A screen with a plain light background calls this with `darkIcons = true` so the
+ * Status-bar icon colour for the current screen. The app's default is dark icons on its light screens (MainActivity,
+ * D-040). A screen with a dark photo behind the status bar (the welcome screen) calls this with `darkIcons = false` so the
  * clock and battery stay visible; the default comes back when the screen leaves.
  */
 @Composable
@@ -19,6 +19,6 @@ fun StatusBarIcons(darkIcons: Boolean) {
         val window = (view.context as? Activity)?.window
         val controller = window?.let { WindowCompat.getInsetsController(it, view) }
         controller?.isAppearanceLightStatusBars = darkIcons
-        onDispose { controller?.isAppearanceLightStatusBars = false }
+        onDispose { controller?.isAppearanceLightStatusBars = true }
     }
 }

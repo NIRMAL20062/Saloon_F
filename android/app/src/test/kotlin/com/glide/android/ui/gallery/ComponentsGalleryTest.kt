@@ -2,15 +2,11 @@ package com.glide.android.ui.gallery
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsOff
-import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.core.view.WindowCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.glide.android.ui.home.SignedInScreen
 import com.glide.android.ui.home.SignedInUiState
@@ -41,33 +37,11 @@ class ComponentsGalleryTest {
     }
 
     @Test
-    fun darkModeSwitch() {
+    fun showsTheSalonCardAsInTheMockup() {
         compose.setContent { ComponentsGalleryScreen(onBack = {}) }
 
-        compose.onNodeWithTag("darkSwitch").assertIsOff().performClick()
-
-        compose.onNodeWithTag("darkSwitch").assertIsOn()
-        compose.onNodeWithText("Glow Studio").performScrollTo().assertIsDisplayed()
-    }
-
-    @Test
-    fun statusBarIconsFollowTheBackground() {
-        compose.setContent { ComponentsGalleryScreen(onBack = {}) }
-        val window = compose.activity.window
-        val controller = { WindowCompat.getInsetsController(window, window.decorView) }
-
-        assertEquals(true, controller().isAppearanceLightStatusBars)
-        compose.onNodeWithTag("darkSwitch").performClick()
-        compose.waitForIdle()
-
-        assertEquals(false, controller().isAppearanceLightStatusBars)
-    }
-
-    @Test
-    fun startsInDarkModeWhenAsked() {
-        compose.setContent { ComponentsGalleryScreen(onBack = {}, startDark = true) }
-
-        compose.onNodeWithTag("darkSwitch").assertIsOn()
+        compose.onNodeWithText("The Glam Studio").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("₹500 onwards").performScrollTo().assertIsDisplayed()
     }
 
     @Test

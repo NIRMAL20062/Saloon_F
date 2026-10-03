@@ -55,10 +55,10 @@ class SignedInLaunchTest {
     }
 
     @Test
-    fun logoutGoesBackToLogin() {
+    fun logoutGoesBackToWelcome() {
         composeRule.onNodeWithText("Log out").performClick()
 
-        composeRule.onNodeWithText("Welcome to Glide").assertIsDisplayed()
+        composeRule.onNodeWithText("Get Started").assertIsDisplayed()
     }
 }
 

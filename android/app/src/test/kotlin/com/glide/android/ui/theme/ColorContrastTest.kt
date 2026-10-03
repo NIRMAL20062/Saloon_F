@@ -7,19 +7,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * WCAG AA: every text colour on the background it is used on is at least 4.5:1, in light and dark (APP-011, D-031).
+ * WCAG AA: every text colour on the background it is used on is at least 4.5:1 (APP-011, D-031, D-041). Light only (D-040).
  * If a brand colour is swapped in Color.kt and this fails, the new colour is too weak for text.
  */
 class ColorContrastTest {
     @Test
-    fun lightSchemeTextIsReadable() = assertReadable(LightColors, "light")
+    fun textIsReadable() = assertReadable(GlideColors, "light")
 
     @Test
-    fun darkSchemeTextIsReadable() = assertReadable(DarkColors, "dark")
-
-    @Test
-    fun whiteTextOnTheBrandGradientIsReadable() {
-        listOf(BrandColors.VioletDeep, BrandColors.Violet, BrandColors.Rose).forEach { stop ->
+    fun whiteTextOnTheBrandRedIsReadable() {
+        listOf(BrandColors.Red, BrandColors.RedDeep).forEach { stop ->
             assertAtLeast(Color.White, stop, "white on gradient $stop")
         }
     }
@@ -46,6 +43,9 @@ class ColorContrastTest {
                 "onErrorContainer/errorContainer" to (s.onErrorContainer to s.errorContainer),
                 "snackbar text" to (s.inverseOnSurface to s.inverseSurface),
                 "snackbar action" to (s.inversePrimary to s.inverseSurface),
+                "text on a light-pink card" to (s.onSurface to s.secondaryContainer),
+                "grey text on the page" to (s.onSurfaceVariant to s.background),
+                "red text on the page" to (s.primary to s.background),
             )
         pairs.forEach { (label, colors) -> assertAtLeast(colors.first, colors.second, "$name $label") }
     }
