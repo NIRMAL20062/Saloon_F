@@ -9,24 +9,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and onboarding
 
-### APP-005 · Onboarding: customer or salon?
-- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
-- **Why:** one app, two kinds of users; each sees only their own interface.
-- **Needs from team:** nothing.
-- **Flow (first login only):** "How will you use Glide?"
-  - **"I want to book salons"** → your name (required) + email (optional) → customer side
-  - **"I run a salon"** → salon onboarding (APP-006) → salon side. Staff don't pick this: their owner adds their number (APP-012)
-  - a number already added by a salon skips this screen and opens the salon side (DF-23)
-  - the choice is saved on the backend and is **final**: no switching side (D-030)
-- **Done when:**
-  - [x] Tests: every screen state; customer path, salon path, returning user goes straight to their side (`OnboardingViewModelTest` 19,
-    `OnboardingScreenTest` 11, `OnboardingFlowTest`); app total 150. The choice is confirmed in a sheet first ("You can't change
-    this later"), since it's final. **Moved:** "an added staff number skips the question" needs salons and staff, so it's tested in
-    BE-017 / APP-012
-  - [x] Security: a customer can only read/change their own profile (backend test in BE-018)
-  - [x] Flow: on the phone, new test number → "book salons" → name → customer side; reopen → straight there. Verified by Claude on
-    2026-10-04, moto g54 5G, real Supabase test number, local backend: choice sheet, empty name refused, home greets by name
-
 ### APP-006 · Salon onboarding: create your salon, then verification
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-005, BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
 - **Needs from team:** nothing; fields below come from the plan (veto any). Razorpay may ask for more KYC details in Phase 6.

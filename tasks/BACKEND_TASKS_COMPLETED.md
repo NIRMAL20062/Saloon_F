@@ -102,3 +102,17 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** tokens and phone numbers never logged; only ES256/RS256 accepted; no Supabase secret used by the backend
 - **Database:** `V2__app_users`, `V3__app_users_side_final` (side is final, D-030)
 - **Verified by:** Claude, real Supabase project + local database (2026-10-02/03)
+
+### BE-018 · Profile: name and email
+- **Completed:** 2026-10-04 (team's go-ahead, merged) · **Commits:** `819c4c6` `8c4247b` `ef3dc0a` `153b3b4`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-016 · Spec: PRODUCT §5 · Decision: DF-18
+- **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
+  `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
+  `PUT /v1/me/side` refuses a change once a side is saved: the choice is final (D-030). The team asked for this fix in BE-016
+  (PR #2); if it's already there, only check it here.
+- **Done when:**
+  - [x] Tests for validation, own profile only, new vs returning user (`MeRoutesTest` +9), database checks (`UserRepositoryTest` +2); a different side after one is saved → 409 (from BE-016); OpenAPI updated, contract test passes. Backend total 70
+  - [x] Flow (real Supabase login, local database after V4 applied by itself): profile saved and read back, email lower-cased; one-letter name → 400 `INVALID_NAME`; bad email → 400 `INVALID_EMAIL`; no name, email, phone or token in the log
+- **Security:** auth required; the id always comes from the token (own profile only); server + database validation; no names, emails, phones or tokens in logs
+- **Database:** `V4__app_users_profile` (name 2–60, email ≤ 254 and email-shaped)
+- **Verified by:** Claude, real Supabase login + local database
