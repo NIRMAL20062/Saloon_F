@@ -11,6 +11,18 @@ data class DatabaseConfig(
     override fun toString() = "DatabaseConfig(jdbcUrl=$jdbcUrl, user=$user, password=***)"
 }
 
+/** Where logins come from (D-016). Only public values: tokens are checked with Supabase's public signing keys. */
+data class SupabaseConfig(
+    /** Project URL, e.g. `https://abcd.supabase.co`. */
+    val url: String,
+) {
+    /** Value of the `iss` claim in every access token from this project. */
+    val issuer: String get() = "$url/auth/v1"
+
+    /** Public signing keys (ES256) used to check token signatures. */
+    val jwksUrl: String get() = "$url/auth/v1/.well-known/jwks.json"
+}
+
 /**
  * Everything the backend needs from its environment. Loaded once at startup.
  * Secrets come **only** from environment variables (see .env.example), never from files in git.
@@ -24,6 +36,7 @@ data class AppConfig(
     val corsAllowedOrigins: List<String>,
     /** Max requests per minute from one client IP, across all endpoints. */
     val rateLimitPerMinute: Int,
+    val supabase: SupabaseConfig,
 ) {
     companion object {
         /**
@@ -82,12 +95,21 @@ data class AppConfig(
                         ?: 0.also { problems += "RATE_LIMIT_PER_MINUTE must be a number between 1 and $MAX_RATE_LIMIT" }
                 } ?: DEFAULT_RATE_LIMIT
 
+            val supabaseUrl = required("SUPABASE_URL").trimEnd('/')
+            if (supabaseUrl.isNotEmpty()) {
+                val local = appEnv == AppEnv.LOCAL || appEnv == AppEnv.TEST
+                // http only for a Supabase running on this machine (supabase CLI); everything else must be https.
+                val ok = supabaseUrl.matches(SUPABASE_URL_REGEX) && (supabaseUrl.startsWith("https://") || local)
+                if (!ok) problems += "SUPABASE_URL must look like https://<project>.supabase.co"
+            }
+
             if (problems.isNotEmpty()) throw InvalidConfigException(problems)
-            return AppConfig(appEnv, port, version, database, origins, rateLimit)
+            return AppConfig(appEnv, port, version, database, origins, rateLimit, SupabaseConfig(supabaseUrl))
         }
 
         private const val DEFAULT_PORT = 8080
         private const val DEFAULT_RATE_LIMIT = 300
+        private val SUPABASE_URL_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
         private const val MAX_RATE_LIMIT = 100_000
         private val ORIGIN_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
     }

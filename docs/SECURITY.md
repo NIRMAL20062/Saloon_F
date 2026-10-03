@@ -26,6 +26,7 @@ Per-feature checklist: run `/feature-security-check` (see `.claude/skills/featur
 | 1 MB request body limit (413) | `plugins/Security.kt` | `SecurityBaselineTest` |
 | Error envelope; no stack traces, exception messages or class names to clients | `plugins/ErrorHandling.kt` | `SecurityBaselineTest` |
 | Health-check failures log exception type only | `health/DatabaseHealthCheck.kt` | code review |
+| Login tokens checked on every protected route: Supabase public keys (ES256), issuer, audience, role, expiry; HS256/anon/expired/other-project tokens refused; tokens never logged | `auth/TokenVerifier.kt`, `auth/Authentication.kt` | `SupabaseTokenVerifierTest`, `MeRoutesTest` |
 | `flyway clean` disabled everywhere | `db/DatabaseFactory.kt` | `MigrationTest` |
 | Edited migrations detected | Flyway validate | `MigrationTest` |
 | Postgres bound to localhost in dev | `docker-compose.yml` | - |
@@ -41,7 +42,7 @@ secret scanning + CodeQL + Dependabot (BE-012), auth + roles + tenant isolation 
 | Gap | Why it's open | Task |
 |---|---|---|
 | Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | BE-9xx (Pre-launch) |
-| No authentication yet | Phase 1 | BE-016 / APP-004 / WEB-005 |
+| Login exists (BE-016 backend, APP-004 app); roles and salon membership checks come next | Phase 1 | BE-017, BE-020 |
 | Admin panel must not be public until admin login exists | Phase 1 | WEB-005 |
 
 ## Secrets

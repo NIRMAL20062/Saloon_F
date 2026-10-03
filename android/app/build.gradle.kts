@@ -19,6 +19,11 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
+
+        // Supabase project for logins (D-016). Both values are public by design (DF-19): the publishable key only lets
+        // the app ask Supabase to send and check OTPs. Secret keys never go into the app.
+        buildConfigField("String", "SUPABASE_URL", "\"https://uwvaebgbdqitbnymoqfq.supabase.co/\"")
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_4SjiEzyCa5wA7sQQETlNtA_Gq0gQ7R_\"")
     }
 
     buildTypes.configureEach {
@@ -65,6 +70,9 @@ android {
     lint {
         abortOnError = true
         checkDependencies = true
+        // App code is fully linted. Test code is skipped: lint's Kotlin analysis crashes on our Hilt/Robolectric tests
+        // intermittently (lintAnalyzeDebugUnitTest, AGP 9.4.1), and lint findings in tests don't reach users.
+        ignoreTestSources = true
     }
 }
 
@@ -82,7 +90,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

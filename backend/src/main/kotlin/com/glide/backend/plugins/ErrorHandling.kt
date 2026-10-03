@@ -53,6 +53,10 @@ fun Application.configureErrorHandling() {
             )
         }
 
+        status(HttpStatusCode.Unauthorized) { call, status ->
+            // Missing, expired or invalid login token. The app's answer is always the same: sign in again.
+            call.respondError(status, ErrorCodes.UNAUTHORIZED, "Please sign in again.")
+        }
         status(HttpStatusCode.NotFound) { call, status ->
             call.respondError(status, ErrorCodes.NOT_FOUND, "No such endpoint.")
         }

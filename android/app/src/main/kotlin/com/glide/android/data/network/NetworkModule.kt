@@ -14,7 +14,8 @@ import javax.inject.Singleton
 object NetworkModule {
     @Provides
     @Singleton
-    fun okHttpClient(): OkHttpClient = createOkHttpClient(debugLogging = BuildConfig.DEBUG)
+    fun okHttpClient(tokens: AccessTokens): OkHttpClient =
+        createOkHttpClient(debugLogging = BuildConfig.DEBUG, tokens = tokens)
 
     @Provides
     @Singleton

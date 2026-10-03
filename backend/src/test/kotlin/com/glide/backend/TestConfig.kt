@@ -3,6 +3,7 @@ package com.glide.backend
 import com.glide.backend.config.AppConfig
 import com.glide.backend.config.AppEnv
 import com.glide.backend.config.DatabaseConfig
+import com.glide.backend.config.SupabaseConfig
 import com.glide.backend.health.DatabaseHealthCheck
 
 /** Config for tests that don't touch a real database. */
@@ -18,10 +19,13 @@ fun testConfig(
     database = database,
     corsAllowedOrigins = corsAllowedOrigins,
     rateLimitPerMinute = rateLimitPerMinute,
+    supabase = SupabaseConfig(TestTokens.PROJECT_URL),
 )
 
 /** Dependencies with fakes, for route tests that don't need a real database. */
 fun fakeDependencies(databaseHealthy: Boolean = true) =
     AppDependencies(
         databaseHealthCheck = DatabaseHealthCheck { databaseHealthy },
+        tokenVerifier = TestTokens.verifier,
+        users = InMemoryUserRepository(),
     )

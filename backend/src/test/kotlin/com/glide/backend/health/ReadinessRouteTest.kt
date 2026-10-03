@@ -1,6 +1,5 @@
 package com.glide.backend.health
 
-import com.glide.backend.AppDependencies
 import com.glide.backend.db.TestDatabase
 import com.glide.backend.fakeDependencies
 import com.glide.backend.module
@@ -44,7 +43,7 @@ class ReadinessRouteTest {
     @Test
     fun `real check against a real PostgreSQL reports UP`() =
         testApplication {
-            val deps = AppDependencies(JdbcDatabaseHealthCheck(TestDatabase.dataSource))
+            val deps = fakeDependencies().copy(databaseHealthCheck = JdbcDatabaseHealthCheck(TestDatabase.dataSource))
             application { module(testConfig(database = TestDatabase.config), deps) }
 
             val response = client.get(ApiRoutes.HEALTH)
@@ -57,7 +56,7 @@ class ReadinessRouteTest {
     fun `real check against an unreachable database reports DOWN`() =
         testApplication {
             val unreachable = PGSimpleDataSource().apply { setURL("jdbc:postgresql://127.0.0.1:1/none") }
-            val deps = AppDependencies(JdbcDatabaseHealthCheck(unreachable))
+            val deps = fakeDependencies().copy(databaseHealthCheck = JdbcDatabaseHealthCheck(unreachable))
             application { module(testConfig(), deps) }
 
             val response = client.get(ApiRoutes.HEALTH)

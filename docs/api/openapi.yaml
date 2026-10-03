@@ -15,6 +15,8 @@ servers:
 tags:
   - name: health
     description: Liveness and readiness checks for hosting platforms, uptime monitors and the apps
+  - name: me
+    description: The signed-in person (any side of the app) and their onboarding choice
 
 paths:
   /health/live:
@@ -57,13 +59,80 @@ paths:
               example: { status: DOWN, version: 0.1.0, database: DOWN }
         default: { $ref: "#/components/responses/Error" }
 
+  /v1/me:
+    get:
+      operationId: getMe
+      tags: [me]
+      summary: Who is signed in, and which side of the app to show them (D-024)
+      description: Creates the person's record on their first request.
+      security:
+        - supabaseToken: []
+      responses:
+        "200":
+          description: The signed-in person
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+              example: { id: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80, phone: "919000000001" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /v1/me/side:
+    put:
+      operationId: updateMySide
+      tags: [me]
+      summary: Save the onboarding answer, customer or salon. Final once chosen (D-030); the same answer again is accepted
+      security:
+        - supabaseToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSideRequest" }
+            example: { side: CUSTOMER }
+      responses:
+        "200":
+          description: Saved; returns the updated person
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MeResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "409":
+          description: A different side was already chosen; it can't be changed (error code SIDE_ALREADY_CHOSEN)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
+  securitySchemes:
+    supabaseToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth access token of the signed-in person (D-016). Checked against the project's public keys.
+
   headers:
     XRequestId:
       description: Request ID (echoed from the request if safe, otherwise generated)
       schema: { type: string, maxLength: 64 }
 
   responses:
+    Unauthorized:
+      description: Missing, expired or invalid login token. The app should send the person to sign in again
+      headers:
+        X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { error: { code: UNAUTHORIZED, message: Please sign in again., requestId: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80 } }
     Error:
       description: Any error. See `ErrorBody.code` for the reason
       headers:
@@ -90,6 +159,34 @@ components:
           description: Backend build version
         database:
           $ref: "#/components/schemas/HealthStatus"
+
+    UserSide:
+      type: string
+      enum: [CUSTOMER, SALON]
+      description: Which interface the app shows (D-024)
+
+    MeResponse:
+      type: object
+      additionalProperties: false
+      required: [id]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Supabase user id
+        phone:
+          type: string
+          description: Phone number used to sign in, as Supabase returns it (e.g. 919000000001)
+        side:
+          $ref: "#/components/schemas/UserSide"
+
+    UpdateSideRequest:
+      type: object
+      additionalProperties: false
+      required: [side]
+      properties:
+        side:
+          $ref: "#/components/schemas/UserSide"
 
     ErrorResponse:
       type: object
