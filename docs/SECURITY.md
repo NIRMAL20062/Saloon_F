@@ -7,7 +7,9 @@ Per-feature checklist: run `/feature-security-check` (see `.claude/skills/featur
 1. The app **never** calls WhatsApp directly; only the backend does.
 2. Razorpay orders are **created** on the backend (amount computed server-side) and payments are **confirmed only by a
    verified webhook signature** (or server-side verification), never by the app's success callback alone.
-3. **Multi-tenant from day 1**: every business table has `salon_id`; it comes from the authenticated user, never from input.
+3. **Multi-tenant from day 1**: every salon-owned table has `salon_id`; it comes from the signed-in person's salon
+   membership (D-036), never from the request body; row-level security is the second guard (D-027). A customer's own data is
+   scoped by their user id (D-025).
 4. **Secrets only in environment variables**, never in the app, git, logs or screenshots.
 
 ## Baseline controls (built in Phase 0)
@@ -39,15 +41,15 @@ secret scanning + CodeQL + Dependabot (BE-012), auth + roles + tenant isolation 
 
 | Gap | Why it's open | Task |
 |---|---|---|
-| Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | Q-004 |
-| Login exists on the backend (BE-016); roles and salon membership checks come next | Phase 1 | BE-017, BE-020 |
-| Admin panel must not be public until admin login exists | Phase 1 | WEB-1xx (Q-005) |
+| Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | BE-9xx (Pre-launch) |
+| Login exists (BE-016 backend, APP-004 app); roles and salon membership checks come next | Phase 1 | BE-017, BE-020 |
+| Admin panel must not be public until admin login exists | Phase 1 | WEB-005 |
 
 ## Secrets
 
 | Secret | Lives in | Never in |
 |---|---|---|
-| DB password, JWT signing key, Razorpay key secret + webhook secret, WhatsApp token, R2 keys | hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
+| DB passwords, Supabase service-role key, Razorpay key secret + webhook secret, WhatsApp token, R2 keys | `.env` locally (put there by the team); hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
 | Android signing keystore + passwords | GitHub Actions secrets (base64) + team password manager | git |
 | `google-services.json` | GitHub Actions secret; local copy git-ignored | git |
 | Test-user credentials | team password manager | git |

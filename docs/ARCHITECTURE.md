@@ -17,7 +17,7 @@
                                                  └──────────────────────────────┘
 ```
 
-Rules (from the product plan): the app never calls WhatsApp directly; Razorpay is verified on the backend; every table has `salon_id`; secrets live only in environment variables.
+Rules (from the product plan): the app never calls WhatsApp directly; Razorpay is verified on the backend; every salon-owned table has `salon_id` (D-025); secrets live only in environment variables.
 
 ## Monorepo
 
@@ -52,7 +52,7 @@ Both clients sit on **one backend and one API contract**, so work never has to b
 |---|---|---|
 | Route (`<Feature>Routes.kt`) | parse, validate shape, call service, respond with a `shared` DTO | business rules, SQL |
 | Service | business rules, transactions, calls to Razorpay/WhatsApp through interfaces | HTTP details |
-| Repository | Exposed SQL, always scoped by `salon_id` | decisions |
+| Repository | Exposed SQL, scoped by `salon_id` (salon-owned data) or the customer's user id (their own data) | decisions |
 
 Cross-cutting plugins (`backend/.../plugins/`): request IDs, access logs, security headers, CORS, rate limit, body limit, error envelope.
 Everything external is injected through `AppDependencies` so tests can swap in fakes.
@@ -69,7 +69,7 @@ Hilt wires the graph. Debug builds call `http://127.0.0.1:8080`, forwarded to th
 | Purpose | development | real-data testing by the team and design partners | real salons |
 | Database | Docker Postgres | free-tier hosted Postgres (picked at Pre-launch) | hosted Postgres |
 | Razorpay | test keys | **test mode** | live keys |
-| Login provider (Q-007) | test numbers/emails | test numbers + real team phones | real |
+| Login (Supabase Auth, D-016) | test numbers/emails | test numbers + real team phones | real |
 | WhatsApp | test number | test number | approved business number |
 | Users | seeded test users (D-012) | **seeded test users for every user type** (D-012) | real |
 | Android build | debug | staging build via Firebase App Distribution | Play Store |

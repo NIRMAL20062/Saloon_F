@@ -15,7 +15,7 @@ Two promises: **every task ships with tests**, and **we test on real services fr
 | `android` | network layer against real Retrofit + `ApiJson` | MockWebServer | same |
 | `android` | screens, every state | Compose UI test on Robolectric | same |
 | `admin` | components, API client | Vitest + Testing Library | `pnpm test` |
-| whole system | browser → admin → backend → Postgres | Playwright + `docker compose --profile full` | `pnpm e2e` |
+| whole system | browser → admin → backend → Postgres | Playwright + `docker compose --profile full` | `pnpm e2e` (arrives with WEB-004; until then CI runs a smoke check) |
 
 **No database mocks.** Anything touching SQL runs on real Postgres 17 (same as production), so constraint, migration and
 query bugs show up in tests, not in production.
@@ -26,6 +26,7 @@ query bugs show up in tests, not in production.
 - each validation rule → 400
 - not found → 404
 - **another salon's resource → 404** (tenant isolation, read and write)
+- **another customer's data → 404** (customer-side endpoints, D-025)
 - no token → 401 · wrong role → 403
 - retry safety (same request/webhook twice → one effect) where retries can happen
 
@@ -48,15 +49,14 @@ We test on **real services in test mode** from the start, but **without hosting*
 
 ### Test users for every user type (D-012)
 
-A seed script (Phase 1 task) creates the same named test users every time, in **two** test salons, so tenant isolation
+A seed script (BE-021) creates the same named test users every time, in **two** test salons that are already verified (live), so tenant isolation
 can also be checked by hand (log in as Salon A's owner and try to see Salon B's data: you must not).
 
 | User type | Test Salon A | Test Salon B | Can do (to be confirmed with the feature list) |
 |---|---|---|---|
-| Salon owner | `owner.a` | `owner.b` | everything in their salon: staff, services, prices, reports, subscription |
-| Staff / stylist | `stylist.a` | `stylist.b` | own appointments only |
-| Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; no prices, reports or subscription |
-| Customer (customer app) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
+| Salon owner | `owner.a` | `owner.b` | everything in their salon: profile, bank details, staff, services, prices, bookings, bills, reports, subscription |
+| Staff | `staff.a` | `staff.b` | only their own appointments: see, accept, mark done or no-show (D-039) |
+| Customer (customer side) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
 | Internal admin (our team) | `admin` | (all salons) | admin panel only |
 
 Logins (test phone numbers / emails and codes) live in the team's password manager, **not in git**. Test data is fake; real customer data never goes into development or staging.

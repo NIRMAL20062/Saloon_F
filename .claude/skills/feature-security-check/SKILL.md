@@ -9,8 +9,10 @@ Scope: the diff of the current task (`git diff main...HEAD`) plus any code it ca
 `file:line`, then fix them (or list what needs the team). Baseline controls: `docs/SECURITY.md`.
 
 ## Access and tenancy
-- [ ] Every new query on a business table filters by `salon_id` taken from the authenticated principal, never from input
-- [ ] A test proves salon A gets 404 on salon B's resources (read **and** write)
+- [ ] Every new query on a salon-owned table filters by `salon_id`, taken from the signed-in person's membership with a role
+      check (D-036), never from the request body; a customer's own data is filtered by their user id (D-025)
+- [ ] New salon-owned tables have row-level security enabled and forced, with a policy test (D-027)
+- [ ] A test proves salon A gets 404 on salon B's resources (read **and** write), and customer A on customer B's
 - [ ] Every new route requires auth unless the task says it's public; role checks where roles differ
 - [ ] IDs in URLs are not trusted: ownership checked before use
 

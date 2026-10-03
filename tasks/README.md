@@ -15,15 +15,18 @@ What gets built next, across all three files. Each step is one task = one pull r
 | # | Task | What you'll see | Needs from team first |
 |---|---|---|---|
 | 1 | BE-016 | backend accepts Supabase logins (`/v1/me`), remembers customer/salon choice | **Supabase project + phone login with test numbers** |
-| 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout | (same Supabase project) |
-| 3 | BE-018 + APP-005 | first login asks "customer or salon?"; customers enter name/email | nothing |
-| 4 | BE-017 + APP-006 | salon side: owner creates a salon; staff join by invite | nothing (permissions per DF-17) |
-| 5 | APP-007, APP-008 | customer side tabs; salon side home + menu (switch side, logout) | nothing |
-| 6 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on |
-| 7 | WEB-006 | admins invite admins | nothing |
-| 8 | APP-009 | customer side: location or city | launch city |
-| 9 | BE-019, BE-021 | audit log; test users for every type | nothing |
-| 10 | APP-010 | crash reports in Firebase | `google-services.json` |
+| 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout; already in the new polished look (D-031) | (same Supabase project) |
+| 3 | APP-011 | the rest of the design system (cards, chips, sheets, empty states) | optional: apps you like, brand colour |
+| 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
+| 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
+| 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | encryption key in `.env` |
+| 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
+| 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
+| 9 | APP-012 | owner adds staff by phone; staff log in straight to "My bookings" (D-039) | nothing |
+| 10 | WEB-006 | admins invite admins | nothing |
+| 11 | APP-009 | customer side: location or city | launch city |
+| 12 | BE-021 | test users for every type | nothing |
+| 13 | APP-010 | crash reports in Firebase | `google-services.json` |
 
 Then Phase 2 (salon setup), Phase 3 (appointments), Phase 4 (customer booking)… as outlined in each file.
 Platform backlog items (security scanning, CD) are done in between when useful; they never block features.
@@ -31,7 +34,8 @@ Platform backlog items (security scanning, CD) are done in between when useful; 
 ## Task IDs and status
 
 - IDs: `APP-001`, `WEB-001`, `BE-001`. Never reused, never renumbered. Outline items use placeholders
-  (`APP-1xx` = Phase 1, `APP-9xx` = Pre-launch) and get a real ID when they're written out in full.
+  (`APP-1xx` = Phase 2, `APP-2xx` = Phase 3 … `APP-6xx` = Phase 7, `APP-9xx` = Pre-launch; same for `BE-` and `WEB-`)
+  and get a real ID when they're written out in full.
 - Phases: **0** walking skeleton · **1** foundations (tenants, login, roles) · **2+** product features (from the team's plan) ·
   **Pre-launch** hosting, monitoring, backups, store release (D-011: nothing is hosted before this)
 - **Needs from team** on a task = something only the team can do (create an account, provide a key or file, decide).
@@ -52,8 +56,9 @@ Platform backlog items (security scanning, CD) are done in between when useful; 
    CI must be green. **The team merges it**; nobody pushes to `main` directly (D-021).
 5. **Test on the phone and report.** Install the build on the team phone and run the task's flow, then tell the team what was
    built, how to test it themselves, and what is needed from them (keys, accounts, answers). **The next task starts only after their OK.**
-6. **Close.** After the team's OK (and merge), **move** the whole task block to the `_COMPLETED` file and add the date,
-   commit hashes, tests added, and security/database notes.
+6. **Close.** After the team's OK, as the **last commit of the same PR** (before it's merged, DF-21): **move** the whole task
+   block to the `_COMPLETED` file and add the date, commit hashes, tests added, and security/database notes; update
+   "Where we are" in the root `CLAUDE.md`. Then the team merges.
 
 ## Definition of Done (every task)
 

@@ -34,7 +34,8 @@ Use the template in `tasks/README.md`. Next free ID = highest ID in **both** the
 Every task's "Done when" must include concrete **Tests**, **Security** (authz, `salon_id` isolation, validation),
 **Database** (migration, constraints, indexes, or "none") and **Flow** items.
 
-Add the tasks under `## Features: added by the team` (or the phase the team names).
+Add the tasks under the phase the team names: the `## Now: Phase N…` section, or the matching line of `## Next phases`
+(replace its `xxx` placeholder with the real IDs). Ask if no phase is named.
 
 ## 4. Confirm
 

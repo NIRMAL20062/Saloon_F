@@ -29,14 +29,16 @@ tasks/*_TASKS.md ──▶ git switch -c task/APP-003-status-screen
                  ──▶ push, open PR ──▶ CI green + 1 review ──▶ merge commit (keeps the small commits)
 ```
 
-1. **Pick** a ⬜ task whose dependencies are ✅. Mark it 🔄 with your name and push that change (so nobody else picks it).
-2. **Branch** from `main`: `task/<ID>-short-name`.
+1. **Pick** a ⬜ task whose dependencies are ✅.
+2. **Branch** from `main`: `task/<ID>-short-name`. The first commit marks the task 🔄 with your name; push the branch right
+   away so the team can see it's taken (`main` is protected, so the mark lives on the branch until the merge).
 3. **Small commits.** Each commit is one unit of work, builds, and passes `./gradlew check` on its own. Message:
    `type(scope): what changed (TASK-ID)`. Small commits make `git bisect` and reverts painless.
 4. **PR**: title `<ID>: <task title>`; the template asks you to tick the task's "Done when" list.
 5. **CI must be green.** Never merge red. Never skip or delete a test to get green.
-6. **Merge with a merge commit** (not squash) so the small commits stay visible in history.
-7. **Close the task**: move it to the `_COMPLETED.md` file with commit hashes (the `/work-task` skill does this).
+6. **Close the task** after the team's OK, as the PR's last commit: move it to the `_COMPLETED.md` file with commit hashes and
+   update "Where we are" in `CLAUDE.md` (DF-21; the `/work-task` skill does this).
+7. **Merge with a merge commit** (not squash) so the small commits stay visible in history.
 
 ### Branch protection on `main` (set in GitHub → Settings → Branches)
 
@@ -54,7 +56,7 @@ tasks/*_TASKS.md ──▶ git switch -c task/APP-003-status-screen
 | Event | What happens |
 |---|---|
 | PR opened/updated | CI: format check, all tests for the changed areas, builds, end-to-end tests |
-| Merge to `main` | CD: backend Docker image → GitHub Container Registry; Android build → Firebase App Distribution (once secrets exist); deploy to **staging** (once hosting is chosen, Q-004) |
+| Merge to `main` | CD: backend Docker image → GitHub Container Registry; Android build → Firebase App Distribution (once secrets exist); deploy to **staging** only from the Pre-launch phase (no hosting during development, D-011) |
 | Tag `v*` on `main` | release: production deploy (once hosting exists), signed release build for the Play Store |
 
 Staging uses **real services in test mode** with seeded test users for every user type. See [TESTING.md](TESTING.md).
