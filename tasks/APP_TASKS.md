@@ -31,7 +31,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     the app's logs or the backend log
 
 ### APP-011 · Look and feel: the rest of the design system
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004 · Decision: D-031
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-004 · Decision: D-031
 - **Why:** the team wants screens that feel as modern and smooth as popular consumer apps. APP-004 already built the base
   (team, 2026-10-03: "everything polished"): theme in `ui/theme/` (placeholder brand colours, light + dark, type, shapes,
   spacing) and `ui/components/` (buttons with press feedback + loading, +91 phone field, 6-box OTP field, field message,
