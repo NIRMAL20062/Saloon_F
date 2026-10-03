@@ -26,8 +26,7 @@ _Last updated 2026-10-03._
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Pull requests (merge in this order):** #2 BE-016 → APP-004 (stacked on #2) → `docs/clarify-agent-rules` (this cleanup,
-  stacked on APP-004).
+- **Pull requests (merge in this order):** #2 BE-016 → #3 APP-004 (stacked on #2) → #4 docs cleanup (stacked on #3).
 
 ## Golden rules
 
