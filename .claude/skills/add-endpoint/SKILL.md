@@ -11,7 +11,7 @@ Only for an endpoint a task in `tasks/BACKEND_TASKS.md` asks for. Commit after e
 
 - Request/response DTOs in `com.glide.shared.<feature>`, `@Serializable`, money as `Long` paise.
 - Path constant in `ApiRoutes` under `V1`, with the D-017 prefix for its side: `"${V1}/salon/services"` (salon side; the salon
-  comes from the `X-Salon-Id` header, D-026), `"${V1}/c/bookings"` (customer side), `"${V1}/admin/salons"` (admin).
+  comes from the signed-in person's membership, D-036), `"${V1}/c/bookings"` (customer side), `"${V1}/admin/salons"` (admin).
 - Feature-specific error codes next to the feature (`<Feature>ErrorCodes`), stable `UPPER_SNAKE` strings.
 - Extend `ContractSerializationTest` (or a feature test) to pin the JSON.
 - Update `docs/api/openapi.yaml`: path, request, every response status, error envelope.
@@ -23,7 +23,7 @@ Use `/db-migration`. Exposed table object in `backend/.../<feature>/<Feature>Tab
 ## 3. Backend (`backend/.../<feature>/`)
 
 - `<Feature>Repository`: Exposed queries only. Every query on a salon-owned table has `salon_id = :salonId`, where the salon
-  id comes from `X-Salon-Id` **after** the membership + role check (D-026), never from the body. A customer's own data is
+  id comes from the signed-in person's membership, with a role check (D-036), never from the body. A customer's own data is
   filtered by their user id (D-025).
 - `<Feature>Service`: business rules, validation (lengths, ranges, formats), transactions for multi-row changes.
 - `<Feature>Routes.kt`: `fun Route.<feature>Routes(service)`. Parse → validate → service → respond with DTO. Register it in `Application.module`.
@@ -36,7 +36,7 @@ Real Postgres via `TestDatabase`. Minimum per endpoint:
 - [ ] happy path (status + exact body)
 - [ ] each validation rule rejected with 400
 - [ ] not found → 404
-- [ ] **other salon's data → 404** (tenant isolation), once tenants exist; `X-Salon-Id` of a salon the user isn't in → 404
+- [ ] **other salon's data → 404** (tenant isolation), once tenants exist
 - [ ] **other customer's data → 404** (customer-side endpoints)
 - [ ] unauthenticated → 401, wrong role → 403, once auth exists
 - [ ] database state after the call is correct (query it, don't trust the response)

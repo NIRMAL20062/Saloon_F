@@ -19,7 +19,7 @@ What gets built next, across all three files. Each step is one task = one pull r
 | 3 | APP-011 | the rest of the design system (cards, chips, sheets, empty states) | optional: apps you like, brand colour |
 | 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
 | 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
-| 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | answers to Q-014, Q-016; encryption key in `.env` |
+| 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | encryption key in `.env` |
 | 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
 | 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
 | 9 | APP-012 | owner/manager add staff by phone; staff log in straight to "My bookings" (D-034) | nothing |

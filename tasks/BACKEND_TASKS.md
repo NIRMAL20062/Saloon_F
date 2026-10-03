@@ -25,7 +25,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: E1.3, E1.4, E2.1, E3.2 · Decisions: D-025–D-027, D-033, D-034, DF-23, DF-24
-- **Needs from team:** answers to Q-014 (owner-only actions) and Q-016 (one person in several salons); an encryption key for bank
+- **Needs from team:** an encryption key for bank
   details put into `.env` by the team (the task report says how to make one).
 - **Scope:**
   - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a reason, or SUSPENDED)
@@ -35,14 +35,15 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     `GET /v1/salon/me/salons` · `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner/manager, **live salons only**)
   - a number added as staff is joined to the salon at its first login and its side becomes SALON (DF-23); a number that already
     chose CUSTOMER is refused with a clear error code
-  - every salon route reads the salon from the `X-Salon-Id` header and checks membership + role **before** using it (D-026);
+  - one salon per person (D-035): a phone that is already in another salon can't be added; every salon route takes the salon from
+    the signed-in person's membership and checks the role (D-036); only the OWNER changes bank details and the subscription (D-037);
     STAFF reach only their own bookings (D-034)
   - row-level security (D-027): Flyway keeps the owner user; the backend's queries run as a new limited database user (not superuser,
     not owner; created by the local setup and Testcontainers, password from env); each transaction sets `app.salon_id`
 - **Done when:**
   - [ ] Tests: create salon → submit → UNDER_VERIFICATION; adding staff refused unless LIVE; staff joined at first login; a
     customer's number refused; STAFF → 403 on owner/manager routes; **salon A can't read or change salon B** (every route);
-    `X-Salon-Id` of a salon the user isn't in → 404; missing header on a salon route → 400
+    a MANAGER changing bank details → 403; adding a phone already in another salon → refused
   - [ ] Database: migrations with constraints (exactly one OWNER, unique phone per salon, valid statuses, IFSC format); RLS
     enabled + forced; test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
   - [ ] Security: account number encrypted at rest, masked in responses, never logged; salon id never trusted from the request

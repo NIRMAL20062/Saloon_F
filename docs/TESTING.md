@@ -27,7 +27,6 @@ query bugs show up in tests, not in production.
 - not found → 404
 - **another salon's resource → 404** (tenant isolation, read and write)
 - **another customer's data → 404** (customer-side endpoints, D-025)
-- `X-Salon-Id` of a salon the user doesn't belong to → 404 (D-026)
 - no token → 401 · wrong role → 403
 - retry safety (same request/webhook twice → one effect) where retries can happen
 
@@ -56,7 +55,7 @@ can also be checked by hand (log in as Salon A's owner and try to see Salon B's 
 | User type | Test Salon A | Test Salon B | Can do (to be confirmed with the feature list) |
 |---|---|---|---|
 | Salon owner | `owner.a` | `owner.b` | everything in their salon: profile, bank details, staff, services, prices, bookings, bills, reports, subscription |
-| Manager | `manager.a` | `manager.b` | everything the owner can (D-034; owner-only exceptions: Q-014) |
+| Manager | `manager.a` | `manager.b` | everything the owner can, except bank details and the subscription (D-034, D-037) |
 | Staff | `staff.a` | `staff.b` | see and accept their own bookings only (D-034) |
 | Customer (customer side) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
 | Internal admin (our team) | `admin` | (all salons) | admin panel only |

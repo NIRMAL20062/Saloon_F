@@ -83,8 +83,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ### APP-008 · Salon side: home + menu by role
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-006 · Decision: D-034
 - **Scope:** salon home showing the salon's name and status (under verification / live) and your role. Owner and manager get the
-  full menu; staff see only "My bookings" (empty until Phase 3). Menu: logout, plus "switch salon" only if Q-016 keeps several
-  salons per person (the app then sends the chosen salon with each request, `X-Salon-Id`, D-026). The real tabs (calendar,
+  full menu; staff see only "My bookings" (empty until Phase 3). Menu: logout (one salon per person, so no "switch salon", D-035). The real tabs (calendar,
   customers, services…) arrive with Phase 2–3.
 - **Done when:** tests for each role's home and menu; on the phone an owner, a manager and a staff member each see their salon and role.
 
@@ -108,7 +107,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - that person logs in with that number → no "customer or salon?" question → salon side straight away
   - **Staff** see only "My bookings" and can accept their own bookings (Phase 3); owner/manager screens are hidden **and** refused by the backend
 - **Done when:**
-  - [ ] Tests: every screen state; add, remove, number already a customer (refused: "ask Glide support"), salon not live (no "Add" button, backend refuses)
+  - [ ] Tests: every screen state; add, remove, number already a customer or already in another salon (refused, D-035), salon not live (no "Add" button, backend refuses)
   - [ ] Security: staff can't open owner/manager screens or call their endpoints (403); an added number joins only that salon
   - [ ] Flow: on the phone, live Test Salon A's owner adds test number B as staff; B logs in → salon side with only "My bookings"
 

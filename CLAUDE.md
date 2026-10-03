@@ -60,7 +60,7 @@ _Last updated 2026-10-03 (APP-004)._
 - **The app never calls WhatsApp directly.** Always via the backend.
 - **Razorpay orders are created and verified on the backend.** Trust the webhook (signature verified), never only the app's success callback.
 - **Multi-tenant from day 1.** Every salon-owned table has `salon_id`; every query on it is scoped by it, after the backend checks
-  the user's membership (D-025, D-026); every feature has a test proving salon A can't read or change salon B's data, and
+  the user's membership (D-025, D-036); every feature has a test proving salon A can't read or change salon B's data, and
   customer A can't see customer B's.
 - **Secrets only in environment variables.** Never in the app, in git, or in logs.
 

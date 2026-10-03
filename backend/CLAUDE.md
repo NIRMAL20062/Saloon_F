@@ -18,7 +18,7 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 
 - Routes are thin: parse + validate input → call a service → respond with a `shared` DTO. Business rules live in services.
 - All SQL goes through repositories (Exposed). Every query on a salon-owned table filters by `salon_id`, taken from the
-  `X-Salon-Id` header **only after** checking the user is a member with the needed role (D-026); never from the request body.
+  signed-in person's one salon membership (D-035, D-036), with a role check; never from the request body.
   A customer's own data is filtered by their user id (D-025). Row-level security is the second guard (D-027, docs/DATABASE.md).
 - External calls (Razorpay, WhatsApp, FCM, R2) go behind an interface in `AppDependencies` so tests can swap in fakes.
 - Errors: throw/handle so the client gets `ErrorResponse` with a stable `ErrorCodes` value. Never `call.respondText(e.message)`.

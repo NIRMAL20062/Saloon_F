@@ -7,8 +7,8 @@ Per-feature checklist: run `/feature-security-check` (see `.claude/skills/featur
 1. The app **never** calls WhatsApp directly; only the backend does.
 2. Razorpay orders are **created** on the backend (amount computed server-side) and payments are **confirmed only by a
    verified webhook signature** (or server-side verification), never by the app's success callback alone.
-3. **Multi-tenant from day 1**: every salon-owned table has `salon_id`; it is used only after the backend checks the user's
-   membership (D-026), never from the request body; row-level security is the second guard (D-027). A customer's own data is
+3. **Multi-tenant from day 1**: every salon-owned table has `salon_id`; it comes from the signed-in person's salon
+   membership (D-036), never from the request body; row-level security is the second guard (D-027). A customer's own data is
    scoped by their user id (D-025).
 4. **Secrets only in environment variables**, never in the app, git, logs or screenshots.
 
