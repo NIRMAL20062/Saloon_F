@@ -50,8 +50,28 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     font size 2.0 (restored to the user's 1.3 afterwards) everything fits, long title shortens with "…". Found and fixed:
     status-bar icons invisible on light screens (`StatusBarIcons`)
 
+### APP-013 · The mockup look: red brand, light only, welcome screen
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-011 · Decisions: D-040, D-041
+- **Why:** the team shared the design it wants ([docs/design/customer-flow-1.webp](../docs/design/customer-flow-1.webp)) and
+  asked for no dark mode. Everything built so far takes that look, so later screens start from it.
+- **Needs from team:** the welcome photo (given, 2026-10-03; the team confirms it may be used in the app and the Play Store).
+- **Scope:**
+  - theme: brand red `#E02430`, warm white, light-pink tints, Poppins font, pill buttons; light mode only (dark removed everywhere)
+  - "Glide" wordmark (red G) and the three-petal leaf mark, as vectors
+  - **welcome screen** (mockup 1): full-screen photo, "Look Good / Feel Amazing", "Book trusted salons near you", Get Started → phone login
+  - phone and code screens like mockup 2–3: back arrow, centred wordmark, centred title, flag +91 field, red Send Code, phone
+    illustration; code boxes and "Verifying automatically…"
+  - all components restyled (buttons, chips, cards, the salon card as in mockup 8: photo left, rating, distance, tags,
+    "₹… onwards"), signed-in and status screens, the components gallery (no dark switch)
+  - not included: the mockup's own number keypad (the phone's keyboard and SMS autofill do this), favourites (♥, after the
+    MVP), screens of later tasks (they're built in this look)
+- **Done when:**
+  - [ ] Tests: welcome screen, every login state, components, contrast (light only), no dark scheme left
+  - [ ] Flow: on the phone, welcome → Get Started → phone → code → signed in looks like the mockup; it stays light with the
+    phone in dark mode
+
 ### APP-005 · Onboarding: customer or salon?
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-011, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
 - **Why:** one app, two kinds of users; each sees only their own interface.
 - **Needs from team:** nothing.
 - **Flow (first login only):** "How will you use Glide?"

@@ -28,7 +28,7 @@ Three pieces: **one Android app** (customer side + salon side), a **Ktor backend
 | **Salons are verified by our team** (profile + bank details) before they go live | D-033 |
 | **Online payments only**, all through **our** Razorpay account; no cash | D-028, D-029 |
 | Login is **phone number + SMS code** (Supabase); admins log in by email + authenticator app | D-016, DF-16 |
-| **Modern, smooth, interactive screens** from one design system | D-031 |
+| **Modern, smooth, interactive screens** from one design system, looking like the team's mockup ([design/customer-flow-1.webp](design/customer-flow-1.webp)); **light mode only** | D-031, D-040, D-041 |
 | No internet on the salon side = **view only** | D-019 |
 | WhatsApp and Razorpay only through the backend; secrets only in environment variables; money in paise | product rules, DF-11 |
 | Every salon's data is separate; a customer sees only their own data | D-025, D-027, D-036 |
@@ -77,6 +77,7 @@ The backend enforces every cell: hiding a button is never the only guard.
 
 ## 4. Everyone: first time in the app
 
+0. Welcome screen: a full-screen salon photo, "Look Good, Feel Amazing", **Get Started** (D-041).
 1. Enter the 10-digit mobile number (+91) → a 6-digit code arrives by SMS → enter it (it verifies on the 6th digit). Stays
    logged in; log out from the menu. _(Built: APP-004.)_
 2. A phone number that a salon already added as staff skips the next step and opens the salon side (DF-23).
