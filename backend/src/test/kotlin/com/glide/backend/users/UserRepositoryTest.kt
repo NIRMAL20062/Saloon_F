@@ -80,6 +80,38 @@ class UserRepositoryTest {
     }
 
     @Test
+    fun `the profile is saved and read back from postgres`() =
+        runBlocking {
+            val id = UUID.randomUUID()
+            repository.ensure(AuthenticatedUser(id, "919000000020"))
+
+            repository.updateProfile(id, ProfileInput.Valid("Meera", "meera@example.com"))
+
+            val read = repository.ensure(AuthenticatedUser(id, "919000000020"))
+            assertEquals("Meera" to "meera@example.com", read.name to read.email)
+        }
+
+    @Test
+    fun `the database itself refuses a one-letter name or a malformed email`() {
+        val id = UUID.randomUUID()
+        runBlocking { repository.ensure(AuthenticatedUser(id, "919000000021")) }
+
+        listOf(
+            "UPDATE app_users SET name = 'A' WHERE id = ?",
+            "UPDATE app_users SET email = 'not-an-email' WHERE id = ?",
+        ).forEach { sql ->
+            assertFailsWith<SQLException>(sql) {
+                TestDatabase.dataSource.connection.use { conn ->
+                    conn.prepareStatement(sql).use {
+                        it.setObject(1, id)
+                        it.executeUpdate()
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `the database itself rejects an unknown side`() {
         assertFailsWith<SQLException> {
             TestDatabase.dataSource.connection.use { conn ->

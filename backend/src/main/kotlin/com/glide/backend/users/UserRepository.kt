@@ -21,12 +21,14 @@ import kotlin.uuid.Uuid
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-/** Mirrors V2__app_users.sql. created_at/updated_at are filled by the database. */
+/** Mirrors V2__app_users.sql + V4__app_users_profile.sql. created_at/updated_at are filled by the database. */
 @OptIn(ExperimentalUuidApi::class)
 object AppUsers : Table("app_users") {
     val id = uuid("id")
     val phone = text("phone").nullable()
     val side = enumerationByName<UserSide>("side", SIDE_MAX_LENGTH).nullable()
+    val name = text("name").nullable()
+    val email = text("email").nullable()
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -37,6 +39,8 @@ data class AppUser(
     val id: UUID,
     val phone: String?,
     val side: UserSide?,
+    val name: String? = null,
+    val email: String? = null,
 )
 
 interface UserRepository {
@@ -51,6 +55,12 @@ interface UserRepository {
         id: UUID,
         side: UserSide,
     ): AppUser?
+
+    /** Saves this person's own name and email (already validated, see [ProfileInput]). A null [email] clears it. */
+    suspend fun updateProfile(
+        id: UUID,
+        profile: ProfileInput.Valid,
+    ): AppUser
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -89,10 +99,29 @@ class ExposedUserRepository(
             if (updated == 1) find(kid).toAppUser() else null
         }
 
+    override suspend fun updateProfile(
+        id: UUID,
+        profile: ProfileInput.Valid,
+    ): AppUser =
+        db {
+            val kid = id.toKotlinUuid()
+            AppUsers.update({ AppUsers.id eq kid }) {
+                it[name] = profile.name
+                it[email] = profile.email
+            }
+            find(kid).toAppUser()
+        }
+
     private fun find(id: Uuid): ResultRow = AppUsers.selectAll().where { AppUsers.id eq id }.single()
 
     private fun ResultRow.toAppUser() =
-        AppUser(this[AppUsers.id].toJavaUuid(), this[AppUsers.phone], this[AppUsers.side])
+        AppUser(
+            this[AppUsers.id].toJavaUuid(),
+            this[AppUsers.phone],
+            this[AppUsers.side],
+            this[AppUsers.name],
+            this[AppUsers.email],
+        )
 
     private suspend fun <T> db(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 }

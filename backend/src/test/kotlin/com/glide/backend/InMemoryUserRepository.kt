@@ -2,6 +2,7 @@ package com.glide.backend
 
 import com.glide.backend.auth.AuthenticatedUser
 import com.glide.backend.users.AppUser
+import com.glide.backend.users.ProfileInput
 import com.glide.backend.users.UserRepository
 import com.glide.shared.me.UserSide
 import java.util.UUID
@@ -24,4 +25,9 @@ class InMemoryUserRepository : UserRepository {
         if (existing.side != null && existing.side != side) return null
         return existing.copy(side = side).also { users[id] = it }
     }
+
+    override suspend fun updateProfile(
+        id: UUID,
+        profile: ProfileInput.Valid,
+    ): AppUser = users.getValue(id).copy(name = profile.name, email = profile.email).also { users[id] = it }
 }

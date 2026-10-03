@@ -6,6 +6,7 @@ import com.glide.backend.plugins.respondError
 import com.glide.shared.api.ApiRoutes
 import com.glide.shared.me.MeErrorCodes
 import com.glide.shared.me.MeResponse
+import com.glide.shared.me.UpdateProfileRequest
 import com.glide.shared.me.UpdateSideRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -20,6 +21,21 @@ fun Route.meRoutes(users: UserRepository) {
         // Who is signed in, and which side of the app to show them (D-024).
         get(ApiRoutes.ME) {
             call.respond(users.ensure(call.user()).toResponse())
+        }
+
+        // The person's own name and optional email (BE-018). Only ever their own row: the id comes from the token.
+        put(ApiRoutes.ME_PROFILE) {
+            val request = call.receive<UpdateProfileRequest>()
+            when (val input = ProfileInput.from(request)) {
+                is ProfileInput.Invalid -> {
+                    call.respondError(HttpStatusCode.BadRequest, input.code, input.message)
+                }
+
+                is ProfileInput.Valid -> {
+                    val user = users.ensure(call.user())
+                    call.respond(users.updateProfile(user.id, input).toResponse())
+                }
+            }
         }
 
         // Onboarding answer: "customer or salon?". Final once chosen (D-030); the same answer again is fine.
@@ -40,4 +56,5 @@ fun Route.meRoutes(users: UserRepository) {
     }
 }
 
-private fun AppUser.toResponse() = MeResponse(id = id.toString(), phone = phone, side = side)
+private fun AppUser.toResponse() =
+    MeResponse(id = id.toString(), phone = phone, side = side, name = name, email = email)
