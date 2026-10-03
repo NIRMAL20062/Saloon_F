@@ -6,23 +6,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and accounts
 
-### BE-016 · Backend trusts Supabase logins + `GET /v1/me`
-- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-011 · Decision: D-016 · **Commits:** `3c507d6` `1468aed`
-- **Why:** the apps log in with Supabase; the backend must check every request's token itself.
-- **Needs from team:** Supabase project (free, region Mumbai) with Phone provider + Twilio + test phone numbers; project URL shared;
-  secret keys put into `.env` by the team (never in chat or git). Steps given in the task report.
-- **Scope:**
-  - verify the Supabase access token on every protected route: signature (JWKS public keys), issuer, audience, expiry
-  - `app_users` table (one row per Supabase user: id, phone, **side** CUSTOMER / SALON / not chosen yet, created_at), created on first request
-  - `GET /v1/me` → who is signed in and their chosen side (the app picks the interface from this, D-024). The person's salon and role are added by BE-017, when salons exist (new fields; older app versions ignore them)
-  - `PUT /v1/me/side` → save the onboarding choice (customer or salon). **Final once chosen** (D-030, team 2026-10-03): a different side → 409 `SIDE_ALREADY_CHOSEN`, the same side again → 200; a database trigger refuses any change too
-- **Done when:**
-  - [x] Tests: valid token → 200; missing / expired / wrong-signature / wrong-issuer token → 401 with the error envelope; side saved and returned (`SupabaseTokenVerifierTest` 9, `MeRoutesTest` 6)
-  - [x] Database: `V2__app_users.sql`; first-request creation is idempotent: 10 parallel first requests → one row (`UserRepositoryTest`, real Postgres); side enforced by a CHECK constraint; `V3__app_users_side_final.sql`: a trigger refuses changing a chosen side (D-030). A new migration, not an edit of V2, so local databases that already ran V2 keep working
-  - [x] Security: tokens and phone numbers never logged (checked in the real run's log); JWKS cached, 5 s download timeout, 5 s retry pause; only ES256/RS256 accepted (HS256 forgery refused); no Supabase secret in the repo or used by the backend
-  - [x] OpenAPI spec updated (`/v1/me`, `/v1/me/side`, bearer security, 401 envelope); contract tests pass
-  - [x] Flow (real Supabase project): test number OTP → real access token → `GET /v1/me` 200 → `PUT /v1/me/side` CUSTOMER saved and returned → tampered token 401. After D-030 (2026-10-03, on the local database that had run V2): V3 applied without a reset; same side again → 200, other side → 409 `SIDE_ALREADY_CHOSEN`, side unchanged
-
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
 - **Needs from team:** an encryption key for bank
