@@ -42,10 +42,17 @@ import com.glide.shared.me.MeResponse
 @Composable
 fun SignedInRoute(
     onOpenStatus: () -> Unit,
+    onOpenComponents: (() -> Unit)? = null,
     viewModel: SignedInViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    SignedInScreen(state = state, onRetry = viewModel::load, onLogout = viewModel::logout, onOpenStatus = onOpenStatus)
+    SignedInScreen(
+        state = state,
+        onRetry = viewModel::load,
+        onLogout = viewModel::logout,
+        onOpenStatus = onOpenStatus,
+        onOpenComponents = onOpenComponents,
+    )
 }
 
 /** Temporary home until onboarding (APP-005): who is signed in, log out, system status. Same look as the login. */
@@ -56,6 +63,8 @@ fun SignedInScreen(
     onLogout: () -> Unit,
     onOpenStatus: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Debug builds only: opens the design components gallery (APP-011). */
+    onOpenComponents: (() -> Unit)? = null,
 ) {
     Column(
         modifier =
@@ -98,6 +107,13 @@ fun SignedInScreen(
                 onClick = onOpenStatus,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
+            if (onOpenComponents != null) {
+                QuietButton(
+                    text = stringResource(R.string.home_components),
+                    onClick = onOpenComponents,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
         }
     }
 }
