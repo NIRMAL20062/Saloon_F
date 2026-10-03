@@ -48,6 +48,7 @@ import com.glide.android.ui.components.PrimaryButton
 import com.glide.android.ui.components.QuietButton
 import com.glide.android.ui.components.SalonCard
 import com.glide.android.ui.components.SecondaryButton
+import com.glide.android.ui.components.StatusBarIcons
 import com.glide.android.ui.components.StatusChip
 import com.glide.android.ui.theme.GlideTheme
 import com.glide.android.ui.theme.Spacing
@@ -64,6 +65,7 @@ fun ComponentsGalleryScreen(
 ) {
     var dark by rememberSaveable { mutableStateOf(startDark) }
     GlideTheme(darkTheme = dark) {
+        StatusBarIcons(darkIcons = !dark)
         val snackbar = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         Scaffold(
@@ -80,6 +82,7 @@ fun ComponentsGalleryScreen(
                             Text(
                                 stringResource(R.string.gallery_dark_mode),
                                 style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(end = Spacing.s),
                             )
                             Switch(
                                 checked = dark,

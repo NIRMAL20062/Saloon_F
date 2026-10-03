@@ -1,14 +1,16 @@
 package com.glide.android.ui.gallery
 
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.core.view.WindowCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.glide.android.ui.home.SignedInScreen
 import com.glide.android.ui.home.SignedInUiState
@@ -23,7 +25,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class ComponentsGalleryTest {
     @get:Rule
-    val compose = createComposeRule()
+    val compose = createAndroidComposeRule<ComponentActivity>()
 
     @Test
     fun showsEverySectionAndGoesBack() {
@@ -46,6 +48,19 @@ class ComponentsGalleryTest {
 
         compose.onNodeWithTag("darkSwitch").assertIsOn()
         compose.onNodeWithText("Glow Studio").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun statusBarIconsFollowTheBackground() {
+        compose.setContent { ComponentsGalleryScreen(onBack = {}) }
+        val window = compose.activity.window
+        val controller = { WindowCompat.getInsetsController(window, window.decorView) }
+
+        assertEquals(true, controller().isAppearanceLightStatusBars)
+        compose.onNodeWithTag("darkSwitch").performClick()
+        compose.waitForIdle()
+
+        assertEquals(false, controller().isAppearanceLightStatusBars)
     }
 
     @Test
