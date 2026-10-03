@@ -37,7 +37,7 @@ tasks/*_TASKS.md ──▶ git switch -c task/APP-003-status-screen
 4. **PR**: title `<ID>: <task title>`; the template asks you to tick the task's "Done when" list.
 5. **CI must be green.** Never merge red. Never skip or delete a test to get green.
 6. **Close the task** after the team's OK, as the PR's last commit: move it to the `_COMPLETED.md` file with commit hashes and
-   update "Where we are" in `CLAUDE.md` (DF-20; the `/work-task` skill does this).
+   update "Where we are" in `CLAUDE.md` (DF-21; the `/work-task` skill does this).
 7. **Merge with a merge commit** (not squash) so the small commits stay visible in history.
 
 ### Branch protection on `main` (set in GitHub → Settings → Branches)

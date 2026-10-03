@@ -50,7 +50,7 @@ Tick every "Done when" box you could verify. Then end your turn with a report, a
 3. **Needed from you**: keys, accounts, files, or answers to open questions, or "nothing".
 4. **Next**: the next available task, waiting for their go-ahead.
 
-## 7. Close (after the team's OK, before the merge: DF-20)
+## 7. Close (after the team's OK, before the merge: DF-21)
 
 1. **Move** the task block from `*_TASKS.md` to the matching `*_COMPLETED.md` (bottom), and add:
    `**Completed:** <date> · **Commits:** <hashes>`, what was built, tests added (class + count), security notes, database notes,

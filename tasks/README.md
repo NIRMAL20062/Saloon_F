@@ -53,7 +53,7 @@ Platform backlog items (security scanning, CD) are done in between when useful; 
    CI must be green. **The team merges it**; nobody pushes to `main` directly (D-021).
 5. **Test on the phone and report.** Install the build on the team phone and run the task's flow, then tell the team what was
    built, how to test it themselves, and what is needed from them (keys, accounts, answers). **The next task starts only after their OK.**
-6. **Close.** After the team's OK, as the **last commit of the same PR** (before it's merged, DF-20): **move** the whole task
+6. **Close.** After the team's OK, as the **last commit of the same PR** (before it's merged, DF-21): **move** the whole task
    block to the `_COMPLETED` file and add the date, commit hashes, tests added, and security/database notes; update
    "Where we are" in the root `CLAUDE.md`. Then the team merges.
 
