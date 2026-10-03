@@ -33,12 +33,14 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     body; audit-logged once BE-019 lands
 
 ### BE-018 · Profile: name and email
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016 · Spec: PRODUCT §5 · Decision: DF-18
+- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-016 · Spec: PRODUCT §5 · Decision: DF-18
 - **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
   `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
   `PUT /v1/me/side` refuses a change once a side is saved: the choice is final (D-030). The team asked for this fix in BE-016
   (PR #2); if it's already there, only check it here.
-- **Done when:** tests for validation, own profile only, new vs returning user, a different side after one is saved → 409; OpenAPI updated.
+- **Done when:**
+  - [x] Tests for validation, own profile only, new vs returning user (`MeRoutesTest` +9), database checks (`UserRepositoryTest` +2); a different side after one is saved → 409 (from BE-016); OpenAPI updated, contract test passes. Backend total 70
+  - [x] Flow (real Supabase login, local database after V4 applied by itself): profile saved and read back, email lower-cased; one-letter name → 400 `INVALID_NAME`; bad email → 400 `INVALID_EMAIL`; no name, email, phone or token in the log
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §7 (audit log: every admin and money action)
