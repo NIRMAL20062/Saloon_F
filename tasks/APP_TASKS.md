@@ -14,12 +14,15 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Needs from team:** Supabase project with the phone provider on (Twilio) and test phone numbers (steps in the BE-016 report).
 - **Flow:** open app → enter phone number (+91) → receive OTP (test numbers: fixed code, no SMS) → enter OTP → signed in.
   Stays signed in after closing the app; logout from the menu.
+- **Look (team, 2026-10-03: "everything polished", D-031):** the login is built with the Glide theme and components now:
+  brand gradient header, rounded sheet, +91 chip, six code boxes (blinking caret, pop-in digits, shake + haptic on a wrong
+  code, SMS code autofill), auto-verify on the 6th digit, sliding steps, press feedback, light and dark mode.
 - **Done when:**
-  - [ ] Screens: phone entry (10-digit Indian mobile), OTP entry (6 digits, resend after 60 s, wrong-code message), loading and error states
-  - [ ] Session stored encrypted on the device and refreshed automatically; logout clears it
-  - [ ] Every backend call sends the login token; `GET /v1/me` answers with the signed-in user
-  - [ ] Tests: ViewModel tests for every state; Compose UI tests for every screen state; token added to requests
-  - [ ] Security: OTP and tokens never logged; rate-limit message shown when Supabase limits OTPs
+  - [x] Screens: phone entry (10-digit Indian mobile), OTP entry (6 digits, resend after 60 s, wrong-code message), loading and error states (`LoginScreenTest` 12)
+  - [x] Session stored encrypted on the device (Android Keystore AES-GCM) and refreshed automatically; logout clears it (`EncryptedSessionStoreTest`, `AuthRepositoryTest`)
+  - [x] Every backend call sends the login token, refreshed once on 401; `GET /v1/me` answers with the signed-in user (`AuthenticatedClientTest`, `SignedInTest`)
+  - [x] Tests: ViewModel tests for every state; Compose UI tests for every screen state and every component state (`ComponentsTest` 12); 91 app tests in total
+  - [x] Security: OTP and tokens never logged (HTTP logs at BASIC level, debug only); rate-limit message shown when Supabase limits OTPs
   - [ ] Flow: on the phone, log in with a test number → close and reopen (still logged in) → logout
 
 ### APP-005 · Onboarding: customer or salon?
