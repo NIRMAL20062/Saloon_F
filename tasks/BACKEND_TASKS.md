@@ -22,32 +22,42 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Security: tokens never logged; JWKS cached with a timeout; no Supabase secret in the repo
   - [ ] OpenAPI spec updated; contract test passes
 
-### BE-017 · Salons, members, roles and tenant isolation
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: E1.3, E1.4, E2.1, E3.2
-- **Needs from team:** nothing; permissions follow the table in the salon plan §1 (DF-17, veto any cell).
+### BE-017 · Salons, bank details, staff, roles and tenant isolation
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: E1.3, E1.4, E2.1, E3.2 · Decisions: D-025–D-027, D-033, D-034, DF-23, DF-24
+- **Needs from team:** answers to Q-014 (owner-only actions) and Q-016 (one person in several salons); an encryption key for bank
+  details put into `.env` by the team (the task report says how to make one).
 - **Scope:**
-  - `salons` (name, phone, address, type men/women/unisex), `salon_members` (user, salon, role OWNER / MANAGER / STYLIST, status), `salon_invites` (phone, role, expiry)
-  - `POST /v1/salon/salons` (creator becomes OWNER) · `GET /v1/salon/me/salons` · `POST /v1/salon/staff/invites` (owner only) · `POST /v1/salon/invites/{id}/accept`
-  - every salon route reads the salon from the `X-Salon-Id` header and checks membership + role **before** using it (D-026)
+  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a reason, or SUSPENDED)
+  - `salon_bank_details` (account holder name, account number **encrypted**, IFSC); masked in every app response (DF-24)
+  - `salon_members` (salon, phone, user (filled in at that number's first login), role OWNER / MANAGER / STAFF, status ACTIVE / REMOVED)
+  - `POST /v1/salon/salons` (creator becomes OWNER) · `PUT /v1/salon/bank-details` · `POST /v1/salon/submit-for-verification` ·
+    `GET /v1/salon/me/salons` · `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner/manager, **live salons only**)
+  - a number added as staff is joined to the salon at its first login and its side becomes SALON (DF-23); a number that already
+    chose CUSTOMER is refused with a clear error code
+  - every salon route reads the salon from the `X-Salon-Id` header and checks membership + role **before** using it (D-026);
+    STAFF reach only their own bookings (D-034)
   - row-level security (D-027): Flyway keeps the owner user; the backend's queries run as a new limited database user (not superuser,
     not owner; created by the local setup and Testcontainers, password from env); each transaction sets `app.salon_id`
 - **Done when:**
-  - [ ] Tests: create salon; invite → accept only by the invited phone; **salon A can't read or change salon B** (every route); wrong role → 403;
+  - [ ] Tests: create salon → submit → UNDER_VERIFICATION; adding staff refused unless LIVE; staff joined at first login; a
+    customer's number refused; STAFF → 403 on owner/manager routes; **salon A can't read or change salon B** (every route);
     `X-Salon-Id` of a salon the user isn't in → 404; missing header on a salon route → 400
-  - [ ] Database: migrations with constraints (one OWNER minimum, unique member per salon, invite expiry); RLS enabled + forced;
-    test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
-  - [ ] Security: salon id never trusted from the request body; audit-logged once BE-019 lands
+  - [ ] Database: migrations with constraints (exactly one OWNER, unique phone per salon, valid statuses, IFSC format); RLS
+    enabled + forced; test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
+  - [ ] Security: account number encrypted at rest, masked in responses, never logged; salon id never trusted from the request
+    body; audit-logged once BE-019 lands
 
 ### BE-018 · Profile: name and email
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: C1.2 · Decision: DF-18
 - **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
   `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
-- **Done when:** tests for validation, own profile only, new vs returning user; OpenAPI updated.
+  `PUT /v1/me/side` (built in BE-016) refuses a change once a side is saved: the choice is final (D-030).
+- **Done when:** tests for validation, own profile only, new vs returning user, second side change → 409; OpenAPI updated.
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: E1.5; spec v2 "audit entry for every admin or system money action"
 - **Scope:** `audit_log` (who, salon, action, entity, before/after, when); written by every create/update/delete from here on.
-- **Done when:** tests prove salon create, invite, accept write audit rows; rows can't be updated or deleted by the app.
+- **Done when:** tests prove salon create, bank-details change, staff add/remove write audit rows; rows can't be updated or deleted by the app.
 
 ### BE-020 · Admins: first admin, invites, admin-only routes
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Decisions: D-013, DF-16
@@ -60,8 +70,18 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ### BE-021 · Seed test users
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-018, BE-020 · Spec: E1.6, D-012
 - **Needs from team:** the service-role key from BE-020 (creating users in Supabase needs it); the test phone numbers set up in Supabase.
-- **Scope:** one command creates Test Salon A + B with owner, manager, stylist each, two customers and one admin, all on Supabase test numbers/emails.
+- **Scope:** one command creates Test Salon A + B (both already verified and live) with owner, manager and staff each, two
+  customers and one admin, all on Supabase test numbers/emails.
 - **Done when:** running it twice changes nothing; [docs/TESTING.md](../docs/TESTING.md) lists the logins (codes live in the password manager).
+
+### BE-022 · Salon verification by our admins
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-019, BE-020 · Decisions: D-033, DF-24
+- **Scope:** `salon_verifications` (salon, admin, decision APPROVED / REJECTED, reason, when) ·
+  `GET /v1/admin/salons?status=UNDER_VERIFICATION` · `GET /v1/admin/salons/{id}` (profile + full bank details; every view
+  audit-logged) · `POST /v1/admin/salons/{id}/approve` · `POST /v1/admin/salons/{id}/reject` (reason required) → the salon becomes
+  LIVE or REJECTED, and the owner sees it in `GET /v1/salon/me/salons`.
+- **Done when:** tests: non-admin → 403; approve/reject only from UNDER_VERIFICATION; reject without a reason → 400; every
+  decision and every bank-details view writes an audit row; OpenAPI updated.
 
 ## Next phases (outline)
 
@@ -69,7 +89,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase 3** BE-2xx availability engine · appointments with **no double booking** (database-enforced) · statuses + state machine · push to salon staff (E5, E6.1)
 - **Phase 4** BE-3xx listing + geo search + filters · slot lock (10 min) · customer bookings, reschedule/cancel with policy engine · WhatsApp + reminders (EC2–EC3, E6–E7)
 - **Phase 5** BE-4xx bills, PDF invoices (E8.1, E9); no cash: bills are paid online from Phase 6 (D-029)
-- **Phase 6** BE-5xx all online money through our Razorpay (D-028, D-029): salon linked accounts (KYC), Route orders with hold, bill payments by link / UPI QR at the counter + day summary (E8.2–E8.5), platform fee (Q-013), verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions (EC4, E12)
+- **Phase 6** BE-5xx all online money through our Razorpay (D-028, D-029): salon linked accounts (KYC), Route orders with hold, bill payments by link / UPI QR at the counter + day summary (E8.2–E8.5), platform fee (Q-013), verified webhooks, refunds, double-entry ledger, hourly reconciliation, subscriptions: one plan, ₹179–₹400 a month, price editable by admins (D-032, DF-25) (EC4, E12)
 - **Phase 7** BE-6xx disputes state machine + SLAs, payout freeze, chargebacks, reviews, reliability scores, reports (EC5–EC6, E10)
 
 ## Platform backlog (done alongside features; never blocks them)

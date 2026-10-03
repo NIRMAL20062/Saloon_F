@@ -16,14 +16,17 @@ What gets built next, across all three files. Each step is one task = one pull r
 |---|---|---|---|
 | 1 | BE-016 | backend accepts Supabase logins (`/v1/me`), remembers customer/salon choice | **Supabase project + phone login with test numbers** |
 | 2 | APP-004 | the app: phone → OTP → logged in, stays logged in, logout | (same Supabase project) |
-| 3 | BE-018 + APP-005 | first login asks "customer or salon?"; customers enter name/email | nothing |
-| 4 | BE-017 + APP-006 | salon side: owner creates a salon; staff join by invite | nothing (permissions per DF-17) |
-| 5 | APP-007, APP-008 | customer side tabs; salon side home + menu (switch side, logout) | nothing |
-| 6 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on |
-| 7 | WEB-006 | admins invite admins | nothing |
-| 8 | APP-009 | customer side: location or city | launch city |
-| 9 | BE-019, BE-021 | audit log; test users for every type | nothing |
-| 10 | APP-010 | crash reports in Firebase | `google-services.json` |
+| 3 | APP-011 | the new look: design system; login screens restyled (D-031) | optional: apps you like, brand colour |
+| 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
+| 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
+| 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | answers to Q-014, Q-016; encryption key in `.env` |
+| 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
+| 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
+| 9 | APP-012 | owner/manager add staff by phone; staff log in straight to "My bookings" (D-034) | nothing |
+| 10 | WEB-006 | admins invite admins | nothing |
+| 11 | APP-009 | customer side: location or city | launch city |
+| 12 | BE-021 | test users for every type | nothing |
+| 13 | APP-010 | crash reports in Firebase | `google-services.json` |
 
 Then Phase 2 (salon setup), Phase 3 (appointments), Phase 4 (customer booking)… as outlined in each file.
 Platform backlog items (security scanning, CD) are done in between when useful; they never block features.
