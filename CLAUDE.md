@@ -6,7 +6,7 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 
 ## Where we are (read this first; update it in every task's pull request)
 
-_Last updated 2026-10-02._
+_Last updated 2026-10-02 (BE-016)._
 
 - **Product plan:** [Salon_App_Task_Wise_Development.md](Salon_App_Task_Wise_Development.md) (salon side) + [ChatGPT.md](ChatGPT.md)
   (customer side, marketplace payments, disputes). Where the team decided differently, [docs/DECISIONS.md](docs/DECISIONS.md) wins
@@ -15,10 +15,14 @@ _Last updated 2026-10-02._
   Android app skeleton with network layer and a system-status screen (tested on the team phone); admin website skeleton
   (Next.js, nonce CSP); CI on GitHub (`ci-ok`). Details and commits: `tasks/*_COMPLETED.md`.
 - **Now: Phase 1, Login and onboarding.** Order and what each step needs: [tasks/README.md § Build order](tasks/README.md#build-order).
-- **Next task:** **BE-016** (backend checks Supabase logins, `/v1/me`, saves "customer or salon"), then **APP-004** (phone login screens).
-- **Blocked on the team:** a Supabase project (phone provider + Twilio + test phone numbers) for BE-016.
+- **Phase 1 progress:** **BE-016 built** (backend accepts Supabase logins; `GET /v1/me`, `PUT /v1/me/side`; verified with the
+  team's real Supabase project), waiting for the team's OK on its PR.
+- **Next task:** **APP-004** (phone login screens in the app), then BE-018 + APP-005 (onboarding "customer or salon?").
+- **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
+  with code `123456` (no SMS sent). Public keys only in the repo; secret keys never.
+- **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** `plan/phase-1-login` (this plan).
+- **Open pull requests:** `task/BE-016-supabase-login`.
 
 ## Golden rules
 

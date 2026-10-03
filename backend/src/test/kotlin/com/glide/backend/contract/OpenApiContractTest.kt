@@ -4,10 +4,12 @@ import com.atlassian.oai.validator.OpenApiInteractionValidator
 import com.atlassian.oai.validator.model.Request
 import com.atlassian.oai.validator.model.SimpleResponse
 import com.atlassian.oai.validator.report.ValidationReport
+import com.glide.backend.TestTokens
 import com.glide.backend.fakeDependencies
 import com.glide.backend.module
 import com.glide.backend.testConfig
 import com.glide.shared.api.ApiRoutes
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -67,6 +69,25 @@ class OpenApiContractTest {
 
             assertEquals(429, limited.status.value)
             assertMatchesSpec(ApiRoutes.HEALTH_LIVE, limited)
+        }
+
+    @Test
+    fun `me response matches the spec`() =
+        testApplication {
+            application { module(testConfig(), fakeDependencies()) }
+
+            assertMatchesSpec(ApiRoutes.ME, client.get(ApiRoutes.ME) { bearerAuth(TestTokens.token()) })
+        }
+
+    @Test
+    fun `unauthorized envelope matches the spec`() =
+        testApplication {
+            application { module(testConfig(), fakeDependencies()) }
+
+            val response = client.get(ApiRoutes.ME)
+
+            assertEquals(401, response.status.value)
+            assertMatchesSpec(ApiRoutes.ME, response)
         }
 
     @Test

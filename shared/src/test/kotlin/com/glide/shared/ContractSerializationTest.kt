@@ -5,6 +5,9 @@ import com.glide.shared.error.ErrorBody
 import com.glide.shared.error.ErrorResponse
 import com.glide.shared.health.HealthResponse
 import com.glide.shared.health.HealthStatus
+import com.glide.shared.me.MeResponse
+import com.glide.shared.me.UpdateSideRequest
+import com.glide.shared.me.UserSide
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
@@ -43,6 +46,31 @@ class ContractSerializationTest {
         val json = ApiJson.encodeToString(ErrorResponse(ErrorBody("NOT_FOUND", "No such route", "req-1")))
 
         assertJsonEquals("""{"error":{"code":"NOT_FOUND","message":"No such route","requestId":"req-1"}}""", json)
+    }
+
+    @Test
+    fun `me response has the documented wire format`() {
+        val json =
+            ApiJson.encodeToString(
+                MeResponse("3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80", "919000000001", UserSide.SALON),
+            )
+
+        assertJsonEquals(
+            """{"id":"3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80","phone":"919000000001","side":"SALON"}""",
+            json,
+        )
+    }
+
+    @Test
+    fun `a new user's side is omitted until onboarding`() {
+        val json = ApiJson.encodeToString(MeResponse("u-1", "919000000001"))
+
+        assertJsonEquals("""{"id":"u-1","phone":"919000000001"}""", json)
+    }
+
+    @Test
+    fun `update side request has the documented wire format`() {
+        assertJsonEquals("""{"side":"CUSTOMER"}""", ApiJson.encodeToString(UpdateSideRequest(UserSide.CUSTOMER)))
     }
 
     private fun assertJsonEquals(

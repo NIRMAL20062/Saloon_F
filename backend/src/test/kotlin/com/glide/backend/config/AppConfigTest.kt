@@ -15,6 +15,7 @@ class AppConfigTest {
             "DATABASE_USER" to "glide",
             "DATABASE_PASSWORD" to "s3cret-value",
             "CORS_ALLOWED_ORIGINS" to "https://admin.example.com, http://localhost:3000",
+            "SUPABASE_URL" to "https://abcd.supabase.co/",
         )
 
     @Test
@@ -26,6 +27,20 @@ class AppConfigTest {
         assertEquals("1.2.3", config.version)
         assertEquals(listOf("https://admin.example.com", "http://localhost:3000"), config.corsAllowedOrigins)
         assertEquals(300, config.rateLimitPerMinute)
+        assertEquals("https://abcd.supabase.co/auth/v1", config.supabase.issuer)
+        assertEquals("https://abcd.supabase.co/auth/v1/.well-known/jwks.json", config.supabase.jwksUrl)
+    }
+
+    @Test
+    fun `supabase url must be https outside local development`() {
+        val error =
+            assertFailsWith<InvalidConfigException> {
+                AppConfig.fromEnv(valid + ("SUPABASE_URL" to "http://abcd.supabase.co"), "1")
+            }
+
+        assertEquals(listOf("SUPABASE_URL must look like https://<project>.supabase.co"), error.problems)
+        // A Supabase running on this machine (supabase CLI) is fine for local development.
+        AppConfig.fromEnv(valid + ("APP_ENV" to "local") + ("SUPABASE_URL" to "http://127.0.0.1:54321"), "1")
     }
 
     @Test
@@ -60,6 +75,7 @@ class AppConfigTest {
                 "DATABASE_URL is required",
                 "DATABASE_USER is required",
                 "DATABASE_PASSWORD is required",
+                "SUPABASE_URL is required",
             ),
             error.problems,
         )
