@@ -94,6 +94,20 @@ object GlideIcons {
             lineTo(15f, 7.5f)
         }
     }
+    val Scissors: ImageVector by lazy {
+        outline("scissors") {
+            moveTo(6f, 4f)
+            arcTo(2.5f, 2.5f, 0f, true, true, 6f, 9f)
+            arcTo(2.5f, 2.5f, 0f, true, true, 6f, 4f)
+            moveTo(6f, 15f)
+            arcTo(2.5f, 2.5f, 0f, true, true, 6f, 20f)
+            arcTo(2.5f, 2.5f, 0f, true, true, 6f, 15f)
+            moveTo(8.2f, 8f)
+            lineTo(20f, 17f)
+            moveTo(8.2f, 16f)
+            lineTo(20f, 7f)
+        }
+    }
     val Search: ImageVector by lazy {
         outline("search") {
             moveTo(10.5f, 4f)

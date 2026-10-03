@@ -11,7 +11,7 @@ import com.glide.android.BuildConfig
 import com.glide.android.ui.auth.LoginRoute
 import com.glide.android.ui.auth.WelcomeScreen
 import com.glide.android.ui.gallery.ComponentsGalleryScreen
-import com.glide.android.ui.home.SignedInRoute
+import com.glide.android.ui.onboarding.OnboardingRoute
 import com.glide.android.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
 
@@ -45,7 +45,7 @@ fun GlideNavHost(
         composable<WelcomeDestination> { WelcomeScreen(onGetStarted = { navController.navigate(LoginDestination) }) }
         composable<LoginDestination> { LoginRoute(onBack = { navController.popBackStack() }) }
         composable<HomeDestination> {
-            SignedInRoute(
+            OnboardingRoute(
                 onOpenStatus = { navController.navigate(StatusDestination) },
                 onOpenComponents = { navController.navigate(ComponentsDestination) }.takeIf { BuildConfig.DEBUG },
             )

@@ -41,7 +41,9 @@
 
     <!-- Signed in (temporary home until onboarding, APP-005) -->
     <string name="home_signed_in">You\'re signed in</string>
-    <string name="home_next_step">Choosing customer or salon comes in the next update.</string>
+    <string name="home_hi">Hi, %1$s</string>
+    <string name="home_next_customer">Finding and booking salons comes in the next update.</string>
+    <string name="home_next_salon">Creating your salon comes in the next update.</string>
     <string name="home_load_error">Couldn\'t load your account. Check your connection and try again.</string>
     <string name="home_logout">Log out</string>
     <string name="home_system_status">System status</string>
@@ -88,4 +90,23 @@
     <string name="gallery_empty_title">No bookings yet</string>
     <string name="gallery_empty_message">When you book a salon, it shows up here.</string>
     <string name="gallery_empty_action">Find a salon</string>
+
+    <!-- Onboarding (APP-005, mockups 4 and 5) -->
+    <string name="onboard_title">How will you use Glide?</string>
+    <string name="onboard_customer">I want to book salons</string>
+    <string name="onboard_customer_hint">Find and book salons near you</string>
+    <string name="onboard_salon">I run a salon</string>
+    <string name="onboard_salon_hint">Manage my salon, staff and appointments</string>
+    <string name="onboard_confirm_customer">Continue as a customer?</string>
+    <string name="onboard_confirm_salon">Continue as a salon owner?</string>
+    <string name="onboard_confirm_note">You can\'t change this later.</string>
+    <string name="onboard_confirm_yes">Continue</string>
+    <string name="onboard_confirm_no">Cancel</string>
+    <string name="onboard_error_save">Couldn\'t save. Check your connection and try again.</string>
+    <string name="profile_title">Tell us a bit about yourself</string>
+    <string name="profile_name">Full name</string>
+    <string name="profile_email">Email (optional)</string>
+    <string name="profile_continue">Continue</string>
+    <string name="profile_error_name">Enter a name between 2 and 60 characters.</string>
+    <string name="profile_error_email">Enter a valid email address, or leave it empty.</string>
 </resources>

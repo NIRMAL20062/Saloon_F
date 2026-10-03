@@ -18,13 +18,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glide.android.R
 import com.glide.android.data.network.ApiError
 import com.glide.android.ui.auth.formatIndianPhone
@@ -36,24 +33,22 @@ import com.glide.android.ui.components.SecondaryButton
 import com.glide.android.ui.theme.GlideTheme
 import com.glide.android.ui.theme.Spacing
 import com.glide.shared.me.MeResponse
+import com.glide.shared.me.UserSide
 
-@Composable
-fun SignedInRoute(
-    onOpenStatus: () -> Unit,
-    onOpenComponents: (() -> Unit)? = null,
-    viewModel: SignedInViewModel = hiltViewModel(),
-) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
-    SignedInScreen(
-        state = state,
-        onRetry = viewModel::load,
-        onLogout = viewModel::logout,
-        onOpenStatus = onOpenStatus,
-        onOpenComponents = onOpenComponents,
-    )
+sealed interface SignedInUiState {
+    data object Loading : SignedInUiState
+
+    /** The backend confirmed who this is. */
+    data class Ready(
+        val me: MeResponse,
+    ) : SignedInUiState
+
+    data class Error(
+        val error: ApiError,
+    ) : SignedInUiState
 }
 
-/** Temporary home until onboarding (APP-005): who is signed in, log out, system status. Same look as the login. */
+/** Temporary home of either side after onboarding (APP-005), until the customer tabs (APP-007) and salon home (APP-008). */
 @Composable
 fun SignedInScreen(
     state: SignedInUiState,
@@ -121,7 +116,10 @@ fun SignedInScreen(
 
 @Composable
 private fun Account(me: MeResponse) {
-    Text(stringResource(R.string.home_signed_in), style = MaterialTheme.typography.headlineSmall)
+    Text(
+        me.name?.let { stringResource(R.string.home_hi, it) } ?: stringResource(R.string.home_signed_in),
+        style = MaterialTheme.typography.headlineSmall,
+    )
     me.phone?.let {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
@@ -141,7 +139,7 @@ private fun Account(me: MeResponse) {
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(
-            stringResource(R.string.home_next_step),
+            stringResource(if (me.side == UserSide.SALON) R.string.home_next_salon else R.string.home_next_customer),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(Spacing.m),

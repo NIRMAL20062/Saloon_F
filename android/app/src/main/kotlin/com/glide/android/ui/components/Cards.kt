@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -180,6 +182,48 @@ fun SalonCard(
                     )
                 }
             }
+        }
+    }
+}
+
+/**
+ * A big choice, as in mockup 4 ("I want to book salons" / "I run a salon"): an icon in a soft circle, a title, a line
+ * under it and a chevron. [highlighted] gives it the light-pink look of the mockup's first card.
+ */
+@Composable
+fun ChoiceCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    highlighted: Boolean = false,
+    enabled: Boolean = true,
+) {
+    val colors = MaterialTheme.colorScheme
+    GlideCard(onClick = onClick, enabled = enabled, highlighted = highlighted, modifier = modifier) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = Spacing.s),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                    Modifier
+                        .size(64.dp)
+                        .background(
+                            color = if (highlighted) colors.surface else colors.secondaryContainer,
+                            shape = CircleShape,
+                        ),
+            ) {
+                Icon(icon, contentDescription = null, tint = colors.primary, modifier = Modifier.size(30.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp), modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+            }
+            Icon(GlideIcons.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

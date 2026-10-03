@@ -22,6 +22,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -257,6 +258,45 @@ private fun Caret() {
             .alpha(blink)
             .background(MaterialTheme.colorScheme.primary),
     )
+}
+
+/**
+ * A text field with its label above it, as in the mockup's profile form ("Full name", "Email (optional)"). [error] is
+ * shown under it in red. Tag the field through [fieldModifier].
+ */
+@Composable
+fun LabeledTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    fieldModifier: Modifier = Modifier,
+    error: String? = null,
+    enabled: Boolean = true,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    imeAction: ImeAction = ImeAction.Next,
+    onImeAction: () -> Unit = {},
+    autoFocus: Boolean = false,
+) {
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs), modifier = modifier.fillMaxWidth()) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            isError = error != null,
+            enabled = enabled,
+            shape = MaterialTheme.shapes.medium,
+            textStyle = MaterialTheme.typography.bodyLarge,
+            colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+            keyboardActions = KeyboardActions(onAny = { onImeAction() }),
+            modifier = fieldModifier.fillMaxWidth().focusRequester(focus).semantics { contentDescription = label },
+        )
+        FieldMessage(error)
+    }
 }
 
 /** A message under a field that slides in and out instead of popping. */
