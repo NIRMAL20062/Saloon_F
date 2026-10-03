@@ -33,7 +33,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     body; audit-logged once BE-019 lands
 
 ### BE-018 · Profile: name and email
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: PRODUCT §5 · Decision: DF-18
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016 · Spec: PRODUCT §5 · Decision: DF-18
 - **Scope:** `name` and `email` columns on `app_users` (new migration; one profile per person, no `customers_app_users` table);
   `GET /v1/me` returns them; `PUT /v1/me/profile` (name required 2–60 chars, email optional + valid).
   `PUT /v1/me/side` refuses a change once a side is saved: the choice is final (D-030). The team asked for this fix in BE-016
