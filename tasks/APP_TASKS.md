@@ -51,7 +51,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     status-bar icons invisible on light screens (`StatusBarIcons`)
 
 ### APP-013 · The mockup look: red brand, light only, welcome screen
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-011 · Decisions: D-040, D-041
+- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** APP-011 · Decisions: D-040, D-041
 - **Why:** the team shared the design it wants ([docs/design/customer-flow-1.webp](../docs/design/customer-flow-1.webp)) and
   asked for no dark mode. Everything built so far takes that look, so later screens start from it.
 - **Needs from team:** the welcome photo (given 2026-10-03; the team holds a licence for it, app and Play Store included).
@@ -66,9 +66,12 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - not included: the mockup's own number keypad (the phone's keyboard and SMS autofill do this), favourites (♥, after the
     MVP), screens of later tasks (they're built in this look)
 - **Done when:**
-  - [ ] Tests: welcome screen, every login state, components, contrast (light only), no dark scheme left
-  - [ ] Flow: on the phone, welcome → Get Started → phone → code → signed in looks like the mockup; it stays light with the
-    phone in dark mode
+  - [x] Tests: welcome screen, every login state, components, contrast (light only), no dark scheme left (`WelcomeScreenTest` 2,
+    `LoginScreenTest` 15, `ComponentsTest`: stays light in night mode, `ColorContrastTest`, `AppLaunchTest` welcome → login → back);
+    app total 121
+  - [x] Flow: on the phone, welcome → Get Started → phone → code → signed in looks like the mockup; it stays light with the
+    phone in dark mode. Verified by Claude on 2026-10-03, moto g54 5G with system dark mode on, real Supabase test number.
+    Found and fixed on the phone: +91 box height, keyboard not opening by itself
 
 ### APP-005 · Onboarding: customer or salon?
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
