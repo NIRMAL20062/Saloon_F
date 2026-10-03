@@ -125,6 +125,126 @@ class MeRoutesTest {
             assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
 
+    @Test
+    fun `a new user has no name yet, then saves a profile and gets it back`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000011")
+            assertEquals(null, client.get(ApiRoutes.ME) { bearerAuth(token) }.me().name)
+
+            val saved = putProfile(token, """{"name":"  Priya Sharma  ","email":" Priya@Example.COM "}""")
+
+            assertEquals(HttpStatusCode.OK, saved.status)
+            assertEquals("Priya Sharma", saved.me().name)
+            assertEquals("priya@example.com", saved.me().email)
+            val again = client.get(ApiRoutes.ME) { bearerAuth(token) }.me()
+            assertEquals("Priya Sharma" to "priya@example.com", again.name to again.email)
+        }
+
+    @Test
+    fun `a returning user can change their name and clear the email`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000012")
+            putProfile(token, """{"name":"Rahul","email":"rahul@example.com"}""")
+
+            val changed = putProfile(token, """{"name":"Rahul Verma","email":""}""").me()
+
+            assertEquals("Rahul Verma", changed.name)
+            assertEquals(null, changed.email)
+        }
+
+    @Test
+    fun `email is optional`() =
+        withApp {
+            val response = putProfile(TestTokens.token(phone = "919000000013"), """{"name":"Asha"}""")
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(null, response.me().email)
+        }
+
+    @Test
+    fun `a name that is too short, too long or blank is refused`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000014")
+            listOf("A", " ", "", "x".repeat(61), "Bad\u0007Name").forEach { name ->
+                val response = putProfile(token, """{"name":"$name"}""")
+
+                assertEquals(HttpStatusCode.BadRequest, response.status, "name '$name'")
+                assertEquals(MeErrorCodes.INVALID_NAME, response.error().error.code)
+            }
+            assertEquals(null, client.get(ApiRoutes.ME) { bearerAuth(token) }.me().name)
+        }
+
+    @Test
+    fun `a name of exactly 2 and 60 characters is fine`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000015")
+
+            assertEquals(HttpStatusCode.OK, putProfile(token, """{"name":"Al"}""").status)
+            assertEquals(HttpStatusCode.OK, putProfile(token, """{"name":"${"y".repeat(60)}"}""").status)
+        }
+
+    @Test
+    fun `an invalid email is refused`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000016")
+            listOf(
+                "priya",
+                "priya@",
+                "@example.com",
+                "pri ya@example.com",
+                "priya@example",
+                "a".repeat(250) + "@x.in",
+            ).forEach { email ->
+                val response = putProfile(token, """{"name":"Priya","email":"$email"}""")
+
+                assertEquals(HttpStatusCode.BadRequest, response.status, "email '$email'")
+                assertEquals(MeErrorCodes.INVALID_EMAIL, response.error().error.code)
+            }
+        }
+
+    @Test
+    fun `a missing name or a broken body is a 400`() =
+        withApp {
+            val token = TestTokens.token(phone = "919000000017")
+
+            assertEquals(HttpStatusCode.BadRequest, putProfile(token, """{"email":"a@b.in"}""").status)
+            assertEquals(HttpStatusCode.BadRequest, putProfile(token, """not json""").status)
+        }
+
+    @Test
+    fun `saving a profile needs a login`() =
+        withApp {
+            val response =
+                client.put(ApiRoutes.ME_PROFILE) {
+                    contentType(ContentType.Application.Json)
+                    setBody("""{"name":"Priya"}""")
+                }
+
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+
+    @Test
+    fun `a person only ever changes their own profile`() =
+        withApp {
+            val priya = TestTokens.token(userId = UUID.randomUUID(), phone = "919000000018")
+            val rahul = TestTokens.token(userId = UUID.randomUUID(), phone = "919000000019")
+            putProfile(rahul, """{"name":"Rahul"}""")
+
+            putProfile(priya, """{"name":"Priya"}""")
+
+            assertEquals("Rahul", client.get(ApiRoutes.ME) { bearerAuth(rahul) }.me().name)
+            assertEquals("Priya", client.get(ApiRoutes.ME) { bearerAuth(priya) }.me().name)
+        }
+
+    private suspend fun ApplicationTestBuilder.putProfile(
+        token: String,
+        body: String,
+    ) = client.put(ApiRoutes.ME_PROFILE) {
+        bearerAuth(token)
+        contentType(ContentType.Application.Json)
+        setBody(body)
+    }
+
     private fun withApp(block: suspend ApplicationTestBuilder.() -> Unit) =
         testApplication {
             val deps = fakeDependencies().copy(users = ExposedUserRepository(TestDatabase.exposed))

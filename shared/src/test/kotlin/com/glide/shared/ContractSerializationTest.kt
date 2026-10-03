@@ -6,6 +6,7 @@ import com.glide.shared.error.ErrorResponse
 import com.glide.shared.health.HealthResponse
 import com.glide.shared.health.HealthStatus
 import com.glide.shared.me.MeResponse
+import com.glide.shared.me.UpdateProfileRequest
 import com.glide.shared.me.UpdateSideRequest
 import com.glide.shared.me.UserSide
 import kotlinx.serialization.json.Json
@@ -58,6 +59,28 @@ class ContractSerializationTest {
         assertJsonEquals(
             """{"id":"3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80","phone":"919000000001","side":"SALON"}""",
             json,
+        )
+    }
+
+    @Test
+    fun `me with a profile adds name and email`() {
+        val json =
+            ApiJson.encodeToString(
+                MeResponse("u-1", "919000000001", UserSide.CUSTOMER, "Priya Sharma", "priya@example.com"),
+            )
+
+        assertJsonEquals(
+            """{"id":"u-1","phone":"919000000001","side":"CUSTOMER","name":"Priya Sharma","email":"priya@example.com"}""",
+            json,
+        )
+    }
+
+    @Test
+    fun `profile update request has the documented wire format`() {
+        assertJsonEquals("""{"name":"Priya"}""", ApiJson.encodeToString(UpdateProfileRequest("Priya")))
+        assertJsonEquals(
+            """{"name":"Priya","email":"p@x.in"}""",
+            ApiJson.encodeToString(UpdateProfileRequest("Priya", "p@x.in")),
         )
     }
 

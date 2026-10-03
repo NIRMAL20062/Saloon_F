@@ -16,4 +16,7 @@ object ApiRoutes {
 
     /** Save the onboarding choice: customer side or salon side (D-024). */
     const val ME_SIDE = "$V1/me/side"
+
+    /** Save the person's name and optional email (BE-018). */
+    const val ME_PROFILE = "$V1/me/profile"
 }
