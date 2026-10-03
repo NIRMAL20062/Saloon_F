@@ -23,7 +23,8 @@ Three pieces: **one Android app** (customer side + salon side), a **Ktor backend
 |---|---|
 | **One app.** At first login the person answers "customer or salon?"; the app shows only that side | D-023, D-024 |
 | **That choice is final.** No "switch side" anywhere; a wrong pick is fixed by our team | D-030, DF-22 |
-| **One salon per person** (as Owner, Manager or Staff). No "switch salon" | D-035 |
+| **One salon per person** (as Owner or Staff). No "switch salon" | D-035 |
+| **Two salon roles: Owner and Staff** | D-039 |
 | **Salons are verified by our team** (profile + bank details) before they go live | D-033 |
 | **Online payments only**, all through **our** Razorpay account; no cash | D-028, D-029 |
 | Login is **phone number + SMS code** (Supabase); admins log in by email + authenticator app | D-016, DF-16 |
@@ -37,28 +38,42 @@ Three pieces: **one Android app** (customer side + salon side), a **Ktor backend
 | Who | Where | What they can do |
 |---|---|---|
 | **Customer** | app, customer side | find salons, book, pay, cancel/reschedule, review, report a problem |
-| **Owner** | app, salon side | everything in their salon, and **only the owner** changes bank details and the subscription (D-037) |
-| **Manager** | app, salon side | everything the owner can, except bank details and the subscription; adds and removes staff and managers (D-034, D-037) |
-| **Staff** | app, salon side | **sees and accepts only their own bookings**; nothing else (D-034) |
+| **Owner** | app, salon side | full control of the salon (D-039) |
+| **Staff** | app, salon side | **only their own appointments**: see, accept, mark done or no-show (D-039) |
 | **Admin** (our team) | admin website | verify salons, disputes, refunds, payments, support (D-002, D-013) |
 
-A receptionist is added as Manager or Staff, whichever fits.
+No Manager or receptionist role in the MVP (D-039); add one later only if real salons ask for it.
 
 ### Salon permissions
 
-| Action | Owner | Manager | Staff |
-|---|---|---|---|
-| Salon profile, hours, policies | ✅ | ✅ | ❌ |
-| **Bank details** | ✅ | ❌ | ❌ |
-| Services and prices | ✅ | ✅ | ❌ |
-| Staff and managers (add by phone, remove, working hours) | ✅ | ✅ | ❌ |
-| Salon's customer list | ✅ | ✅ | ❌ |
-| Appointments | all | all | **see and accept their own** |
-| Mark done / no-show, bills | ✅ | ✅ | ❌ |
-| Reports, payouts, disputes, review replies | ✅ | ✅ | ❌ |
-| **Subscription** (paying Glide) | ✅ | ❌ | ❌ |
+```
+                 SALON
+                   │
+             ┌─────┴─────┐
+           OWNER        STAFF
+             │            └── own appointments only
+             ├── profile, hours, policies
+             ├── staff (add / remove, working hours)
+             ├── services and prices
+             ├── all appointments, customers
+             ├── bills, reports, revenue, cancellations and refunds
+             ├── bank details
+             └── Glide subscription
+```
 
-The backend enforces every cell (hiding a button is never the only guard).
+| Action | Owner | Staff |
+|---|---|---|
+| Salon profile, hours, policies | ✅ | ❌ |
+| Staff (add by phone, remove, working hours) | ✅ | ❌ |
+| Services and prices | ✅ | ❌ (sees the services of their own appointments) |
+| Appointments | all | **their own**: see, accept, mark done, mark no-show |
+| Customers | full list | only the basic details their appointment needs (name, phone) |
+| Bills, reports, revenue, payouts, cancellations and refunds | ✅ | ❌ |
+| Disputes and review replies | ✅ | ❌ |
+| Bank details | ✅ | ❌ |
+| Subscription (paying Glide) | ✅ | ❌ |
+
+The backend enforces every cell: hiding a button is never the only guard.
 
 ## 4. Everyone: first time in the app
 
@@ -110,9 +125,9 @@ Reschedule: allowed within the policy (e.g. up to 2 h before, at most twice), no
 
 Only a **live** salon can add staff, appear for customers and take bookings.
 
-### 6.2 Staff (D-034, D-035)
-Owner or manager → Staff → add a phone number as **Manager** or **Staff** → that person logs in with the number and lands on
-the salon side. Remove someone at any time (history stays). A number already used as a customer or in another salon can't be
+### 6.2 Staff (D-035, D-039)
+Owner → Staff → add a phone number → that person logs in with the number and lands on the salon side, seeing only their own
+appointments. Remove someone at any time (history stays). A number already used as a customer or in another salon can't be
 added. Staff names: ❓ Q-012.
 
 ### 6.3 Setting up the salon
@@ -129,8 +144,10 @@ added. Staff names: ❓ Q-012.
 - Bookings come from the customer app, walk-ins and phone calls; one or more services, a staff member or "any".
 - Status: `BOOKED → CONFIRMED → COMPLETED`, or `CANCELLED`, `NO_SHOW` (❓ is `IN_PROGRESS` needed).
 - **Staff accept their own bookings** (❓ is auto-accept still the default, and what happens if nobody answers).
-- Owner/manager: calendar (day view per staff member), book walk-ins and phone bookings, reschedule or cancel with a reason
-  (customer is told), **mark done** (this releases the salon's money, §8) or **no-show** (no-show fee per policy).
+- **Mark done** (this releases the salon's money, §8) or **no-show** (no-show fee per policy): the staff member for their own
+  appointments, or the owner for any.
+- Owner: calendar (day view per staff member), book walk-ins and phone bookings, reschedule or cancel with a reason (customer is
+  told).
 - Push alert to the salon for new, cancelled and moved bookings.
 - No internet: today's appointments and customers stay visible; nothing can change until the connection is back (D-019).
 
@@ -144,7 +161,9 @@ added. Staff names: ❓ Q-012.
 - **Disputes inbox:** answer customer complaints with text and photos within 24 h (§9).
 - **Reviews:** read and reply; report abusive ones.
 - **Reports:** revenue, appointments, no-shows, new vs returning customers; per staff member (❓ the 3–5 numbers that matter most).
-- **Subscription** (owner only): §8.3.
+- **Subscription:** §8.3.
+
+Everything in §6.3–§6.6 is the owner's, except the staff member's own appointments (D-039).
 
 ## 7. Admin website (our team only)
 
@@ -223,7 +242,7 @@ app_users            one per person: phone, side (CUSTOMER / SALON, final), name
 salons               name, phone, address, type, status (DRAFT → UNDER_VERIFICATION → LIVE | REJECTED | SUSPENDED)
 salon_bank_details   holder name, account number (encrypted, last 4 shown), IFSC
 salon_verifications  admin decisions with reasons
-salon_members        salon, phone, user (set at first login), role OWNER / MANAGER / STAFF; one salon per phone
+salon_members        salon, phone, user (set at first login), role OWNER / STAFF; one salon per phone
 working_hours, time_off, services, staff_services
 customers            the salon's own list (can link to app_users)
 appointments, appointment_services        source: APP / WALK_IN / PHONE; no double booking

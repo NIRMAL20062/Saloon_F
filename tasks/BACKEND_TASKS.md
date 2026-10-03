@@ -24,26 +24,26 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [x] Flow (real Supabase project): test number OTP → real access token → `GET /v1/me` 200 → `PUT /v1/me/side` CUSTOMER saved and returned → tampered token 401. After D-030 (2026-10-03, on the local database that had run V2): V3 applied without a reset; same side again → 200, other side → 409 `SIDE_ALREADY_CHOSEN`, side unchanged
 
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-034, DF-23, DF-24
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
 - **Needs from team:** an encryption key for bank
   details put into `.env` by the team (the task report says how to make one).
 - **Scope:**
   - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a reason, or SUSPENDED)
   - `salon_bank_details` (account holder name, account number **encrypted**, IFSC); masked in every app response (DF-24)
-  - `salon_members` (salon, phone, user (filled in at that number's first login), role OWNER / MANAGER / STAFF, status ACTIVE / REMOVED)
+  - `salon_members` (salon, phone, user (filled in at that number's first login), role OWNER / STAFF (D-039), status ACTIVE / REMOVED)
   - `POST /v1/salon/salons` (creator becomes OWNER) · `PUT /v1/salon/bank-details` · `POST /v1/salon/submit-for-verification` ·
-    `GET /v1/salon/me/salons` · `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner/manager, **live salons only**)
+    `GET /v1/salon/me/salons` · `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner only, **live salons only**)
   - a number added as staff is joined to the salon at its first login and its side becomes SALON (DF-23); a number that already
     chose CUSTOMER is refused with a clear error code
   - one salon per person (D-035): a phone that is already in another salon can't be added; every salon route takes the salon from
-    the signed-in person's membership and checks the role (D-036); only the OWNER changes bank details and the subscription (D-037);
-    STAFF reach only their own bookings (D-034)
+    the signed-in person's membership and checks the role (D-036); everything except a staff member's own appointments is OWNER-only (D-039);
+    STAFF reach only their own appointments (D-039)
   - row-level security (D-027): Flyway keeps the owner user; the backend's queries run as a new limited database user (not superuser,
     not owner; created by the local setup and Testcontainers, password from env); each transaction sets `app.salon_id`
 - **Done when:**
   - [ ] Tests: create salon → submit → UNDER_VERIFICATION; adding staff refused unless LIVE; staff joined at first login; a
-    customer's number refused; STAFF → 403 on owner/manager routes; **salon A can't read or change salon B** (every route);
-    a MANAGER changing bank details → 403; adding a phone already in another salon → refused
+    customer's number refused; STAFF → 403 on owner routes and on other staff's appointments; **salon A can't read or change salon B** (every route);
+    adding a phone already in another salon → refused
   - [ ] Database: migrations with constraints (exactly one OWNER, unique phone per salon, valid statuses, IFSC format); RLS
     enabled + forced; test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
   - [ ] Security: account number encrypted at rest, masked in responses, never logged; salon id never trusted from the request
@@ -73,7 +73,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ### BE-021 · Seed test users
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-018, BE-020 · Decision: D-012
 - **Needs from team:** the service-role key from BE-020 (creating users in Supabase needs it); the test phone numbers set up in Supabase.
-- **Scope:** one command creates Test Salon A + B (both already verified and live) with owner, manager and staff each, two
+- **Scope:** one command creates Test Salon A + B (both already verified and live) with an owner and two staff each, two
   customers and one admin, all on Supabase test numbers/emails.
 - **Done when:** running it twice changes nothing; [docs/TESTING.md](../docs/TESTING.md) lists the logins (codes live in the password manager).
 

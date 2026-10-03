@@ -22,7 +22,7 @@ What gets built next, across all three files. Each step is one task = one pull r
 | 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | encryption key in `.env` |
 | 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
 | 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
-| 9 | APP-012 | owner/manager add staff by phone; staff log in straight to "My bookings" (D-034) | nothing |
+| 9 | APP-012 | owner adds staff by phone; staff log in straight to "My bookings" (D-039) | nothing |
 | 10 | WEB-006 | admins invite admins | nothing |
 | 11 | APP-009 | customer side: location or city | launch city |
 | 12 | BE-021 | test users for every type | nothing |

@@ -11,8 +11,7 @@ _Last updated 2026-10-03._
 - **What we build:** [docs/PRODUCT.md](docs/PRODUCT.md), the whole MVP as decided (D-038). The old planning files are gone; where
   anything disagrees, [docs/DECISIONS.md](docs/DECISIONS.md) wins.
 - **Key rules:** one app, the customer/salon choice is final (D-023, D-030); one salon per person (D-035); our admins verify a
-  salon before it goes live (D-033); roles Owner / Manager / Staff, staff only see and accept their own bookings, only the owner
-  changes bank details and the subscription (D-034, D-037); online payments only, all through our Razorpay (D-028, D-029);
+  salon before it goes live (D-033); two roles: the Owner has full control, Staff only see and handle their own appointments (D-039); online payments only, all through our Razorpay (D-028, D-029);
   modern, interactive screens from one design system (D-031).
 - **Done (Phase 0):** backend skeleton, database, Android app skeleton, admin website skeleton, CI (`ci-ok`). Details:
   `tasks/*_COMPLETED.md`.

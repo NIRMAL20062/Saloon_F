@@ -24,7 +24,7 @@ Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feat
 - **Look and feel (D-031):** screens should feel modern, smooth and interactive. From APP-011 on, build them only from the design
   system (`ui/theme/`, `ui/components/`): no one-off colours, sizes or animations; every screen has loading, empty and error states.
 - **Sides and roles:** the customer/salon choice is final, with no "switch side" (D-030). On the salon side, staff see only their own
-  bookings (D-034); hiding a button is never the only guard, the backend refuses too.
+  appointments (D-039); hiding a button is never the only guard, the backend refuses too.
 
 ## Tests
 

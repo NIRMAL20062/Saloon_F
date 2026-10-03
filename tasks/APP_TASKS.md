@@ -1,7 +1,7 @@
 # 📱 Android App: To Do
 
-**One app for everyone** (D-023): at onboarding the user says whether they're a **customer** or a **salon** (owner / manager /
-staff, D-034), and the app shows that side's screens (D-024). The choice is final: no switching (D-030). Lives in `android/app`.
+**One app for everyone** (D-023): at onboarding the user says whether they're a **customer** or a **salon** (owner or
+staff, D-039), and the app shows that side's screens (D-024). The choice is final: no switching (D-030). Lives in `android/app`.
 Every screen uses the shared design system (APP-011, D-031): modern, smooth and interactive.
 Kotlin · Jetpack Compose + Material 3 · MVVM (UI → ViewModel → UseCase → Repository) · Hilt · Retrofit.
 What to build: [docs/PRODUCT.md](../docs/PRODUCT.md) (the whole MVP, D-038).
@@ -53,7 +53,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Needs from team:** nothing.
 - **Flow (first login only):** "How will you use Glide?"
   - **"I want to book salons"** → your name (required) + email (optional) → customer side
-  - **"I run a salon"** → salon onboarding (APP-006) → salon side. Managers and staff don't pick this: their salon adds their number (APP-012)
+  - **"I run a salon"** → salon onboarding (APP-006) → salon side. Staff don't pick this: their owner adds their number (APP-012)
   - a number already added by a salon skips this screen and opens the salon side (DF-23)
   - the choice is saved on the backend and is **final**: no switching side (D-030)
 - **Done when:**
@@ -81,11 +81,11 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** tests for navigation and Back; on the phone all four tabs open.
 
 ### APP-008 · Salon side: home + menu by role
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-006 · Decision: D-034
-- **Scope:** salon home showing the salon's name and status (under verification / live) and your role. Owner and manager get the
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-006 · Decision: D-039
+- **Scope:** salon home showing the salon's name and status (under verification / live) and your role. The owner gets the
   full menu; staff see only "My bookings" (empty until Phase 3). Menu: logout (one salon per person, so no "switch salon", D-035). The real tabs (calendar,
   customers, services…) arrive with Phase 2–3.
-- **Done when:** tests for each role's home and menu; on the phone an owner, a manager and a staff member each see their salon and role.
+- **Done when:** tests for each role's home and menu; on the phone an owner and a staff member each see their salon and role.
 
 ### APP-009 · Customer side: location permission and city
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-007 · Spec: PRODUCT §5
@@ -99,16 +99,16 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** a test crash shows in Firebase; no personal data (phone, name) in analytics events.
 
 ### APP-012 · Add staff by phone
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-008, BE-017, BE-022 · Spec: PRODUCT §6.2 · Decisions: D-033, D-034, DF-23
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-008, BE-017, BE-022 · Spec: PRODUCT §6.2 · Decisions: D-033, D-039, DF-23
 - **Needs from team:** nothing.
 - **Flow:**
-  - owner or manager of a **live** salon → Staff → list (name, or phone until a name exists: Q-012; role) → "Add": phone number
-    + role (Manager or Staff) → added; remove someone
+  - the owner of a **live** salon → Staff → list (name, or phone until a name exists: Q-012; role) → "Add": phone number
+    → added as staff; remove someone
   - that person logs in with that number → no "customer or salon?" question → salon side straight away
-  - **Staff** see only "My bookings" and can accept their own bookings (Phase 3); owner/manager screens are hidden **and** refused by the backend
+  - **Staff** see only "My bookings" and can accept their own bookings (Phase 3); owner screens are hidden **and** refused by the backend
 - **Done when:**
   - [ ] Tests: every screen state; add, remove, number already a customer or already in another salon (refused, D-035), salon not live (no "Add" button, backend refuses)
-  - [ ] Security: staff can't open owner/manager screens or call their endpoints (403); an added number joins only that salon
+  - [ ] Security: staff can't open owner screens or call their endpoints (403); an added number joins only that salon
   - [ ] Flow: on the phone, live Test Salon A's owner adds test number B as staff; B logs in → salon side with only "My bookings"
 
 ## Next phases (outline: written out in full when the phase starts)
@@ -117,7 +117,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - APP-1xx Working hours, closed days · services list/add/edit (name, category, duration, price) · staff working hours (adding staff is APP-012) · salon's customer list, search, add walk-in, history
 
 **Phase 3: Salon side, appointments** (PRODUCT §6.4)
-- APP-2xx Calendar day view per staff member · book walk-in/phone appointment · reschedule/cancel · complete / no-show (owner/manager) · new-booking push alert · **staff accept their own bookings** (D-034) · **no internet = view only** (D-019)
+- APP-2xx Calendar day view per staff member · book walk-in/phone appointment · reschedule/cancel · complete / no-show (staff for their own, owner for any) · new-booking push alert · **staff accept their own bookings** (D-039) · **no internet = view only** (D-019)
 
 **Phase 4: Customer side, find and book** (PRODUCT §5)
 - APP-3xx Home: nearby salons, categories, top rated · search + filters (service, price, rating, open now, men/women/unisex) · salon page (photos, services, staff, reviews, policies, map) · cart (services + staff or "any") · slot picker · order summary with policy · My bookings (upcoming/past, status, reschedule, cancel with refund amount shown first, directions, call salon)
