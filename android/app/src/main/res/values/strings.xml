@@ -16,6 +16,7 @@
 
     <!-- Login (APP-004) -->
     <string name="login_title">Welcome to Glide</string>
+    <string name="login_country_code">+91</string>
     <string name="login_phone_prompt">Enter your mobile number. We\'ll send you a 6-digit code.</string>
     <string name="login_phone_label">Mobile number</string>
     <string name="login_send_code">Send code</string>

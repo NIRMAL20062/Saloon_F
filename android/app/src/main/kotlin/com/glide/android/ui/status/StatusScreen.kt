@@ -1,16 +1,17 @@
 package com.glide.android.ui.status
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,13 +19,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.glide.android.R
 import com.glide.android.data.network.ApiError
 import com.glide.android.domain.status.SystemStatus
+import com.glide.android.ui.components.BrandHeader
+import com.glide.android.ui.components.PrimaryButton
+import com.glide.android.ui.components.SecondaryButton
+import com.glide.android.ui.components.SheetCard
 import com.glide.android.ui.theme.GlideTheme
+import com.glide.android.ui.theme.Spacing
 import com.glide.shared.health.HealthStatus
 
 /** Wires the screen to its ViewModel. Keep logic out of here. */
@@ -41,13 +46,15 @@ fun StatusScreen(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(modifier = modifier.fillMaxSize()) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
+    Column(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .verticalScroll(rememberScrollState()),
+    ) {
+        BrandHeader(brandName = stringResource(R.string.app_name), title = stringResource(R.string.home_system_status))
+        SheetCard(modifier = Modifier.offset(y = -Spacing.xl).navigationBarsPadding()) {
             when (state) {
                 StatusUiState.Loading -> Loading()
                 is StatusUiState.Loaded -> Loaded(state.status, onRetry)
@@ -59,8 +66,10 @@ fun StatusScreen(
 
 @Composable
 private fun Loading() {
-    CircularProgressIndicator()
-    Text(stringResource(R.string.status_checking))
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+        CircularProgressIndicator()
+        Text(stringResource(R.string.status_checking), style = MaterialTheme.typography.bodyLarge)
+    }
 }
 
 @Composable
@@ -74,7 +83,7 @@ private fun Loaded(
         Text(stringResource(R.string.status_database_down_explanation), style = MaterialTheme.typography.bodyMedium)
     }
     Text(stringResource(R.string.status_version, status.version), style = MaterialTheme.typography.bodySmall)
-    OutlinedButton(onClick = onRefresh) { Text(stringResource(R.string.status_refresh)) }
+    SecondaryButton(text = stringResource(R.string.status_refresh), onClick = onRefresh)
 }
 
 @Composable
@@ -93,7 +102,7 @@ private fun Failed(
     if (error is ApiError.Http && error.requestId != null) {
         Text(stringResource(R.string.status_reference, error.requestId), style = MaterialTheme.typography.bodySmall)
     }
-    Button(onClick = onRetry) { Text(stringResource(R.string.status_retry)) }
+    PrimaryButton(text = stringResource(R.string.status_retry), onClick = onRetry)
 }
 
 @Composable
@@ -118,7 +127,7 @@ private fun StatusRow(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 800)
 @Composable
 private fun StatusLoadedPreview() {
     GlideTheme {
@@ -126,7 +135,7 @@ private fun StatusLoadedPreview() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 800)
 @Composable
 private fun StatusErrorPreview() {
     GlideTheme { StatusScreen(StatusUiState.Error(ApiError.Network), onRetry = {}) }

@@ -35,7 +35,9 @@ sealed interface LoginUiState {
 
 const val RESEND_WAIT_SECONDS = 60
 private const val PHONE_DIGITS = 10
-private const val CODE_DIGITS = 6
+
+/** Length of the SMS code (Supabase sends 6 digits). */
+const val CODE_DIGITS = 6
 private val INDIAN_MOBILE = Regex("^[6-9][0-9]{9}$")
 
 /** 10-digit Indian mobile → E.164 digits without "+", as Supabase expects (e.g. 9000000001 → 919000000001). */

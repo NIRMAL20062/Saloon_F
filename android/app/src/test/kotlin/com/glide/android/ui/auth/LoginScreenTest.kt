@@ -1,5 +1,9 @@
 package com.glide.android.ui.auth
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -108,5 +112,49 @@ class LoginScreenTest {
         compose.onNodeWithText("Change number").performClick()
 
         assertEquals(listOf("change"), events)
+    }
+
+    @Test
+    fun typingTheSixthDigitVerifiesAutomatically() {
+        compose.setContent {
+            var state by remember { mutableStateOf<LoginUiState>(LoginUiState.EnterCode("9000000001", code = "12345")) }
+            GlideTheme {
+                LoginScreen(
+                    state = state,
+                    onPhoneChange = {},
+                    onSendCode = {},
+                    onCodeChange = {
+                        events += "code:$it"
+                        state = (state as LoginUiState.EnterCode).copy(code = it)
+                    },
+                    onVerify = { events += "verify" },
+                    onResend = {},
+                    onChangeNumber = {},
+                )
+            }
+        }
+
+        compose.onNodeWithTag("code").performTextInput("6")
+        compose.waitForIdle()
+
+        assertEquals(listOf("code:123456", "verify"), events)
+    }
+
+    @Test
+    fun aCodeAlreadyCompleteWhenShownIsNotSentByItself() {
+        show(LoginUiState.EnterCode("9000000001", code = "123456"))
+        compose.waitForIdle()
+
+        assertEquals(emptyList<String>(), events)
+    }
+
+    @Test
+    fun darkModeShowsTheSameLogin() {
+        compose.setContent {
+            GlideTheme(darkTheme = true) { LoginScreen(LoginUiState.EnterPhone(), {}, {}, {}, {}, {}, {}) }
+        }
+
+        compose.onNodeWithText("Welcome to Glide").assertIsDisplayed()
+        compose.onNodeWithText("Send code").assertIsDisplayed()
     }
 }
