@@ -18,14 +18,17 @@ _Last updated 2026-10-03._
 - **Phase 1 (login and onboarding):** **BE-016** built (Supabase logins, `GET /v1/me`, `PUT /v1/me/side`, side final), PR #2
   waiting for the team's OK. **APP-004** built (phone login in the polished look; theme + components in `ui/theme`,
   `ui/components`), verified on the moto g54, waiting for the team's OK.
-- **Next task:** APP-011 (rest of the design system), then BE-018 + APP-005 ("customer or salon?"). Full order:
+- **APP-011** built (rest of the design system + debug-only "Design components" screen), verified on the phone, waiting for
+  the team's OK.
+- **Next task:** BE-018 + APP-005 ("customer or salon?"). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
   with code `123456` (no SMS sent). Public keys only in the repo; secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Pull requests (merge in this order):** #2 BE-016 → #3 APP-004 (stacked on #2) → #4 docs cleanup (stacked on #3).
+- **Pull requests (merge in this order):** #2 BE-016 → #3 APP-004 → #4 docs cleanup → #5 APP-011 (each stacked on the one
+  before).
 
 ## Golden rules
 

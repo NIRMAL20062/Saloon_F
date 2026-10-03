@@ -38,4 +38,46 @@
     <string name="home_load_error">Couldn\'t load your account. Check your connection and try again.</string>
     <string name="home_logout">Log out</string>
     <string name="home_system_status">System status</string>
+
+    <!-- Shared -->
+    <string name="common_back">Back</string>
+
+    <!-- Design components gallery (debug builds only, APP-011) -->
+    <string name="home_components">Design components</string>
+    <string name="gallery_title">Design components</string>
+    <string name="gallery_dark_mode">Dark</string>
+    <string name="gallery_buttons">Buttons</string>
+    <string name="gallery_show_snackbar">Show a message</string>
+    <string name="gallery_saved">Saved</string>
+    <string name="gallery_loading">Loading</string>
+    <string name="gallery_disabled">Disabled</string>
+    <string name="gallery_open_sheet">Open a bottom sheet</string>
+    <string name="gallery_quiet">Quiet action</string>
+    <string name="gallery_sheet_title">Sort by</string>
+    <string name="gallery_sort_nearest">Nearest first</string>
+    <string name="gallery_sort_rating">Top rated first</string>
+    <string name="gallery_fields">Fields</string>
+    <string name="gallery_chips">Chips</string>
+    <string name="gallery_chip_open_now">Open now</string>
+    <string name="gallery_chip_unisex">Unisex</string>
+    <string name="gallery_chip_top_rated">Top rated</string>
+    <string name="gallery_status_confirmed">Confirmed</string>
+    <string name="gallery_status_waiting">Waiting</string>
+    <string name="gallery_status_cancelled">Cancelled</string>
+    <string name="gallery_status_completed">Completed</string>
+    <string name="gallery_cards">Cards and lists</string>
+    <string name="gallery_salon_name">Glow Studio</string>
+    <string name="gallery_salon_area">Indiranagar</string>
+    <string name="gallery_salon_distance">1.2 km</string>
+    <string name="gallery_salon_rating_label">Rated 4.6 from 128 reviews</string>
+    <string name="gallery_plain_card">A plain card holds any content.</string>
+    <string name="gallery_customer_name">Priya Sharma</string>
+    <string name="gallery_customer_detail">+91 90000 00002 · 6 visits</string>
+    <string name="gallery_customer_initials">PS</string>
+    <string name="gallery_appointment">Haircut · 4:30 pm</string>
+    <string name="gallery_appointment_detail">With Rahul · 45 min</string>
+    <string name="gallery_states">Loading, empty and error</string>
+    <string name="gallery_empty_title">No bookings yet</string>
+    <string name="gallery_empty_message">When you book a salon, it shows up here.</string>
+    <string name="gallery_empty_action">Find a salon</string>
 </resources>

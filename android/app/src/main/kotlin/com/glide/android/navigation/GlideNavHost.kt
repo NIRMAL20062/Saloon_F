@@ -7,7 +7,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.glide.android.BuildConfig
 import com.glide.android.ui.auth.LoginRoute
+import com.glide.android.ui.gallery.ComponentsGalleryScreen
 import com.glide.android.ui.home.SignedInRoute
 import com.glide.android.ui.status.StatusRoute
 import kotlinx.serialization.Serializable
@@ -22,6 +24,10 @@ data object HomeDestination
 @Serializable
 data object StatusDestination
 
+/** Debug builds only (APP-011). */
+@Serializable
+data object ComponentsDestination
+
 /**
  * Signed out → login; signed in → home. When the session changes (login, logout, refresh token rejected) the back stack
  * is replaced, so Back never returns to a screen of the other state.
@@ -33,8 +39,16 @@ fun GlideNavHost(
 ) {
     NavHost(navController = navController, startDestination = if (signedIn) HomeDestination else LoginDestination) {
         composable<LoginDestination> { LoginRoute() }
-        composable<HomeDestination> { SignedInRoute(onOpenStatus = { navController.navigate(StatusDestination) }) }
+        composable<HomeDestination> {
+            SignedInRoute(
+                onOpenStatus = { navController.navigate(StatusDestination) },
+                onOpenComponents = { navController.navigate(ComponentsDestination) }.takeIf { BuildConfig.DEBUG },
+            )
+        }
         composable<StatusDestination> { StatusRoute() }
+        if (BuildConfig.DEBUG) {
+            composable<ComponentsDestination> { ComponentsGalleryScreen(onBack = { navController.popBackStack() }) }
+        }
     }
 
     LaunchedEffect(signedIn) {

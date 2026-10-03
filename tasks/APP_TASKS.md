@@ -31,7 +31,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     the app's logs or the backend log
 
 ### APP-011 · Look and feel: the rest of the design system
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004 · Decision: D-031
+- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** APP-004 · Decision: D-031
 - **Why:** the team wants screens that feel as modern and smooth as popular consumer apps. APP-004 already built the base
   (team, 2026-10-03: "everything polished"): theme in `ui/theme/` (placeholder brand colours, light + dark, type, shapes,
   spacing) and `ui/components/` (buttons with press feedback + loading, +91 phone field, 6-box OTP field, field message,
@@ -43,9 +43,12 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - a debug-only "components" screen showing every piece in light and dark
   - not included: logo and launcher icon (Pre-launch), screens of later tasks
 - **Done when:**
-  - [ ] Tests: Compose UI test per component state (normal, disabled, loading, error), light and dark
-  - [ ] Accessibility: text contrast ≥ 4.5:1, touch targets ≥ 48 dp, TalkBack labels, works at the largest font size
-  - [ ] Flow: on the phone, the components screen looks right in light and dark mode; the largest font still fits
+  - [x] Tests: Compose UI test per component state (normal, disabled, loading, error), light and dark (`DesignSystemTest` 28 = 14 × light/dark, `ComponentsGalleryTest` 7, `ColorContrastTest` 3); app total 129
+  - [x] Accessibility: text contrast ≥ 4.5:1 for every text/background pair, light and dark (`ColorContrastTest`); touch targets ≥ 48 dp, TalkBack labels (back button, rating), largest font size (tests + on the phone)
+  - [x] Flow: on the phone, the components screen looks right in light and dark mode; the largest font still fits. Verified by
+    Claude on 2026-10-03, moto g54 5G: signed in → Design components → light, dark switch, bottom sheet, "Saved" message;
+    font size 2.0 (restored to the user's 1.3 afterwards) everything fits, long title shortens with "…". Found and fixed:
+    status-bar icons invisible on light screens (`StatusBarIcons`)
 
 ### APP-005 · Onboarding: customer or salon?
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-011, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
