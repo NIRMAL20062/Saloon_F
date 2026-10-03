@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -172,6 +173,22 @@ class LoginScreenTest {
         compose.onNodeWithContentDescription("Back").performClick()
 
         assertEquals(true, left)
+    }
+
+    @Test
+    fun thePhoneFieldIsReadyToTypeIn() {
+        show(LoginUiState.EnterPhone())
+        compose.waitForIdle()
+
+        compose.onNodeWithTag("phone").assertIsFocused()
+    }
+
+    @Test
+    fun theCodeBoxesAreReadyToTypeIn() {
+        show(LoginUiState.EnterCode("9000000001"))
+        compose.waitForIdle()
+
+        compose.onNodeWithTag("code").assertIsFocused()
     }
 
     @Test

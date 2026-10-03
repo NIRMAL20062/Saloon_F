@@ -22,7 +22,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -46,6 +48,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -75,9 +79,14 @@ fun PhoneNumberField(
     fieldModifier: Modifier = Modifier,
     isError: Boolean = false,
     enabled: Boolean = true,
+    /** Focus the field (and open the keyboard) as soon as it appears. */
+    autoFocus: Boolean = false,
 ) {
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
     Row(
-        modifier = modifier.fillMaxWidth(),
+        // Intrinsic height so the +91 box is exactly as tall as the number field.
+        modifier = modifier.fillMaxWidth().height(IntrinsicSize.Min),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Spacing.s),
     ) {
@@ -86,12 +95,12 @@ fun PhoneNumberField(
             color = MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.heightIn(min = TouchTarget),
+            modifier = Modifier.fillMaxHeight(),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                modifier = Modifier.heightIn(min = TouchTarget).padding(horizontal = Spacing.m),
+                modifier = Modifier.fillMaxHeight().padding(horizontal = Spacing.m),
             ) {
                 IndiaFlag()
                 Text(countryCode, style = MaterialTheme.typography.titleMedium)
@@ -109,7 +118,11 @@ fun PhoneNumberField(
             colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onDone() }),
-            modifier = fieldModifier.weight(1f).semantics { contentType = ContentType.PhoneNumberNational },
+            modifier =
+                fieldModifier.weight(1f).focusRequester(focus).semantics {
+                    contentType =
+                        ContentType.PhoneNumberNational
+                },
         )
     }
 }
@@ -129,9 +142,13 @@ fun OtpCodeField(
     length: Int = 6,
     isError: Boolean = false,
     enabled: Boolean = true,
+    /** Focus the boxes (and open the number keyboard) as soon as they appear. */
+    autoFocus: Boolean = false,
 ) {
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
+    val focus = remember { FocusRequester() }
+    if (autoFocus) LaunchedEffect(Unit) { focus.requestFocus() }
     val shake = remember { Animatable(0f) }
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(isError) {
@@ -163,6 +180,7 @@ fun OtpCodeField(
         modifier =
             modifier
                 .fillMaxWidth()
+                .focusRequester(focus)
                 .offset(x = shake.value.dp)
                 .semantics {
                     contentDescription = label
