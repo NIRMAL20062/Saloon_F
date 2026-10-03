@@ -9,7 +9,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and onboarding
 
 ### APP-004 · Phone login (everyone)
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016 · Spec: C1.2, E1.2
+- **Phase:** 1 · **Status:** 🔄 Built and verified, waiting for the team's OK · **Owner:** Claude · **Depends on:** BE-016 · Spec: C1.2, E1.2
 - **Why:** customers and salon people all sign in the same way: phone number + OTP.
 - **Needs from team:** Supabase project with the phone provider on (Twilio) and test phone numbers (steps in the BE-016 report).
 - **Flow:** open app → enter phone number (+91) → receive OTP (test numbers: fixed code, no SMS) → enter OTP → signed in.
@@ -23,7 +23,11 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [x] Every backend call sends the login token, refreshed once on 401; `GET /v1/me` answers with the signed-in user (`AuthenticatedClientTest`, `SignedInTest`)
   - [x] Tests: ViewModel tests for every state; Compose UI tests for every screen state and every component state (`ComponentsTest` 12); 91 app tests in total
   - [x] Security: OTP and tokens never logged (HTTP logs at BASIC level, debug only); rate-limit message shown when Supabase limits OTPs
-  - [ ] Flow: on the phone, log in with a test number → close and reopen (still logged in) → logout
+  - [x] Flow: on the phone, log in with a test number → close and reopen (still logged in) → logout. Verified by Claude on 2026-10-03,
+    moto g54 5G (Android 15, dark mode) against the local backend and the real Supabase project: test number 9000000001 →
+    code sent, 60 s countdown → wrong code 111111 auto-checked, red boxes + our message → 123456 → signed in, `GET /v1/me` 200 →
+    force-stop + reopen: still signed in → Log out → login screen, still logged out after another restart. No code or token in
+    the app's logs or the backend log
 
 ### APP-005 · Onboarding: customer or salon?
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, BE-016, BE-018 · Decision: D-024
