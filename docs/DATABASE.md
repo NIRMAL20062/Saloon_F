@@ -17,6 +17,7 @@ Writing a migration: use the `/db-migration` skill.
 | Money | `bigint` **paise** with `CHECK (… >= 0)`; never `numeric`/float for amounts | DF-11 |
 | Rules | enforced with `NOT NULL`, `CHECK`, `UNIQUE`, FKs, not only in Kotlin | - |
 | Deletes | `ON DELETE RESTRICT` by default; never cascade-delete payments or invoices | - |
+| Sensitive data | bank account numbers encrypted in the column (key from env), last 4 digits kept separately for display; never logged | DF-24 |
 
 ## Migrations
 

@@ -4,7 +4,7 @@
 
 | Folder | What it is | Stack |
 |---|---|---|
-| [`android/`](android/) | The one app: customers book salons; owners, managers and stylists run their salon (D-023) | Kotlin, Jetpack Compose, Hilt, Retrofit |
+| [`android/`](android/) | The one app: customers book salons; owners, managers and staff run their salon (D-023, D-034) | Kotlin, Jetpack Compose, Hilt, Retrofit |
 | [`backend/`](backend/) | API server | Kotlin, Ktor, Exposed, PostgreSQL, Flyway |
 | [`shared/`](shared/) | API contract (request/response models) used by Android **and** backend | Kotlin, kotlinx.serialization |
 | [`admin/`](admin/) | Internal admin panel for our team | Next.js (TypeScript) |

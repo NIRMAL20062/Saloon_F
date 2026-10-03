@@ -10,6 +10,9 @@
 > - Money (§3.4, §5): **online only, all through our Razorpay** (D-028, D-029). No cash: "pay at salon" means paying there by
 >   link / UPI QR. So the "fall back to pay-at-salon" in the risks and cut list no longer avoids Razorpay.
 > - The fee numbers in examples (10%, ₹50, 5–12%) are illustrations; the real platform fee is decided later (Q-013).
+> - Salon subscription (§5.5): **one plan, ₹179–₹400 a month, price editable by admins** (D-032), not ₹499 / ₹999.
+> - Salons are **verified by our team before going live** (D-033): this replaces the listing approval in C8.4. Salon roles are
+>   Owner, Manager, Staff; **staff accept their own bookings** (D-034), instead of §4's auto-accept / 15-minute manual accept.
 > - The sprint plan's dates are history: the deadline doesn't set the order (D-020); the order is in [tasks/README.md](tasks/README.md).
 > - The next line refers to an earlier `Salon_App_Task_Wise_Development.md` that was never added to the repo. The current file
 >   with that name is Claude's reconstruction (Q-009). The "WhatsApp + web link only" decision is replaced anyway (D-015).

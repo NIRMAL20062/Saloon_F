@@ -24,7 +24,7 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 - Errors: throw/handle so the client gets `ErrorResponse` with a stable `ErrorCodes` value. Never `call.respondText(e.message)`.
 - Config: add new env vars to `AppConfig.fromEnv` (validated), `.env.example`, and the test `testConfig()`.
 - Webhooks (Razorpay, WhatsApp): verify the signature **before** parsing, and make handlers idempotent (same event twice = no double effect).
-- Logging: never log request bodies, phone numbers, OTPs, tokens or payment details. Log IDs instead.
+- Logging: never log request bodies, phone numbers, OTPs, tokens, payment or bank details. Log IDs instead.
 
 ## Tests
 

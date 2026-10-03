@@ -21,6 +21,10 @@ Module `:android:app` → `android/app/`. Package `com.glide.android`: `ui/<feat
 - Release builds are HTTPS-only. Cleartext is allowed only to localhost in debug (phone/emulator reach the laptop via `adb reverse tcp:8080 tcp:8080`).
 - Add libraries (Room, WorkManager, Coil, Firebase, Razorpay) only in the task that needs them, through `gradle/libs.versions.toml`.
 - Strings in `res/values/strings.xml`, never hard-coded in Composables.
+- **Look and feel (D-031):** screens should feel modern, smooth and interactive. From APP-011 on, build them only from the design
+  system (`ui/theme/`, `ui/components/`): no one-off colours, sizes or animations; every screen has loading, empty and error states.
+- **Sides and roles:** the customer/salon choice is final, with no "switch side" (D-030). On the salon side, staff see only their own
+  bookings (D-034); hiding a button is never the only guard, the backend refuses too.
 
 ## Tests
 

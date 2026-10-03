@@ -14,6 +14,9 @@ _Last updated 2026-10-02._
   reconstruction: only epics that became tasks are approved.
 - **Data rules (D-025–D-027):** `salon_id` only on salon-owned tables; the salon side picks the salon with the `X-Salon-Id`
   header, checked against membership; row-level security with a limited database user from BE-017.
+- **Product rules added 2026-10-03:** the customer/salon choice is final (D-030); screens modern and interactive via a design
+  system (D-031, APP-011); one salon subscription plan, ₹179–₹400 a month, editable (D-032); our admins verify a salon before it
+  goes live (D-033); roles Owner / Manager / Staff, staff only accept their own bookings (D-034). Open: Q-014, Q-016.
 - **Done (Phase 0):** backend skeleton (Ktor, Postgres + Flyway, `/health`, security baseline, Docker image, OpenAPI contract test);
   Android app skeleton with network layer and a system-status screen (tested on the team phone); admin website skeleton
   (Next.js, nonce CSP); CI on GitHub (`ci-ok`). Details and commits: `tasks/*_COMPLETED.md`.

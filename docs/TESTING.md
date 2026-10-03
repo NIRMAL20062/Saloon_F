@@ -50,14 +50,14 @@ We test on **real services in test mode** from the start, but **without hosting*
 
 ### Test users for every user type (D-012)
 
-A seed script (Phase 1 task) creates the same named test users every time, in **two** test salons, so tenant isolation
+A seed script (BE-021) creates the same named test users every time, in **two** test salons that are already verified (live), so tenant isolation
 can also be checked by hand (log in as Salon A's owner and try to see Salon B's data: you must not).
 
 | User type | Test Salon A | Test Salon B | Can do (to be confirmed with the feature list) |
 |---|---|---|---|
-| Salon owner | `owner.a` | `owner.b` | everything in their salon: staff, services, prices, reports, subscription |
-| Staff / stylist | `stylist.a` | `stylist.b` | own appointments only |
-| Receptionist / manager | `reception.a` | `reception.b` | bookings and payments for everyone; sees services and prices but can't change them; no reports or subscription (DF-17) |
+| Salon owner | `owner.a` | `owner.b` | everything in their salon: profile, bank details, staff, services, prices, bookings, bills, reports, subscription |
+| Manager | `manager.a` | `manager.b` | everything the owner can (D-034; owner-only exceptions: Q-014) |
+| Staff | `staff.a` | `staff.b` | see and accept their own bookings only (D-034) |
 | Customer (customer side) | `customer.a` | `customer.b` | find salons, book, pay, cancel, review, raise disputes (D-015) |
 | Internal admin (our team) | `admin` | (all salons) | admin panel only |
 
