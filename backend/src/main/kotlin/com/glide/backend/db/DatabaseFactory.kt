@@ -9,6 +9,12 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import javax.sql.DataSource
 
 object DatabaseFactory {
+    /**
+     * All our tables live in this schema, not in `public` (D-042, DF-26). On Supabase, `public` is published through its
+     * Data API to anyone with the app's publishable key; `glide` is not, so only our backend reaches the data.
+     */
+    const val SCHEMA = "glide"
+
     fun createDataSource(config: DatabaseConfig): HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
@@ -16,6 +22,8 @@ object DatabaseFactory {
                 username = config.user
                 password = config.password
                 poolName = "glide-db"
+                // Every connection works in our schema (sets search_path), so SQL and Exposed use unqualified names.
+                schema = SCHEMA
                 maximumPoolSize = MAX_POOL_SIZE
                 connectionTimeout = CONNECTION_TIMEOUT_MS
                 // Exposed manages transactions itself.
@@ -31,6 +39,9 @@ object DatabaseFactory {
         Flyway
             .configure()
             .dataSource(dataSource)
+            .schemas(SCHEMA)
+            .defaultSchema(SCHEMA)
+            .createSchemas(true)
             .locations("classpath:db/migration")
             .cleanDisabled(true)
             .validateMigrationNaming(true)

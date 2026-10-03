@@ -70,4 +70,21 @@ class MigrationTest {
             conn.rollback()
         }
     }
+
+    @Test
+    fun `our tables live in the glide schema, never in public`() {
+        TestDatabase.dataSource.connection.use { conn ->
+            val schemas =
+                conn
+                    .prepareStatement(
+                        "SELECT table_schema FROM information_schema.tables WHERE table_name = 'app_users'",
+                    ).use { st ->
+                        st.executeQuery().use { rs ->
+                            generateSequence { if (rs.next()) rs.getString(1) else null }.toList()
+                        }
+                    }
+
+            assertEquals(listOf("glide"), schemas)
+        }
+    }
 }
