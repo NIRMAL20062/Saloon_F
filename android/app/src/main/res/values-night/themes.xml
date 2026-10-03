@@ -1,0 +1,4 @@
+<resources>
+    <!-- Dark window behind the Compose UI in dark mode, so starting the app never flashes white. -->
+    <style name="Theme.Glide" parent="android:Theme.Material.NoActionBar" />
+</resources>
