@@ -27,7 +27,7 @@ Full checks, same as CI: `./gradlew check` and `cd admin && pnpm verify`.
 
 ## Where to read next
 
-- **Product plan:** [Salon_App_Task_Wise_Development.md](Salon_App_Task_Wise_Development.md) (salon side, draft for review) + [ChatGPT.md](ChatGPT.md) (spec v2: customer side, payments, disputes)
+- **Product:** [docs/PRODUCT.md](docs/PRODUCT.md): the whole MVP, as decided
 - **[tasks/](tasks/README.md): what to build next and what's done, for the App, Web and Backend. All work starts here.**
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): how the pieces fit, and how Android + web are built together
 - [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md): task → branch → small commits → PR → CI → deploy

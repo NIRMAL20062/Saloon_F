@@ -6,34 +6,28 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 
 ## Where we are (read this first; update it in every task's pull request)
 
-_Last updated 2026-10-03 (APP-004)._
+_Last updated 2026-10-03._
 
-- **Product plan:** [Salon_App_Task_Wise_Development.md](Salon_App_Task_Wise_Development.md) (salon side) + [ChatGPT.md](ChatGPT.md)
-  (customer side, marketplace payments, disputes). Where the team decided differently, [docs/DECISIONS.md](docs/DECISIONS.md) wins
-  (e.g. **D-023: one app, not two**; D-016 Supabase login by SMS; D-019 no-internet = view only). The salon plan is Claude's
-  reconstruction: only epics that became tasks are approved.
-- **Data rules (D-025–D-027):** `salon_id` only on salon-owned tables; the salon side picks the salon with the `X-Salon-Id`
-  header, checked against membership; row-level security with a limited database user from BE-017.
-- **Product rules added 2026-10-03:** the customer/salon choice is final (D-030); screens modern and interactive via a design
-  system (D-031, APP-011); one salon subscription plan, ₹179–₹400 a month, editable (D-032); our admins verify a salon before it
-  goes live (D-033); roles Owner / Manager / Staff, staff only accept their own bookings (D-034). Open: Q-014, Q-016.
-- **Done (Phase 0):** backend skeleton (Ktor, Postgres + Flyway, `/health`, security baseline, Docker image, OpenAPI contract test);
-  Android app skeleton with network layer and a system-status screen (tested on the team phone); admin website skeleton
-  (Next.js, nonce CSP); CI on GitHub (`ci-ok`). Details and commits: `tasks/*_COMPLETED.md`.
-- **Now: Phase 1, Login and onboarding.** Order and what each step needs: [tasks/README.md § Build order](tasks/README.md#build-order).
-- **Phase 1 progress:** **BE-016 built** (backend accepts Supabase logins; `GET /v1/me`, `PUT /v1/me/side`, the side is final
-  (D-030, V3 trigger); verified with the team's real Supabase project), PR #2 waiting for the team's OK. **APP-004 built** (phone
-  login in the polished look, D-031: theme + components in `ui/theme`, `ui/components`; encrypted session; token on every call),
-  verified on the moto g54; PR to open after #2 merges.
-- **Next task:** APP-011 (rest of the design system), then BE-018 + APP-005 (onboarding "customer or salon?"). The decisions of
-  2026-10-03 (D-025..D-034) and the rewritten tasks are in the `docs/clarify-agent-rules` branch until it merges.
+- **What we build:** [docs/PRODUCT.md](docs/PRODUCT.md), the whole MVP as decided (D-038). The old planning files are gone; where
+  anything disagrees, [docs/DECISIONS.md](docs/DECISIONS.md) wins.
+- **Key rules:** one app, the customer/salon choice is final (D-023, D-030); one salon per person (D-035); our admins verify a
+  salon before it goes live (D-033); roles Owner / Manager / Staff, staff only see and accept their own bookings, only the owner
+  changes bank details and the subscription (D-034, D-037); online payments only, all through our Razorpay (D-028, D-029);
+  modern, interactive screens from one design system (D-031).
+- **Done (Phase 0):** backend skeleton, database, Android app skeleton, admin website skeleton, CI (`ci-ok`). Details:
+  `tasks/*_COMPLETED.md`.
+- **Phase 1 (login and onboarding):** **BE-016** built (Supabase logins, `GET /v1/me`, `PUT /v1/me/side`, side final), PR #2
+  waiting for the team's OK. **APP-004** built (phone login in the polished look; theme + components in `ui/theme`,
+  `ui/components`), verified on the moto g54, waiting for the team's OK.
+- **Next task:** APP-011 (rest of the design system), then BE-018 + APP-005 ("customer or salon?"). Full order:
+  [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
-  with code `123456` (no SMS sent). Public keys only in the repo; secret keys never.
-- **Blocked on the team:** answers to Q-014 (owner-only actions) and Q-016 (one person in several salons) before BE-017.
-  Rotate the Supabase secret key (it was pasted in a chat).
+  with code `123456` (no SMS sent). Public keys only in the repo; secret keys never. The team rotates the secret key before
+  production.
+- **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** #2 `task/BE-016-supabase-login`. Pushed, PR not opened yet: `task/APP-004-phone-login` (stacked on #2),
-  `docs/clarify-agent-rules`.
+- **Pull requests (merge in this order):** #2 BE-016 → APP-004 (stacked on #2) → `docs/clarify-agent-rules` (this cleanup,
+  stacked on APP-004).
 
 ## Golden rules
 

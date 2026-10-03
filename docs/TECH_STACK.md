@@ -1,84 +1,82 @@
 # Tech Stack
 
-> Source: the team's product plan, sections 4–5 (copied verbatim below). Changes to the stack go through [DECISIONS.md](DECISIONS.md) first.
-> Where a later decision changed a row, the old text is ~~struck through~~ and the decision is named next to it.
+> The stack as decided. Changes go through [DECISIONS.md](DECISIONS.md) first. What we build with it: [PRODUCT.md](PRODUCT.md).
 
-## Android app
+## Android app (one app, customer side + salon side)
 
 | Layer | Choice |
 |---|---|
 | Language | Kotlin |
-| UI | Jetpack Compose + Material 3 |
-| Architecture | MVVM + Clean-ish layers (UI → ViewModel → UseCase → Repository) |
+| UI | Jetpack Compose + Material 3, our own design system in `ui/theme` + `ui/components` (D-031) |
+| Architecture | MVVM, layers UI → ViewModel → UseCase → Repository |
 | DI | Hilt |
 | Navigation | Navigation Compose |
 | Async | Kotlin Coroutines + Flow |
-| Local DB | ~~Room (offline cache and drafts)~~ **Room, offline cache only: no internet = view only, no drafts** (D-019) |
-| Networking | Retrofit + OkHttp + Kotlin Serialization |
-| Background work | WorkManager (sync, retry) |
+| Login | Supabase Auth over its REST API: phone + SMS code, session encrypted on the phone (D-016, DF-19) |
+| Local DB | Room, offline cache only: no internet = view only (D-019) |
+| Networking | Retrofit + OkHttp + Kotlin Serialization, models from `:shared` |
+| Background work | WorkManager (retries, background refresh) |
 | Images | Coil |
 | Push notifications | Firebase Cloud Messaging |
-| Crash and analytics | Firebase Crashlytics + Analytics (needed to prove design partner usage) |
-| Payments SDK | Razorpay Android SDK (Standard Checkout) |
-| Min SDK | 24 (Android 7.0), target latest stable |
+| Crash and analytics | Firebase Crashlytics + Analytics (to prove design-partner usage) |
+| Payments SDK | Razorpay Android SDK (Standard Checkout); orders are always created by the backend |
+| Min SDK | 24 (Android 7.0), target latest stable (37) |
 
 ## Backend
 
 | Layer | Choice |
 |---|---|
-| Language/framework | Kotlin + Ktor (same language as the app, easier for a small team) |
-| Database | PostgreSQL |
-| ORM | ~~Exposed or Ktorm~~ **Exposed** (decided, see D-003) |
-| Auth | ~~Phone OTP (Firebase Auth) → backend issues JWT~~ **Supabase Auth: phone OTP by SMS (Twilio) on the phone; the backend only verifies Supabase's tokens and never issues its own** (D-016) |
-| Jobs/scheduler | Quartz or a simple cron worker for reminders |
-| Hosting | Railway / Render / a small VPS (start cheap): **not decided yet** |
-| File storage | Cloudflare R2 or S3 (invoice PDFs) |
-| Secrets | Environment variables only, never in the app |
+| Language/framework | Kotlin + Ktor (same language as the app) |
+| Database | PostgreSQL 17, migrations with Flyway |
+| ORM | Exposed (D-003) |
+| Auth | The backend verifies Supabase's tokens (public keys); it never issues its own (D-016) |
+| Jobs/scheduler | Quartz or a simple cron worker (reminders, reconciliation, slot-hold expiry) |
+| Hosting | free tier, picked at Pre-launch; nothing hosted during development (D-010, D-011) |
+| File storage | Cloudflare R2 or S3 (invoice PDFs, photos) |
+| Secrets | Environment variables only, never in the app or git |
 
-> Faster alternative: Supabase (Postgres + Auth + Edge Functions) cuts backend time a lot. Pick it if your team is weak on backend. Decide in week 1 and stick with it.
-> **Decided: Ktor + Exposed (D-003).** Supabase **Auth** is used for login only (D-016); the database is our own PostgreSQL
-> (local Docker during development). Supabase may still host that Postgres at Pre-launch (open question Q-002).
+Supabase is used **only for login**; the database is our own PostgreSQL (local Docker during development).
 
 ## Integrations
 
 | Need | Service |
 |---|---|
-| Customer payments (salon collects from clients) | Razorpay Payments: Payment Links / UPI QR / Standard Checkout. _Every online customer payment, in the app or by link / UPI QR at the counter, goes through **our** Razorpay account with Route: platform fee to us, salon's share to its linked account (D-028). Online only, no cash (D-029)_ |
-| Billing the salon (our subscription revenue) | Razorpay Subscriptions |
-| WhatsApp messages | WhatsApp Business Cloud API (Meta) directly, or a BSP such as Gupshup / Interakt / AiSensy to start faster |
-| SMS fallback | MSG91 or Twilio (optional) |
+| Customer payments | Razorpay with **Route**: every online payment (in the app, or link / UPI QR at the salon) goes through our account; our fee stays, the salon's share goes to its linked account. Online only, no cash (D-028, D-029) |
+| Salon subscription (our revenue) | Razorpay Subscriptions, one plan for now, price editable by admins (D-032) |
+| WhatsApp messages | WhatsApp Business Cloud API (Meta), approved templates, sent only by the backend |
+| SMS | Twilio, inside Supabase, for login codes only (D-016) |
 | Invoices | Server-side PDF generation (OpenHTMLToPDF or iText) |
 
-## Tooling
-
-- GitHub monorepo, GitHub Actions for CI. Layout: `/android`, `/backend`, `/docs`, plus `/shared` (D-004) and `/admin` (D-002)
-- Firebase App Distribution to ship builds to design partners
-- Postman for API tests, Figma for screens
-- AI coding tools (Claude Code etc.) with a shared `CLAUDE.md` describing architecture and conventions
-
-## Web: internal admin panel (added, D-002)
+## Web: internal admin website (D-002)
 
 | Layer | Choice |
 |---|---|
-| Purpose | Internal admin panel for our team only (not salon-facing, not customer-facing) |
+| Purpose | For our team only (not salon-facing, not customer-facing) |
 | Framework | Next.js (App Router) + TypeScript + Tailwind CSS |
-| API types | Generated from `docs/api/openapi.yaml` with `openapi-typescript`, so nothing is hand-copied |
+| Login | Email code + authenticator app through Supabase, on the Next.js server only (DF-16, DF-20) |
+| API types | Generated from `docs/api/openapi.yaml` with `openapi-typescript`, never hand-copied |
 | Package manager | pnpm |
+
+## Tooling
+
+- GitHub monorepo (`/android`, `/backend`, `/shared`, `/admin`, `/docs`, `/tasks`), GitHub Actions CI (`ci-ok`)
+- Firebase App Distribution to ship builds to design partners (Pre-launch)
+- AI coding tools (Claude Code) following `CLAUDE.md` and `.claude/skills/`
 
 ## Architecture overview
 
 ```
-Android App (Compose)  <──HTTPS/JSON──>  Ktor Backend  <──>  PostgreSQL
-   │  Room (offline)                        │
-   │                                        ├── Razorpay (orders, subscriptions, webhooks)
+Android app (Compose)  <──HTTPS/JSON──>  Ktor backend  <──>  PostgreSQL
+   │  Room (offline, view only)             │
+   │  Supabase Auth (login)                 ├── Razorpay Route (orders, payouts, refunds, subscriptions, webhooks)
    └── Razorpay Checkout SDK                ├── WhatsApp Cloud API (templates, webhooks)
                                             ├── FCM (push)
-Admin Panel (Next.js) <──HTTPS/JSON──┘      └── Scheduler (reminders, daily summary)
+Admin website (Next.js) <──HTTPS/JSON──┘    └── Scheduler (reminders, reconciliation)
 ```
 
 ### Non-negotiable rules
 
-1. **The app never calls WhatsApp directly.** Always via backend.
-2. **Razorpay order creation and payment verification happen on the backend.** Verify via webhook signature, not just the app's success callback.
-3. **Multi-tenant from day 1: ~~every table~~ every salon-owned table has `salon_id`** (D-025).
+1. **The app never calls WhatsApp directly.** Always via the backend.
+2. **Razorpay orders are created and payments verified on the backend.** Verify the webhook signature, never only the app's success callback.
+3. **Multi-tenant from day 1:** every salon-owned table has `salon_id` (D-025).
 4. **Secrets live in environment variables only, never in the app or in git.**

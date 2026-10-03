@@ -1,7 +1,7 @@
 # 🖥️ Admin Web Panel: To Do
 
 Internal admin panel **for our team only** (D-002). Next.js + TypeScript in `admin/`. Admin features come from
-[ChatGPT.md](../ChatGPT.md) §6.8 (dispute console) and EC8, and the salon plan E11 (salons, design-partner tracking, audit log).
+[docs/PRODUCT.md](../docs/PRODUCT.md) §7 (D-038).
 Order across App / Web / Backend: [README.md § Build order](README.md#build-order) · Done so far: [WEB_TASKS_COMPLETED.md](WEB_TASKS_COMPLETED.md)
 
 > ⚠️ Not deployable on a public URL until admin login (WEB-005) exists.
@@ -41,9 +41,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Next phases (outline)
 
-- **Phase 2+** WEB-1xx Salons list + detail (members, plan, activity), suspend/reactivate · **design-partner tracking** (logins, appointments, bills per week; spec v2 "never cut") · audit log viewer · support lookup by phone
-- **Phase 6** WEB-5xx payments explorer + manual refund with reason · payout monitoring · GMV / commission / refunds dashboard (EC8) · subscription price editing (D-032, DF-25)
-- **Phase 7** WEB-6xx **dispute console**: queue, case view, decision, appeal, templates, money panel (spec v2 §6.8) · refund-policy settings · customer management · review moderation (salon approval is WEB-007)
+- **Phase 2+** WEB-1xx Salons list + detail (members, plan, activity), suspend/reactivate · **design-partner tracking** (logins, appointments, bills per week; never cut) · audit log viewer · support lookup by phone
+- **Phase 6** WEB-5xx payments explorer + manual refund with reason · payout monitoring · GMV / commission / refunds dashboard · subscription price editing (D-032, DF-25)
+- **Phase 7** WEB-6xx **dispute console**: queue, case view, decision, appeal, templates, money panel (PRODUCT §7, §9) · refund-policy settings · customer management · review moderation (salon approval is WEB-007)
 
 ## Platform backlog (done alongside features; never blocks them)
 
