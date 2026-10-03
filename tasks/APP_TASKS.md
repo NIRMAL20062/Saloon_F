@@ -10,7 +10,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and onboarding
 
 ### APP-005 · Onboarding: customer or salon?
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** APP-004, APP-013, BE-016, BE-018 · Decisions: D-024, D-030, DF-23
 - **Why:** one app, two kinds of users; each sees only their own interface.
 - **Needs from team:** nothing.
 - **Flow (first login only):** "How will you use Glide?"
