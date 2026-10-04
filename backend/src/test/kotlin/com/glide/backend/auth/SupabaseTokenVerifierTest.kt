@@ -24,6 +24,30 @@ class SupabaseTokenVerifierTest {
     }
 
     @Test
+    fun `an admin login gives the email in lower case and says MFA was done`() {
+        val id = UUID.randomUUID()
+
+        val user =
+            verifier.verify(
+                TestTokens.token(userId = id, phone = null, email = "Admin@Glide.test", aal = "aal2"),
+            )
+
+        assertEquals(AuthenticatedUser(id, phone = null, email = "admin@glide.test", mfaVerified = true), user)
+    }
+
+    @Test
+    fun `MFA counts only at level aal2`() {
+        assertEquals(false, verifier.verify(TestTokens.token(aal = "aal1"))?.mfaVerified)
+        assertEquals(false, verifier.verify(TestTokens.token(aal = null))?.mfaVerified)
+        assertEquals(false, verifier.verify(TestTokens.token(aal = "AAL2 "))?.mfaVerified)
+    }
+
+    @Test
+    fun `an empty email claim means no email`() {
+        assertNull(verifier.verify(TestTokens.token(email = ""))?.email)
+    }
+
+    @Test
     fun `an expired token is refused`() {
         assertNull(verifier.verify(TestTokens.token(expiresIn = (-5).minutes)))
     }

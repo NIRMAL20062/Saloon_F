@@ -1,5 +1,6 @@
 package com.glide.backend.users
 
+import com.glide.backend.validation.Emails
 import com.glide.shared.me.MeErrorCodes
 import com.glide.shared.me.ProfileRules
 import com.glide.shared.me.UpdateProfileRequest
@@ -21,21 +22,15 @@ sealed interface ProfileInput {
     ) : ProfileInput
 
     companion object {
-        private val EMAIL = Regex("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
-
         fun from(request: UpdateProfileRequest): ProfileInput {
             val name = request.name.trim()
             if (name.length !in ProfileRules.NAME_MIN..ProfileRules.NAME_MAX || name.any { it.isISOControl() }) {
                 return Invalid(MeErrorCodes.INVALID_NAME, "Enter a name between 2 and 60 characters.")
             }
+            val rawEmail = request.email?.trim()?.ifEmpty { null } ?: return Valid(name, null)
             val email =
-                request.email
-                    ?.trim()
-                    ?.lowercase()
-                    ?.ifEmpty { null }
-            if (email != null && (email.length > ProfileRules.EMAIL_MAX || !EMAIL.matches(email))) {
-                return Invalid(MeErrorCodes.INVALID_EMAIL, "Enter a valid email address, or leave it empty.")
-            }
+                Emails.normalize(rawEmail)
+                    ?: return Invalid(MeErrorCodes.INVALID_EMAIL, "Enter a valid email address, or leave it empty.")
             return Valid(name, email)
         }
     }

@@ -96,6 +96,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in admin. An INVITED admin becomes ACTIVE on their first request with MFA done (BE-020) */
+        get: operations["getAdminMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/admins/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invite another admin by email (BE-020, D-013). Audit-logged
+         * @description The email is trimmed and lower-cased. Supabase creates the login and sends its invite email; if the email already
+         *     has a Supabase login, none is sent and that login is used. The new admin is INVITED until their first login with
+         *     the authenticator app.
+         */
+        post: operations["inviteAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -136,6 +175,25 @@ export interface components {
         UpdateSideRequest: {
             side: components["schemas"]["UserSide"];
         };
+        /**
+         * @description INVITED until the admin's first login with the authenticator app, then ACTIVE
+         * @enum {string}
+         */
+        AdminStatus: "INVITED" | "ACTIVE";
+        AdminResponse: {
+            /**
+             * Format: uuid
+             * @description Supabase user id of the admin's login
+             */
+            id: string;
+            /** @description Login email, in lower case */
+            email: string;
+            status: components["schemas"]["AdminStatus"];
+        };
+        InviteAdminRequest: {
+            /** @description Trimmed and lower-cased; at most 254 characters and shaped like an email address */
+            email: string;
+        };
         ErrorResponse: {
             error: components["schemas"]["ErrorBody"];
         };
@@ -165,6 +223,28 @@ export interface components {
                  *       "error": {
                  *         "code": "UNAUTHORIZED",
                  *         "message": "Please sign in again.",
+                 *         "requestId": "3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /**
+         * @description Signed in, but not allowed: NOT_ADMIN (this login is not one of our admins) or MFA_REQUIRED (an admin whose login
+         *     hasn't passed the authenticator-app step)
+         */
+        AdminForbidden: {
+            headers: {
+                "X-Request-Id": components["headers"]["XRequestId"];
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "error": {
+                 *         "code": "MFA_REQUIRED",
+                 *         "message": "Log in with the code from your authenticator app to continue.",
                  *         "requestId": "3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80"
                  *       }
                  *     }
@@ -388,6 +468,117 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            default: components["responses"]["Error"];
+        };
+    };
+    getAdminMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The signed-in admin */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80",
+                     *       "email": "admin@glide.test",
+                     *       "status": "ACTIVE"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["AdminResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            default: components["responses"]["Error"];
+        };
+    };
+    inviteAdmin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "email": "new.admin@example.com"
+                 *     }
+                 */
+                "application/json": components["schemas"]["InviteAdminRequest"];
+            };
+        };
+        responses: {
+            /** @description Invited; returns the pending admin */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80",
+                     *       "email": "new.admin@example.com",
+                     *       "status": "INVITED"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["AdminResponse"];
+                };
+            };
+            /** @description Malformed body, or the email fails validation (error code INVALID_EMAIL) */
+            400: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["AdminForbidden"];
+            /** @description This email is already an admin (error code ADMIN_ALREADY_EXISTS) */
+            409: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Supabase refused or failed to send the invite; nothing was saved (error code INVITE_FAILED) */
+            502: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The server has no Supabase secret key, so it can't invite (error code INVITES_UNAVAILABLE) */
+            503: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
             default: components["responses"]["Error"];
         };
     };

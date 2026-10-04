@@ -38,6 +38,9 @@ object TestTokens {
     fun token(
         userId: UUID = UUID.randomUUID(),
         phone: String? = "919000000001",
+        email: String? = null,
+        /** Supabase's assurance level: "aal1" = email code only, "aal2" = authenticator app done too. */
+        aal: String? = "aal1",
         issuer: String = ISSUER,
         audience: String = "authenticated",
         role: String = "authenticated",
@@ -55,6 +58,8 @@ object TestTokens {
                 .expirationTime(Date(now + expiresIn.inWholeMilliseconds))
                 .claim("role", role)
                 .apply { if (phone != null) claim("phone", phone) }
+                .apply { if (email != null) claim("email", email) }
+                .apply { if (aal != null) claim("aal", aal) }
                 .build()
         val header =
             JWSHeader
@@ -64,6 +69,13 @@ object TestTokens {
                 .build()
         return SignedJWT(header, claims).apply { sign(ECDSASigner(signingKey)) }.serialize()
     }
+
+    /** An admin-website login: email code + authenticator app (aal2), no phone. */
+    fun adminToken(
+        userId: UUID,
+        email: String,
+        mfa: Boolean = true,
+    ): String = token(userId = userId, phone = null, email = email, aal = if (mfa) "aal2" else "aal1")
 
     /** Valid in every way except the signature comes from a different key (same key id, so only the math catches it). */
     fun tokenSignedByOtherKey(): String = token(signingKey = otherKey)

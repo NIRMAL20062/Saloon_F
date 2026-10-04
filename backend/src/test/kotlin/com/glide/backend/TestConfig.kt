@@ -28,4 +28,6 @@ fun fakeDependencies(databaseHealthy: Boolean = true) =
         databaseHealthCheck = DatabaseHealthCheck { databaseHealthy },
         tokenVerifier = TestTokens.verifier,
         users = InMemoryUserRepository(),
+        admins = InMemoryAdminRepository(),
+        authAdmin = FakeAuthAdmin(),
     )

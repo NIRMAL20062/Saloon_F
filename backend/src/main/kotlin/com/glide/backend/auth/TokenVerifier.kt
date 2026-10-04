@@ -20,6 +20,10 @@ data class AuthenticatedUser(
     val id: UUID,
     /** Phone number from the token, if they logged in by phone. */
     val phone: String?,
+    /** Email from the token, if the login has one (admins log in by email, D-013). */
+    val email: String? = null,
+    /** True when this login passed the authenticator-app step (Supabase `aal2`). Admin routes require it (DF-16). */
+    val mfaVerified: Boolean = false,
 )
 
 fun interface TokenVerifier {
@@ -63,6 +67,8 @@ class SupabaseTokenVerifier(
                     claims.getStringClaim("phone")?.takeIf {
                         it.isNotBlank()
                     },
+                email = claims.getStringClaim("email")?.takeIf { it.isNotBlank() }?.lowercase(),
+                mfaVerified = claims.getStringClaim("aal") == MFA_LEVEL,
             )
         }.onFailure {
             // Type only: the message can contain token contents.
@@ -72,6 +78,9 @@ class SupabaseTokenVerifier(
     companion object {
         private const val AUDIENCE = "authenticated"
         private const val ROLE = "authenticated"
+
+        /** Supabase's "authenticator assurance level" after a login completed MFA. */
+        private const val MFA_LEVEL = "aal2"
 
         /** Waiting for Supabase's public keys. Nimbus defaults to 500 ms, which real networks in India exceed (seen: 750 ms). */
         private const val KEYS_TIMEOUT_MS = 5_000

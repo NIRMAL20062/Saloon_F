@@ -19,4 +19,10 @@ object ApiRoutes {
 
     /** Save the person's name and optional email (BE-018). */
     const val ME_PROFILE = "$V1/me/profile"
+
+    /** The signed-in admin of our team (BE-020). Needs an admin login with the authenticator-app step done. */
+    const val ADMIN_ME = "$V1/admin/me"
+
+    /** Invite another admin by email (BE-020). Admins only. */
+    const val ADMIN_INVITES = "$V1/admin/admins/invites"
 }

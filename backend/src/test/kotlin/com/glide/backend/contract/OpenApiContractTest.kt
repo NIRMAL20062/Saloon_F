@@ -11,9 +11,13 @@ import com.glide.backend.testConfig
 import com.glide.shared.api.ApiRoutes
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import io.ktor.server.application.Application
 import io.ktor.server.application.plugin
 import io.ktor.server.routing.HttpMethodRouteSelector
@@ -22,7 +26,9 @@ import io.ktor.server.routing.RoutingRoot
 import io.ktor.server.routing.getAllRoutes
 import io.ktor.server.testing.testApplication
 import io.swagger.v3.parser.OpenAPIV3Parser
+import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.util.UUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -91,6 +97,41 @@ class OpenApiContractTest {
         }
 
     @Test
+    fun `admin responses match the spec`() =
+        testApplication {
+            val deps = fakeDependencies()
+            val adminId = UUID.randomUUID()
+            runBlocking { deps.admins.addFirst(adminId, "first@glide.test") }
+            application { module(testConfig(), deps) }
+            val admin = TestTokens.adminToken(adminId, "first@glide.test")
+
+            assertMatchesSpec(ApiRoutes.ADMIN_ME, client.get(ApiRoutes.ADMIN_ME) { bearerAuth(admin) })
+            assertMatchesSpec(
+                ApiRoutes.ADMIN_ME,
+                client.get(
+                    ApiRoutes.ADMIN_ME,
+                ) { bearerAuth(TestTokens.adminToken(adminId, "first@glide.test", mfa = false)) },
+            )
+            val invite = { body: String ->
+                runBlocking {
+                    client.post(ApiRoutes.ADMIN_INVITES) {
+                        bearerAuth(admin)
+                        contentType(ContentType.Application.Json)
+                        setBody(body)
+                    }
+                }
+            }
+            listOf(
+                invite("""{"email":"b@glide.test"}""") to 201,
+                invite("""{"email":"b@glide.test"}""") to 409,
+                invite("""{"email":"nope"}""") to 400,
+            ).forEach { (response, status) ->
+                assertEquals(status, response.status.value)
+                assertMatchesSpec(ApiRoutes.ADMIN_INVITES, response, Request.Method.POST)
+            }
+        }
+
+    @Test
     fun `the validator rejects a body that breaks the spec`() {
         // Guards the guard: if this passes, the contract test above is actually checking something.
         val report = validate(ApiRoutes.HEALTH, 200, """{"status":"MAYBE","version":"1","surprise":true}""")
@@ -122,12 +163,19 @@ class OpenApiContractTest {
     private suspend fun assertMatchesSpec(
         path: String,
         response: HttpResponse,
+        method: Request.Method = Request.Method.GET,
     ) {
         val report =
-            validate(path, response.status.value, response.bodyAsText(), response.headers[HttpHeaders.ContentType])
+            validate(
+                path,
+                response.status.value,
+                response.bodyAsText(),
+                response.headers[HttpHeaders.ContentType],
+                method,
+            )
         assertTrue(
             !report.hasErrors(),
-            "Response for GET $path does not match openapi.yaml:\n" + report.messages.joinToString("\n"),
+            "Response for $method $path does not match openapi.yaml:\n" + report.messages.joinToString("\n"),
         )
     }
 
@@ -136,10 +184,11 @@ class OpenApiContractTest {
         status: Int,
         body: String,
         contentType: String? = "application/json",
+        method: Request.Method = Request.Method.GET,
     ): ValidationReport =
         validator.validateResponse(
             path,
-            Request.Method.GET,
+            method,
             SimpleResponse.Builder
                 .status(status)
                 .withContentType(contentType ?: "application/json")

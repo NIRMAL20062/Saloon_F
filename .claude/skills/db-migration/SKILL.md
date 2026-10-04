@@ -10,6 +10,9 @@ Rules of record: `docs/DATABASE.md`. Only for schema changes a task asks for.
 ## 1. File
 
 `backend/src/main/resources/db/migration/V<next>__<snake_case_summary>.sql`, where `<next>` = highest existing V number + 1.
+
+**One table or one change per file** (team, 2026-10-04): a task that needs several tables gets several migrations, written
+and committed one at a time in dependency order, each with its tests.
 **Never edit a migration that's merged.** Fix forward with a new file (CI's `MigrationTest` detects edits).
 
 ## 2. Table checklist

@@ -63,9 +63,9 @@ dependencies {
     testImplementation(libs.openapi.validator)
 }
 
-// Local dev convenience: `./gradlew :backend:run` picks up the repo-root .env file.
+// Local dev convenience: `./gradlew :backend:run` (and the commands below) pick up the repo-root .env file.
 // Deployed environments set real environment variables instead.
-tasks.named<JavaExec>("run") {
+fun JavaExec.useDotEnv() {
     val envFile = rootProject.file(".env")
     if (envFile.exists()) {
         envFile
@@ -74,6 +74,18 @@ tasks.named<JavaExec>("run") {
             .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains('=') }
             .forEach { line -> environment(line.substringBefore('=').trim(), line.substringAfter('=').trim()) }
     }
+}
+
+tasks.named<JavaExec>("run") { useDotEnv() }
+
+// One-off: make the first admin (BE-020). ./gradlew :backend:addFirstAdmin --args="admin@example.com"
+tasks.register<JavaExec>("addFirstAdmin") {
+    group = "glide"
+    description = "Makes the first admin of the admin website (later admins are invited there)"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.glide.backend.admins.AddFirstAdminKt")
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    useDotEnv()
 }
 
 // Bake the build version into the jar so /health can report which build is running.

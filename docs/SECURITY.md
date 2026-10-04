@@ -27,6 +27,9 @@ Per-feature checklist: run `/feature-security-check` (see `.claude/skills/featur
 | Error envelope; no stack traces, exception messages or class names to clients | `plugins/ErrorHandling.kt` | `SecurityBaselineTest` |
 | Health-check failures log exception type only | `health/DatabaseHealthCheck.kt` | code review |
 | Login tokens checked on every protected route: Supabase public keys (ES256), issuer, audience, role, expiry; HS256/anon/expired/other-project tokens refused; tokens never logged | `auth/TokenVerifier.kt`, `auth/Authentication.kt` | `SupabaseTokenVerifierTest`, `MeRoutesTest` |
+| Admin routes: login must be in `admins` (matched on Supabase user id, not email) **and** have passed the authenticator app (`aal2`), else 403 NOT_ADMIN / MFA_REQUIRED; every `/v1/admin` route is checked | `admins/AdminAccess.kt` | `AdminRoutesTest` |
+| Supabase secret key only from the environment, never printed; the publishable key is refused in its place; Supabase error text (may contain emails) never logged | `config/AppConfig.kt`, `admins/AuthAdmin.kt` | `AppConfigTest`, `SupabaseAuthAdminTest` |
+| Audit log is append-only (UPDATE / DELETE / TRUNCATE refused by the database); admin changes write their row in the same transaction | `V5`, `audit/AuditLog.kt` | `AdminTablesTest`, `AdminRepositoryTest` |
 | `flyway clean` disabled everywhere | `db/DatabaseFactory.kt` | `MigrationTest` |
 | Edited migrations detected | Flyway validate | `MigrationTest` |
 | Postgres bound to localhost in dev | `docker-compose.yml` | - |
