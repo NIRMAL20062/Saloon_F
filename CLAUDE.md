@@ -19,7 +19,8 @@ _Last updated 2026-10-04._
   **APP-004** (phone login), **APP-011** (design system), **APP-013** (the team's mockup look, welcome screen, light only).
   Details: `tasks/*_COMPLETED.md`.
 - **BE-018 + APP-005** merged 2026-10-04 (profile API; "How will you use Glide?" and the customer profile, mockups 4–5).
-- **Now:** BE-023, our database on Supabase's Postgres (D-042), waiting for the database connection in `.env`.
+- **Now:** BE-023, our database on Supabase's Postgres (D-042): working against the dev project (tables in schema `glide`,
+  login + onboarding tested on the phone); pull request open, waiting for the team's OK.
 - **Next task:** WEB-002 → BE-020 → WEB-005 (admin website login). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
@@ -27,7 +28,7 @@ _Last updated 2026-10-04._
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** none.
+- **Open pull requests:** BE-023 (Supabase database).
 
 ## Golden rules
 
