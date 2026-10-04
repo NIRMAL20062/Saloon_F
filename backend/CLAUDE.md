@@ -10,6 +10,9 @@ config/               AppConfig: env vars only, validated at startup
 db/                   DatabaseFactory: pool, migrations, Exposed
 plugins/              Security, Monitoring (request IDs, logs), ErrorHandling (error envelope), Serialization
 health/               /health, /health/live
+admins/               admin access guard (adminOnly), /v1/admin routes, Supabase admin API client, addFirstAdmin command
+audit/                AuditLog.record(): write inside the same transaction as the change (DF-28)
+validation/           shared input rules (Emails)
 <feature>/            one package per feature: <Feature>Routes.kt, <Feature>Service.kt, <Feature>Repository.kt, tables
 src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 ```
@@ -24,6 +27,7 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 - Errors: throw/handle so the client gets `ErrorResponse` with a stable `ErrorCodes` value. Never `call.respondText(e.message)`.
 - Config: add new env vars to `AppConfig.fromEnv` (validated), `.env.example`, and the test `testConfig()`.
 - Webhooks (Razorpay, WhatsApp): verify the signature **before** parsing, and make handlers idempotent (same event twice = no double effect).
+- Admin endpoints go inside `adminOnly(admins) { }` (admin + authenticator app, DF-29); `AdminRoutesTest` fails if one doesn't.
 - Logging: never log request bodies, phone numbers, OTPs, tokens, payment or bank details. Log IDs instead.
 
 ## Tests
@@ -38,5 +42,6 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 docker compose up -d postgres
 ./gradlew :backend:run          # uses repo-root .env
 ./gradlew :backend:check        # ktlint + tests
+./gradlew :backend:addFirstAdmin --args="admin@example.com"   # one-off: first admin (needs SUPABASE_SECRET_KEY)
 docker build -f backend/Dockerfile -t glide-backend .   # from repo root
 ```

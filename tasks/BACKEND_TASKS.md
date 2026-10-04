@@ -35,6 +35,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §7 (audit log: every admin and money action)
 - **Scope:** `audit_log` (who, salon, action, entity, before/after, when); written by every create/update/delete from here on.
+  _The table and `AuditLog.record()` already exist since BE-020 (DF-28); this task adds the salon actions._
 - **Done when:** tests prove salon create, bank-details change, staff add/remove write audit rows; rows can't be updated or deleted by the app.
 
 ### BE-020 · Admins: first admin, invites, admin-only routes
@@ -43,7 +44,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   the Supabase **service-role key** put into `.env` by the team (the backend needs it to send invites; never in chat or git).
 - **Scope:** `admins` table (our DB decides who is admin); first admin created by a one-off command; `GET /v1/admin/me`;
   `POST /v1/admin/admins/invites` (sends the Supabase invite email); every `/v1/admin` route requires an admin **with MFA completed**.
-- **Done when:** tests: non-admin → 403; admin without MFA → 403; invite creates a pending admin; audit-logged.
+- **Done when:**
+  - [x] tests: non-admin → 403; admin without MFA → 403; invite creates a pending admin; audit-logged
+  - [x] Flow: against the real Supabase project, the first admin made by the command; email code only → 403 MFA_REQUIRED; with the authenticator app → 200 ACTIVE; invite → 201; app (phone) user → 403
 
 ### BE-021 · Seed test users
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-018, BE-020 · Decision: D-012

@@ -21,6 +21,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ### WEB-006 · Admins page: invite more admins
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
 - **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
+- **Needs from team:** Supabase's invite email links to a browser login, which our admin website doesn't use (DF-20). Change
+  its text (Authentication → Emails → Invite user) to "Open the Glide admin website and log in with this email"; real emails
+  also need the email service (e.g. Brevo).
 - **Done when:** tests for list/invite/errors; invite audit-logged; in the browser, admin A invites B and B logs in.
 
 ### WEB-007 · Verify salons

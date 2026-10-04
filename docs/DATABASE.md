@@ -39,6 +39,7 @@ Writing a migration: use the `/db-migration` skill.
 | V2 `app_users` | one row per signed-in person: Supabase user id, phone, onboarding side (CUSTOMER / SALON). Platform table: no `salon_id` (one person can be a customer and in several salons) (BE-016) |
 | V3 `app_users_side_final` | trigger: once `side` is set it can't change (D-030, BE-016) |
 | V4 `app_users_profile` | `name` (2–60) and `email` (≤ 254, email-shaped) on `app_users`, one profile per person (DF-18, BE-018) |
+| V5 `admins_and_audit_log` | `admins`: who is an admin of our team, keyed by Supabase user id; lower-case unique email; INVITED → ACTIVE; `invited_by`; only one admin without an inviter. `audit_log`: who / salon / action / entity / before / after / request ID; UPDATE, DELETE and TRUNCATE refused by triggers (BE-020, DF-28, DF-29) |
 
 ## Development database (Supabase)
 
