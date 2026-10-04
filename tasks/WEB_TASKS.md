@@ -9,7 +9,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Admin login and salon verification
 
 ### WEB-005 · Admin login: email code + authenticator app
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
 - **Needs from team:** same Supabase project; the first admin's email.
 - **Flow:** email → 6-digit code from the email → first time: set up an authenticator app (QR) → enter its code → admin home.
   Everything under the panel requires login; session expires after inactivity; logout.
