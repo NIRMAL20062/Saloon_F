@@ -11,11 +11,19 @@ data class DatabaseConfig(
     override fun toString() = "DatabaseConfig(jdbcUrl=$jdbcUrl, user=$user, password=***)"
 }
 
-/** Where logins come from (D-016). Only public values: tokens are checked with Supabase's public signing keys. */
+/** Where logins come from (D-016). Tokens are checked with Supabase's public signing keys. */
 data class SupabaseConfig(
     /** Project URL, e.g. `https://abcd.supabase.co`. */
     val url: String,
+    /**
+     * Secret key (`sb_secret_...`, or the legacy service_role key) for Supabase's admin API: inviting admins (BE-020).
+     * Bypasses every Supabase rule, so it lives only in the environment. Null on a laptop without it: invites are off.
+     */
+    val secretKey: String? = null,
 ) {
+    // Never print the secret key, even in debug logs or crash reports.
+    override fun toString() = "SupabaseConfig(url=$url, secretKey=${if (secretKey == null) "none" else "***"})"
+
     /** Value of the `iss` claim in every access token from this project. */
     val issuer: String get() = "$url/auth/v1"
 
@@ -107,14 +115,42 @@ data class AppConfig(
                 if (!ok) problems += "SUPABASE_URL must look like https://<project>.supabase.co"
             }
 
+            val secretKey = env["SUPABASE_SECRET_KEY"]?.trim()?.ifEmpty { null }
+            when {
+                secretKey == null && (appEnv == AppEnv.STAGING || appEnv == AppEnv.PRODUCTION) -> {
+                    problems += "SUPABASE_SECRET_KEY is required in $appEnv (admin invites need it)"
+                }
+
+                secretKey != null && secretKey.startsWith("sb_publishable_") -> {
+                    problems += "SUPABASE_SECRET_KEY is the publishable key; use the secret key (sb_secret_...)"
+                }
+
+                secretKey != null && !secretKey.matches(SECRET_KEY_REGEX) && !secretKey.matches(LEGACY_KEY_REGEX) -> {
+                    problems +=
+                        "SUPABASE_SECRET_KEY must be a Supabase secret key (sb_secret_...) or the legacy service_role key"
+                }
+            }
+
             if (problems.isNotEmpty()) throw InvalidConfigException(problems)
-            return AppConfig(appEnv, port, version, database, origins, rateLimit, SupabaseConfig(supabaseUrl))
+            return AppConfig(
+                appEnv,
+                port,
+                version,
+                database,
+                origins,
+                rateLimit,
+                SupabaseConfig(supabaseUrl, secretKey),
+            )
         }
 
         private const val DEFAULT_PORT = 8080
         private const val DEFAULT_RATE_LIMIT = 300
         private val SUPABASE_URL_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
         private const val MAX_RATE_LIMIT = 100_000
+        private val SECRET_KEY_REGEX = Regex("^sb_secret_[A-Za-z0-9_-]{16,}$")
+
+        /** The legacy service_role key is a JWT: three base64url parts. */
+        private val LEGACY_KEY_REGEX = Regex("^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$")
         private val ORIGIN_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
     }
 }

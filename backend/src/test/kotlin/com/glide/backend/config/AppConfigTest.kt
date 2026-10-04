@@ -16,6 +16,7 @@ class AppConfigTest {
             "DATABASE_PASSWORD" to "s3cret-value",
             "CORS_ALLOWED_ORIGINS" to "https://admin.example.com, http://localhost:3000",
             "SUPABASE_URL" to "https://abcd.supabase.co/",
+            "SUPABASE_SECRET_KEY" to SECRET_KEY,
         )
 
     @Test
@@ -144,5 +145,78 @@ class AppConfigTest {
 
         assertFalse(printed.contains("s3cret-value"))
         assertTrue(printed.contains("password=***"))
+    }
+
+    @Test
+    fun `reads the Supabase secret key and never prints it`() {
+        val config = AppConfig.fromEnv(valid, "1")
+
+        assertEquals(SECRET_KEY, config.supabase.secretKey)
+        assertFalse(config.toString().contains(SECRET_KEY))
+        assertTrue(config.toString().contains("secretKey=***"))
+    }
+
+    @Test
+    fun `the secret key is optional on a laptop and in tests`() {
+        listOf("local", "test").forEach { env ->
+            val config = AppConfig.fromEnv(valid - "SUPABASE_SECRET_KEY" + ("APP_ENV" to env), "1")
+
+            assertEquals(null, config.supabase.secretKey, env)
+        }
+        assertEquals(
+            null,
+            AppConfig.fromEnv(valid + ("APP_ENV" to "local") + ("SUPABASE_SECRET_KEY" to " "), "1").supabase.secretKey,
+        )
+    }
+
+    @Test
+    fun `the secret key is required on staging and production`() {
+        listOf("staging", "production").forEach { env ->
+            val error =
+                assertFailsWith<InvalidConfigException> {
+                    AppConfig.fromEnv(
+                        valid - "SUPABASE_SECRET_KEY" + ("APP_ENV" to env) +
+                            ("CORS_ALLOWED_ORIGINS" to "https://a.example.com"),
+                        "1",
+                    )
+                }
+
+            assertEquals(
+                listOf("SUPABASE_SECRET_KEY is required in ${env.uppercase()} (admin invites need it)"),
+                error.problems,
+            )
+        }
+    }
+
+    @Test
+    fun `the publishable key or anything else in the secret key's place is refused without echoing it`() {
+        val publishable =
+            assertFailsWith<InvalidConfigException> {
+                AppConfig.fromEnv(valid + ("SUPABASE_SECRET_KEY" to "sb_publishable_abcdefghijklmnop"), "1")
+            }
+        assertEquals(
+            listOf("SUPABASE_SECRET_KEY is the publishable key; use the secret key (sb_secret_...)"),
+            publishable.problems,
+        )
+
+        val garbage =
+            assertFailsWith<InvalidConfigException> {
+                AppConfig.fromEnv(
+                    valid + ("SUPABASE_SECRET_KEY" to "hunter2"),
+                    "1",
+                )
+            }
+        assertFalse(garbage.message.orEmpty().contains("hunter2"))
+    }
+
+    @Test
+    fun `the legacy service_role key is accepted`() {
+        val legacy = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.c2lnbmF0dXJl"
+
+        assertEquals(legacy, AppConfig.fromEnv(valid + ("SUPABASE_SECRET_KEY" to legacy), "1").supabase.secretKey)
+    }
+
+    private companion object {
+        const val SECRET_KEY = "sb_secret_test_only_0123456789abcdef"
     }
 }
