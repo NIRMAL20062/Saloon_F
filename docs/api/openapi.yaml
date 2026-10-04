@@ -17,6 +17,11 @@ tags:
     description: Liveness and readiness checks for hosting platforms, uptime monitors and the apps
   - name: me
     description: The signed-in person (any side of the app) and their onboarding choice
+  - name: admin
+    description: |
+      Our team's admin website (D-013). Every /v1/admin endpoint needs a login that is in our admins table (matched on the
+      Supabase user id) and has passed the authenticator-app step (token claim aal = aal2, DF-16). Otherwise 403 with
+      NOT_ADMIN or MFA_REQUIRED.
 
 paths:
   /health/live:
@@ -145,6 +150,84 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         default: { $ref: "#/components/responses/Error" }
 
+  /v1/admin/me:
+    get:
+      operationId: getAdminMe
+      tags: [admin]
+      summary: The signed-in admin. An INVITED admin becomes ACTIVE on their first request with MFA done (BE-020)
+      security:
+        - supabaseToken: []
+      responses:
+        "200":
+          description: The signed-in admin
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResponse" }
+              example: { id: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80, email: admin@glide.test, status: ACTIVE }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /v1/admin/admins/invites:
+    post:
+      operationId: inviteAdmin
+      tags: [admin]
+      summary: Invite another admin by email (BE-020, D-013). Audit-logged
+      description: |
+        The email is trimmed and lower-cased. Supabase creates the login and sends its invite email; if the email already
+        has a Supabase login, none is sent and that login is used. The new admin is INVITED until their first login with
+        the authenticator app.
+      security:
+        - supabaseToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InviteAdminRequest" }
+            example: { email: new.admin@example.com }
+      responses:
+        "201":
+          description: Invited; returns the pending admin
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminResponse" }
+              example: { id: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80, email: new.admin@example.com, status: INVITED }
+        "400":
+          description: Malformed body, or the email fails validation (error code INVALID_EMAIL)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/AdminForbidden" }
+        "409":
+          description: This email is already an admin (error code ADMIN_ALREADY_EXISTS)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "502":
+          description: Supabase refused or failed to send the invite; nothing was saved (error code INVITE_FAILED)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "503":
+          description: The server has no Supabase secret key, so it can't invite (error code INVITES_UNAVAILABLE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   securitySchemes:
     supabaseToken:
@@ -167,6 +250,16 @@ components:
         application/json:
           schema: { $ref: "#/components/schemas/ErrorResponse" }
           example: { error: { code: UNAUTHORIZED, message: Please sign in again., requestId: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80 } }
+    AdminForbidden:
+      description: |
+        Signed in, but not allowed: NOT_ADMIN (this login is not one of our admins) or MFA_REQUIRED (an admin whose login
+        hasn't passed the authenticator-app step)
+      headers:
+        X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorResponse" }
+          example: { error: { code: MFA_REQUIRED, message: Log in with the code from your authenticator app to continue., requestId: 3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80 } }
     Error:
       description: Any error. See `ErrorBody.code` for the reason
       headers:
@@ -243,6 +336,36 @@ components:
       properties:
         side:
           $ref: "#/components/schemas/UserSide"
+
+    AdminStatus:
+      type: string
+      enum: [INVITED, ACTIVE]
+      description: INVITED until the admin's first login with the authenticator app, then ACTIVE
+
+    AdminResponse:
+      type: object
+      additionalProperties: false
+      required: [id, email, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Supabase user id of the admin's login
+        email:
+          type: string
+          maxLength: 254
+          description: Login email, in lower case
+        status:
+          $ref: "#/components/schemas/AdminStatus"
+
+    InviteAdminRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email:
+          type: string
+          description: Trimmed and lower-cased; at most 254 characters and shaped like an email address
 
     ErrorResponse:
       type: object
