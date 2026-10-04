@@ -1,5 +1,8 @@
 package com.glide.shared
 
+import com.glide.shared.admin.AdminResponse
+import com.glide.shared.admin.AdminStatus
+import com.glide.shared.admin.InviteAdminRequest
 import com.glide.shared.api.ApiJson
 import com.glide.shared.error.ErrorBody
 import com.glide.shared.error.ErrorResponse
@@ -94,6 +97,24 @@ class ContractSerializationTest {
     @Test
     fun `update side request has the documented wire format`() {
         assertJsonEquals("""{"side":"CUSTOMER"}""", ApiJson.encodeToString(UpdateSideRequest(UserSide.CUSTOMER)))
+    }
+
+    @Test
+    fun `admin response has the documented wire format`() {
+        val json =
+            ApiJson.encodeToString(
+                AdminResponse("3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80", "admin@glide.test", AdminStatus.INVITED),
+            )
+
+        assertJsonEquals(
+            """{"id":"3f0c9a52-7d1e-4b8a-9a0e-2c1d5b6e7f80","email":"admin@glide.test","status":"INVITED"}""",
+            json,
+        )
+    }
+
+    @Test
+    fun `invite admin request has the documented wire format`() {
+        assertJsonEquals("""{"email":"b@glide.test"}""", ApiJson.encodeToString(InviteAdminRequest("b@glide.test")))
     }
 
     private fun assertJsonEquals(

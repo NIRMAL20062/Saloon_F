@@ -38,7 +38,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** tests prove salon create, bank-details change, staff add/remove write audit rows; rows can't be updated or deleted by the app.
 
 ### BE-020 · Admins: first admin, invites, admin-only routes
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Decisions: D-013, DF-16
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016 · Decisions: D-013, DF-16
 - **Needs from team:** the email of the first admin; Email provider turned on in Supabase (+ free SMTP, e.g. Brevo) and authenticator-app MFA enabled;
   the Supabase **service-role key** put into `.env` by the team (the backend needs it to send invites; never in chat or git).
 - **Scope:** `admins` table (our DB decides who is admin); first admin created by a one-off command; `GET /v1/admin/me`;
