@@ -72,12 +72,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Platform backlog (done alongside features; never blocks them)
 
-- 🔄 **BE-023** Our database on Supabase's Postgres (D-042, DF-26) · **Owner:** Claude
-  - tables in the `glide` schema (not published by Supabase's Data API); `sslmode=require` enforced for Supabase URLs
-  - _Needs from team:_ in `.env`, the Supabase **Session pooler** connection (host, user `postgres.<project>`, database password)
-  - Done when: tests prove the schema and the SSL rule; the backend starts against Supabase, migrations V1–V4 create the tables
-    in `glide`, the app's login + onboarding work against it; the team sees the tables in the dashboard
-
 - ⬜ **BE-012** Security scanning: CodeQL (Kotlin + TypeScript), Dependabot (Gradle, npm, Actions, Docker), dependency review on PRs,
   secret scanning. _Needs from team: Settings → Code security → turn on Secret scanning + Push protection (free on public repos)._
 - ⬜ **BE-013** CD: on merge to `main` publish the backend image to GitHub Container Registry and the Android builds to Firebase App

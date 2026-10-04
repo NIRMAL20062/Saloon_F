@@ -19,16 +19,16 @@ _Last updated 2026-10-04._
   **APP-004** (phone login), **APP-011** (design system), **APP-013** (the team's mockup look, welcome screen, light only).
   Details: `tasks/*_COMPLETED.md`.
 - **BE-018 + APP-005** merged 2026-10-04 (profile API; "How will you use Glide?" and the customer profile, mockups 4–5).
-- **Now:** BE-023, our database on Supabase's Postgres (D-042): working against the dev project (tables in schema `glide`,
-  login + onboarding tested on the phone); pull request open, waiting for the team's OK.
+- **BE-023** merged 2026-10-04: our development database is Supabase's Postgres, schema `glide` (D-042, DF-26).
+- **Now:** nothing in progress; waiting for the team's go-ahead to start WEB-002.
 - **Next task:** WEB-002 → BE-020 → WEB-005 (admin website login). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Public keys only in the repo; secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
-- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
-- **Open pull requests:** BE-023 (Supabase database).
+- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009).
+- **Open pull requests:** none.
 
 ## Golden rules
 
