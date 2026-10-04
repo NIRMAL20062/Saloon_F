@@ -92,6 +92,30 @@ class AppConfigTest {
     }
 
     @Test
+    fun `a supabase database needs an encrypted connection`() {
+        val pooler = "jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+        val error =
+            assertFailsWith<InvalidConfigException> { AppConfig.fromEnv(valid + ("DATABASE_URL" to pooler), "1") }
+
+        assertEquals(
+            listOf(
+                "DATABASE_URL to Supabase must end with ?sslmode=require (otherwise the password travels unencrypted)",
+            ),
+            error.problems,
+        )
+        assertEquals(
+            "$pooler?sslmode=require",
+            AppConfig.fromEnv(valid + ("DATABASE_URL" to "$pooler?sslmode=require"), "1").database.jdbcUrl,
+        )
+        assertFailsWith<InvalidConfigException> {
+            AppConfig.fromEnv(
+                valid + ("DATABASE_URL" to "jdbc:postgresql://db.abc.supabase.co:5432/postgres?sslmode=disable"),
+                "1",
+            )
+        }
+    }
+
+    @Test
     fun `rejects malformed cors origins`() {
         val error =
             assertFailsWith<InvalidConfigException> {

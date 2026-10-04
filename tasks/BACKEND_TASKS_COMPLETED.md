@@ -116,3 +116,24 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** auth required; the id always comes from the token (own profile only); server + database validation; no names, emails, phones or tokens in logs
 - **Database:** `V4__app_users_profile` (name 2–60, email ≤ 254 and email-shaped)
 - **Verified by:** Claude, real Supabase login + local database
+
+## Platform backlog
+
+### BE-023 · Our database on Supabase's Postgres
+- **Completed:** 2026-10-04 (team's go-ahead, merged) · **Commits:** `13a5169` `20561a7` `63a4af5` `4b7f90d`
+- **Status:** ✅ Done · **Owner:** Claude · Decisions: D-042, DF-26
+- **Scope:** development database moved from Docker on the laptop to Supabase's hosted Postgres (dev project); every table,
+  function and trigger in schema `glide` (not `public`, which Supabase's Data API publishes); a Supabase `DATABASE_URL` without
+  `sslmode=require` (or `verify-ca`/`verify-full`) stops the backend at startup
+- **Done when:**
+  - [x] Tests: `AppConfigTest` (a Supabase database needs an encrypted connection), `MigrationTest` (our tables live in `glide`,
+    never in `public`). Backend total 72
+  - [x] Backend started against Supabase (Session pooler, port 5432): Flyway created `glide` and applied V1–V4
+  - [x] Flow on the team phone (fresh app data, test number 3): login → customer → profile → home; still there after reopening;
+    `/v1/me`, `/v1/me/side`, `/v1/me/profile` all 200
+  - [x] The team saw `glide.app_users` with the row in the Supabase dashboard
+- **Security:** connection details only in `.env`; SSL enforced; test login codes removed from `CLAUDE.md` (public repo)
+- **Database:** no new migration; same V1–V4, now in schema `glide`
+- **Notes:** the dev project is in Tokyo (`ap-northeast-1`), so each API call takes about 1.2–2.5 s from India; staging and
+  production should be in Mumbai (`ap-south-1`)
+- **Verified by:** Claude, real Supabase login + Supabase database; the team in the dashboard

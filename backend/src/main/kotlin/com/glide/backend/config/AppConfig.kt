@@ -73,6 +73,10 @@ data class AppConfig(
             if (database.jdbcUrl.isNotEmpty() && !database.jdbcUrl.startsWith("jdbc:postgresql://")) {
                 problems += "DATABASE_URL must start with jdbc:postgresql://"
             }
+            if (database.jdbcUrl.isSupabase() && !SSL_REQUIRED.containsMatchIn(database.jdbcUrl)) {
+                problems +=
+                    "DATABASE_URL to Supabase must end with ?sslmode=require (otherwise the password travels unencrypted)"
+            }
 
             val origins =
                 env["CORS_ALLOWED_ORIGINS"]
@@ -118,3 +122,11 @@ data class AppConfig(
 class InvalidConfigException(
     val problems: List<String>,
 ) : IllegalStateException("Invalid configuration:\n" + problems.joinToString("\n") { " - $it" })
+
+/** Postgres hosted by Supabase (direct or through its connection pooler). */
+private fun String.isSupabase(): Boolean {
+    val host = substringAfter("://").substringBefore('/').substringBefore('?').substringBefore(':')
+    return host.endsWith(".supabase.co") || host.endsWith(".supabase.com")
+}
+
+private val SSL_REQUIRED = Regex("[?&]sslmode=(require|verify-ca|verify-full)(&|$)")

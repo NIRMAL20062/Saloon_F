@@ -35,7 +35,8 @@
 | File storage | Cloudflare R2 or S3 (invoice PDFs, photos) |
 | Secrets | Environment variables only, never in the app or git |
 
-Supabase is used **only for login**; the database is our own PostgreSQL (local Docker during development).
+Supabase provides login **and hosts our PostgreSQL** (D-042), in our own `glide` schema that its Data API doesn't publish (DF-26).
+Our backend is the only thing that reads or writes the data; Supabase Realtime and its Data API are not used.
 
 ## Integrations
 

@@ -51,6 +51,7 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | D-039 | 2026-10-03 | **Two salon roles only: Owner and Staff** (no Manager in the MVP). **Owner:** full control: salon profile, staff (add / remove, working hours), services and prices, all appointments, customers, bills, reports and revenue, cancellations and refunds, bank details, subscription. **Staff:** only their own appointments: see them, accept them, see the basic customer details the appointment needs, mark it done or no-show. Staff can't change prices, staff, bank details or the subscription, can't see salon-wide money, can't touch other staff's appointments. The backend enforces every rule, not just hidden buttons | Team decision; replaces D-034's three roles. A receptionist or manager role can be added later if real salons ask for it |
 | D-040 | 2026-10-03 | **Light mode only.** The app has no dark mode; it looks the same whatever the phone's setting | Team decision. Simpler to design and test; every screen follows the mockup (D-041) |
 | D-041 | 2026-10-03 | **The team's mockup is the visual reference:** [design/customer-flow-1.webp](design/customer-flow-1.webp). Brand red on warm white with light-pink cards, the "Glide" wordmark (red G) with the three-petal leaf mark, the Poppins font, pill-shaped red buttons, and a welcome screen with a full-screen salon photo ("Look Good, Feel Amazing" → Get Started). Screens keep the MVP's features (PRODUCT.md); the mockup decides how they look | Team decision; brand red is `#E02430` (the mockup's `#E4242E`, 1% darker so white text on it passes WCAG AA). Replaces the placeholder violet/rose |
+| D-042 | 2026-10-04 | **The development database is Supabase's hosted PostgreSQL**, so the team sees every table and row in the Supabase dashboard. Our backend still owns the data: it connects with the database password, runs the Flyway migrations and checks every rule; the app never talks to the database. Tests keep using a throwaway Postgres in Docker. Supabase Realtime is not used (live updates come from our backend + push) | Team decision. Answers Q-002's "Supabase as hosted Postgres". Free tier: 500 MB, pauses after a week without use |
 
 ## Implementation defaults (veto-able)
 
@@ -81,13 +82,14 @@ Status: **Decided** = agreed by the team · **Default** = picked by the develope
 | DF-23 | **A phone number added as staff joins at its first login**: no "join?" step; the app skips "customer or salon?" and opens the salon side. Adding a number that already chose "customer" is refused with "ask Glide support" (our team can move it, DF-22) | The team said staff just log in and accept bookings |
 | DF-24 | **Bank details are stored encrypted**, shown masked (last 4 digits) everywhere except to an admin verifying the salon (each such view audit-logged), and never logged | Bank details are sensitive financial data |
 | DF-25 | **The subscription price lives in our database** (`subscription_plans`) and is changed on the admin website. A change creates a new Razorpay plan for new subscriptions | Razorpay plans can't be edited once created. What happens to salons already paying: Q-015 |
+| DF-26 | **Our tables live in the `glide` schema**, never in `public`. Supabase publishes `public` through its Data API to anyone holding the app's publishable key; `glide` is not published. A Supabase `DATABASE_URL` must use `sslmode=require` (the backend refuses to start otherwise) | Only our backend can read or change the data, and the password never travels unencrypted |
 
 ## Open questions
 
 | ID | Question | Blocks |
 |---|---|---|
 | Q-001 | ~~Product plan not in the repo~~ **Answered 2026-10-02 → D-015** (ChatGPT.md v2) + the salon-side plan written as a draft (Q-009) | - |
-| Q-002 | ~~Supabase only as hosted Postgres?~~ Partly answered 2026-10-02: free tiers (D-010), no hosting during development (D-011). Which free Postgres host at Pre-launch is decided together with Q-007 | Pre-launch |
+| Q-002 | ~~Supabase only as hosted Postgres?~~ **Answered 2026-10-04 → D-042**: Supabase hosts our Postgres (from development on) | - |
 | Q-003 | ~~Which user types need test users?~~ **Answered 2026-10-02 → D-012** | - |
 | Q-004 | ~~Hosting provider?~~ **Answered 2026-10-02 → D-011**: none until development is done; free tier then. Provider picked at Pre-launch | Pre-launch |
 | Q-005 | ~~How does our team log in to the admin panel?~~ **Answered 2026-10-02 → D-013** (email, admins add admins) | - |

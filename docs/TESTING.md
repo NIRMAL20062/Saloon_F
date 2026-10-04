@@ -42,7 +42,7 @@ We test on **real services in test mode** from the start, but **without hosting*
 
 | Service | Test-mode setup |
 |---|---|
-| PostgreSQL | local Docker now; a separate free hosted database for staging later, never shared with production |
+| PostgreSQL | tests: a throwaway Docker Postgres (Testcontainers); development: Supabase's hosted Postgres, schema `glide` (D-042); production: a separate database, never shared |
 | Razorpay | **test mode** keys: real API, real webhooks, no real money. Test cards/UPI from Razorpay docs |
 | Phone/email login | **Supabase Auth test phone numbers** with fixed OTP codes (free, no SMS sent); team phones with real SMS through a Twilio trial account (D-016) |
 | WhatsApp Cloud API | Meta **test number** and test recipients |
