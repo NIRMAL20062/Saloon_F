@@ -57,6 +57,14 @@ describe("backend client", () => {
     expect(await seen[0].json()).toEqual({ side: "SALON" });
   });
 
+  test("never follows redirects, so a login token can't be sent on to another host", async () => {
+    const { client, seen } = fakeBackend(() => json({ status: "UP", version: "0.1.0" }));
+
+    await unwrap(client.GET("/health/live"));
+
+    expect(seen[0].redirect).toBe("error");
+  });
+
   test("calls that don't match the spec don't compile", () => {
     const { client } = fakeBackend(() => json({}));
 

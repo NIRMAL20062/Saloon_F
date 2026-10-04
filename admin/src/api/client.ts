@@ -23,7 +23,13 @@ export function createBackendClient(
   return createClient<paths>({
     baseUrl,
     fetch: (request) =>
-      fetchImpl(new Request(request, { signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]) })),
+      fetchImpl(
+        new Request(request, {
+          signal: AbortSignal.any([request.signal, AbortSignal.timeout(timeoutMs)]),
+          // The backend never redirects; refusing keeps login tokens from following one to another host.
+          redirect: "error",
+        }),
+      ),
   });
 }
 
