@@ -22,8 +22,8 @@ _Last updated 2026-10-04._
 - **Now:** BE-023, our database on Supabase's Postgres (D-042), waiting for the database connection in `.env`.
 - **Next task:** WEB-002 → BE-020 → WEB-005 (admin website login). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
-- **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…`
-  with code `123456` (no SMS sent). Public keys only in the repo; secret keys never. The team rotates the secret key before
+- **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
+  (no SMS sent; their codes are in the team's password manager, not in git). Public keys only in the repo; secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); first admin email (BE-020).
