@@ -179,16 +179,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           package-manager-cache: false
-      - name: Admin panel starts against the real backend
+      - name: Admin panel starts against the real backend; pages need a login
         working-directory: admin
         env:
           API_BASE_URL: http://localhost:8080
+          # Public values of the team's development project. No login happens in this smoke test.
+          SUPABASE_URL: https://uwvaebgbdqitbnymoqfq.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_4SjiEzyCa5wA7sQQETlNtA_Gq0gQ7R_
         run: |
+          export ADMIN_SESSION_SECRET="$(openssl rand -base64 32)"
           pnpm install --frozen-lockfile
           pnpm build
           (pnpm start > ../admin.log 2>&1 &)
-          for i in $(seq 1 60); do curl -fsS http://localhost:3000 -o page.html && break; sleep 1; done
+          for i in $(seq 1 60); do curl -fsS http://localhost:3000/login -o page.html && break; sleep 1; done
           grep -q "Glide Admin" page.html
+          # Logged out, the home page redirects to the login page (WEB-005).
+          test "$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' http://localhost:3000/)" = "307 http://localhost:3000/login"
       - name: Container and admin logs
         if: failure()
         run: |
