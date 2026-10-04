@@ -21,10 +21,10 @@ _Last updated 2026-10-04._
 - **BE-018 + APP-005** merged 2026-10-04 (profile API; "How will you use Glide?" and the customer profile, mockups 4–5).
 - **BE-023** merged 2026-10-04: our development database is Supabase's Postgres, schema `glide` (D-042, DF-26).
 - **WEB-002** merged 2026-10-04: the admin website calls the backend through a typed, server-only client (DF-27).
-- **Now:** BE-020 (the backend's list of admins: admin-only routes, invites, first-admin command, audit log) built and
-  checked against the real Supabase project; waiting for the team's OK on its pull request. Admin login (WEB-005) = email
-  code + authenticator app, no Google, no password (team, 2026-10-04: option A). First admin in the dev project:
-  `admin@glide.test` (made by the command; its codes come from the admin API, no inbox).
+- **BE-020** merged 2026-10-04: admins list, admin-only routes (admin + authenticator app), invites, append-only audit log
+  (DF-28, DF-29). First admin in the dev project: `admin@glide.test` (its codes come from the admin API, no inbox).
+- **Now:** nothing in progress; waiting for the team's go-ahead to start WEB-005. Admin login = email code + authenticator
+  app, no Google, no password (team, 2026-10-04).
 - **Next task:** WEB-005 (admin website login). Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
@@ -33,7 +33,7 @@ _Last updated 2026-10-04._
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
   city (APP-009).
-- **Open pull requests:** BE-020.
+- **Open pull requests:** none.
 
 ## Golden rules
 

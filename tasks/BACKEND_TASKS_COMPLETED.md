@@ -117,6 +117,30 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Database:** `V4__app_users_profile` (name 2–60, email ≤ 254 and email-shaped)
 - **Verified by:** Claude, real Supabase login + local database
 
+### BE-020 · Admins: first admin, invites, admin-only routes
+- **Completed:** 2026-10-04 (team's OK) · **Commits:** `e0c69d2` `1bf3958` `fb7fd29` `20da4be` `15367bb` `e7a539f` `911f173` `ff21c04` · PR #11
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-016 · Decisions: D-013, DF-16
+- **Needs from team:** the email of the first admin; Email provider turned on in Supabase (+ free SMTP, e.g. Brevo) and authenticator-app MFA enabled;
+  the Supabase **service-role key** put into `.env` by the team (the backend needs it to send invites; never in chat or git).
+- **Scope:** `admins` table (our DB decides who is admin); first admin created by a one-off command; `GET /v1/admin/me`;
+  `POST /v1/admin/admins/invites` (sends the Supabase invite email); every `/v1/admin` route requires an admin **with MFA completed**.
+- **Done when:**
+  - [x] tests: non-admin → 403; admin without MFA → 403; invite creates a pending admin; audit-logged
+  - [x] Flow: against the real Supabase project, the first admin made by the command; email code only → 403 MFA_REQUIRED; with the authenticator app → 200 ACTIVE; invite → 201; app (phone) user → 403
+- **Built:** `admins` + append-only `audit_log` (V5, DF-28); `adminOnly()` guard (login in `admins` by user id **and** `aal2`,
+  else 403 `NOT_ADMIN` / `MFA_REQUIRED`; INVITED → ACTIVE on first such request); `GET /v1/admin/me`;
+  `POST /v1/admin/admins/invites` (ASCII email, Supabase invite or existing login, 409 / 502 / 503); `addFirstAdmin` command;
+  `SupabaseAuthAdmin` (JDK HttpClient); `SUPABASE_SECRET_KEY` (optional locally, required on staging/production); DF-29
+- **Tests:** `AdminTablesTest` 7, `AdminRepositoryTest` 6, `AdminRoutesTest` 16, `AddFirstAdminTest` 3, `SupabaseAuthAdminTest` 9;
+  added `SupabaseTokenVerifierTest` +3, `AppConfigTest` +5, `OpenApiContractTest` +1, `ContractSerializationTest` +2
+- **Security:** admin matched on user id, never email; MFA required; every `/v1/admin` route tested as guarded; secret key never
+  printed, publishable key refused in its place; Supabase error text never logged; audit rows can't be changed or deleted
+- **Database:** `V5__admins_and_audit_log` (applied to the Supabase dev database 2026-10-04). Team asked afterwards for one
+  table/change per migration file from now on (rule added to the db-migration skill); V5 stays as applied
+- **Verified by:** Claude against the real Supabase dev project + local backend: first admin `admin@glide.test` by the command;
+  email code only → 403 `MFA_REQUIRED`; real authenticator code → 200 ACTIVE (test factor removed afterwards); invite of
+  `second.admin@glide.test` (existing login) → 201, again → 409; test phone user → 403 `NOT_ADMIN`; no login → 401
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres
