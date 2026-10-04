@@ -12,9 +12,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-010
 - **Why:** admin pages call the backend with types generated from `docs/api/openapi.yaml`, so nothing is hand-copied.
 - **Done when:**
-  - [ ] TypeScript types generated from the spec; small typed fetch client used only on the server
-  - [ ] backend error envelope mapped to one error type; tests for success, error envelope, backend down
-  - [ ] changing the spec without regenerating fails `pnpm verify`
+  - [x] TypeScript types generated from the spec; small typed fetch client used only on the server
+  - [x] backend error envelope mapped to one error type; tests for success, error envelope, backend down
+  - [x] changing the spec without regenerating fails `pnpm verify`
 
 ### WEB-005 · Admin login: email code + authenticator app
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
