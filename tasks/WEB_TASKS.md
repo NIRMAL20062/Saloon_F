@@ -9,7 +9,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Admin login and salon verification
 
 ### WEB-002 · Typed API client
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-010
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-010
 - **Why:** admin pages call the backend with types generated from `docs/api/openapi.yaml`, so nothing is hand-copied.
 - **Done when:**
   - [ ] TypeScript types generated from the spec; small typed fetch client used only on the server
