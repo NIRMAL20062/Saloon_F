@@ -34,7 +34,7 @@ class AdminService(
         rawEmail: String,
         requestId: String?,
     ): Outcome {
-        val email = Emails.normalize(rawEmail) ?: return Outcome.InvalidEmail
+        val email = adminEmail(rawEmail) ?: return Outcome.InvalidEmail
         if (admins.findByEmail(email) != null) return Outcome.AlreadyExists
         val userId =
             try {
@@ -53,7 +53,7 @@ class AdminService(
 
     /** The one-off command (BE-020): makes [rawEmail] the first admin, without sending any email. */
     suspend fun addFirst(rawEmail: String): Outcome {
-        val email = Emails.normalize(rawEmail) ?: return Outcome.InvalidEmail
+        val email = adminEmail(rawEmail) ?: return Outcome.InvalidEmail
         val userId =
             try {
                 authAdmin.findOrCreateUser(email)
@@ -64,4 +64,16 @@ class AdminService(
             }
         return admins.addFirst(userId, email)?.let { Outcome.Added(it) } ?: Outcome.AlreadyExists
     }
+
+    /**
+     * Admin emails are plain ASCII: Kotlin and PostgreSQL lower-case some other letters differently, which would trip
+     * the database's lower-case check (a 500 whose log line would contain the email).
+     */
+    private fun adminEmail(raw: String): String? =
+        Emails.normalize(raw)?.takeIf { email ->
+            email.all {
+                it.code in
+                    0x21..0x7E
+            }
+        }
 }
