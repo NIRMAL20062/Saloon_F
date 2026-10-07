@@ -8,7 +8,7 @@ Writing a migration: use the `/db-migration` skill.
 
 | Topic | Rule | Decision |
 |---|---|---|
-| Schema | every table, function and trigger lives in `glide` (Flyway creates it; connections use it); nothing of ours in `public`, which Supabase publishes | DF-26 |
+| Schema | every table, function and trigger lives in `glide` (Flyway creates it; each pooled connection sets `search_path` to it and commits that as it opens, so a rolled-back transaction can't undo it, BE-024); nothing of ours in `public`, which Supabase publishes | DF-26 |
 | Tenancy | **salon-owned** tables have `salon_id uuid NOT NULL` + an index starting with `salon_id`; a **customer's own** data is keyed by their `app_user_id`; **platform** tables (`app_users`, `admins`, `webhook_events`, …) have neither | D-025 |
 | Tenant source | `salon_id` from the signed-in person's one salon membership (one salon per person); never from the request body | D-035, D-036, DF-13 |
 | Row-level security | every salon-owned table has `ENABLE` + `FORCE ROW LEVEL SECURITY` and a policy on `current_setting('app.salon_id')`; Flyway runs as the owner user, the backend as a limited user that is neither superuser nor owner (from BE-017) | D-027 |
