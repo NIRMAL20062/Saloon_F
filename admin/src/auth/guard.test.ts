@@ -77,6 +77,17 @@ describe("session limits (DF-30)", () => {
   });
 });
 
+describe("the logged-out page (WEB-008)", () => {
+  test("/login?expired=1 deletes the session cookie, so a login the backend refused can't bounce back to /", async () => {
+    expect(await guard("/login", await cookieFor(base), NOW, deps, { expired: true })).toEqual({ kind: "allow", clearCookie: true });
+  });
+
+  test("plain /login keeps it, and without a cookie there is nothing to delete", async () => {
+    expect(await guard("/login", await cookieFor(base), NOW, deps)).toEqual({ kind: "allow" });
+    expect(await guard("/login", undefined, NOW, deps, { expired: true })).toEqual({ kind: "allow" });
+  });
+});
+
 describe("prefetches (WEB-008)", () => {
   const prefetch = { prefetch: true };
 

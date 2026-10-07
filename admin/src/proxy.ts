@@ -16,7 +16,7 @@ export async function proxy(request: NextRequest) {
     request.cookies.get(SESSION_COOKIE)?.value,
     Date.now(),
     { secret: getEnv().ADMIN_SESSION_SECRET, refresh: (refreshToken) => supabaseAuth().refresh(refreshToken) },
-    { prefetch: isPrefetch(request.headers) },
+    { prefetch: isPrefetch(request.headers), expired: request.nextUrl.searchParams.has("expired") },
   );
 
   if (decision.kind === "redirect") {
@@ -25,8 +25,9 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // The page must see a renewed session in this same request, so update the request's cookie too.
+  // The page must see a renewed or deleted session in this same request, so update the request's cookie too.
   if (decision.cookie) request.cookies.set(SESSION_COOKIE, decision.cookie.value);
+  if (decision.clearCookie) request.cookies.delete(SESSION_COOKIE);
 
   const nonce = createNonce();
   const csp = buildCsp(nonce, process.env.NODE_ENV === "development");
@@ -39,6 +40,7 @@ export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
   if (decision.cookie) response.cookies.set(SESSION_COOKIE, decision.cookie.value, cookieOptions(decision.cookie.maxAgeMs));
+  if (decision.clearCookie) response.cookies.set(SESSION_COOKIE, "", { ...cookieOptions(0), maxAge: 0 });
   return response;
 }
 

@@ -12,7 +12,7 @@ export const REFRESH_MARGIN_MS = 2 * 60 * 1000;
 export const TOUCH_EVERY_MS = 60 * 1000;
 
 export type GuardDecision =
-  | { kind: "allow"; cookie?: { value: string; maxAgeMs: number } }
+  | { kind: "allow"; cookie?: { value: string; maxAgeMs: number }; clearCookie?: boolean }
   | { kind: "redirect"; location: string; clearCookie: boolean };
 
 export type GuardDeps = { secret: string; refresh: (refreshToken: string) => Promise<SupabaseTokens> };
@@ -20,8 +20,9 @@ export type GuardDeps = { secret: string; refresh: (refreshToken: string) => Pro
 /**
  * [prefetch]: the browser fetching a linked page ahead of a click. It is checked like any request but isn't activity,
  * or an open page would keep its login alive by itself (WEB-008).
+ * [expired]: the address has `?expired=`, where pages send a login that ended.
  */
-export type GuardRequest = { prefetch?: boolean };
+export type GuardRequest = { prefetch?: boolean; expired?: boolean };
 
 /** What the proxy does with one page request (DF-30). Pure apart from [deps.refresh], so every rule is unit-tested. */
 export async function guard(
@@ -31,7 +32,12 @@ export async function guard(
   deps: GuardDeps,
   request: GuardRequest = {},
 ): Promise<GuardDecision> {
-  if (PUBLIC_PATHS.includes(path)) return { kind: "allow" };
+  if (PUBLIC_PATHS.includes(path)) {
+    // A login sent here has ended (idle, too old, or refused by the backend): delete it, or the next visit to / would
+    // find it again and come straight back (WEB-008).
+    if (path === "/login" && request.expired && cookie) return { kind: "allow", clearCookie: true };
+    return { kind: "allow" };
+  }
 
   const session = await unseal<AdminSession>(cookie, deps.secret);
   if (!session) {

@@ -69,6 +69,16 @@ test("an unreadable session cookie is deleted on the way to the login page", asy
   expect(response.headers.get("set-cookie")).toMatch(new RegExp(`${SESSION_COOKIE}=;.*Max-Age=0`, "i"));
 });
 
+test("/login?expired=1 is served and deletes the session cookie (no loop back to /)", async () => {
+  const request = new NextRequest("http://localhost:3000/login?expired=1", { headers: { cookie: `${SESSION_COOKIE}=anything` } });
+
+  const response = await proxy(request);
+
+  expect(response.headers.get("location")).toBeNull();
+  expect(response.headers.get("set-cookie")).toMatch(new RegExp(`${SESSION_COOKIE}=;.*Max-Age=0`, "i"));
+  expect(request.cookies.has(SESSION_COOKIE)).toBe(false);
+});
+
 test("the login page is served with a nonce CSP", async () => {
   const response = await proxy(new NextRequest("http://localhost:3000/login"));
 
