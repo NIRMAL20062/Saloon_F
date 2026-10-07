@@ -66,9 +66,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Scope:** make the schema setting survive rollbacks (commit it when the connection is set up, e.g. HikariCP
   `connectionInitSql`), keeping DF-26 (`glide`, never `public`). Not included: changing pool sizes or timeouts.
 - **Done when:**
-  - [ ] Test: a fresh pooled connection whose first transaction is rolled back still finds `glide` tables
-  - [ ] Test: connections replaced by the pool (closed underneath, like the pooler does) still find `glide` tables
-  - [ ] Database: no migration
+  - [x] Test: a fresh pooled connection whose first transaction is rolled back still finds `glide` tables
+  - [x] Test: connections replaced by the pool (closed underneath, like the pooler does) still find `glide` tables
+  - [x] Database: no migration
   - [ ] Flow: backend left idle on the Supabase database until the pooler closes connections, then `/v1/me` and
     `/v1/admin/me` still answer 200
 
