@@ -26,7 +26,10 @@ _Last updated 2026-10-07._
 - **WEB-005** merged 2026-10-07: admin website login (email code + authenticator app), every page locked, 30 min idle /
   12 h sessions (DF-30). Checked in a real browser against real Supabase + backend.
 - **BE-024** merged 2026-10-07: database connections keep the `glide` schema after a rollback (no more backend restarts).
-- **Now:** WEB-008 (admin login security follow-up from the WEB-005 re-check), PR #14.
+- **WEB-008** merged 2026-10-07: admin login follow-up from the WEB-005 re-check (prefetches no longer skip the session
+  check, pages apply the 30 min / 12 h limits themselves, no redirect loop, `/api-keys`-like pages covered).
+- **Now:** nothing in progress. A project review (2026-10-07) is being turned into tasks; Razorpay and the Play Console
+  wait until later (team, 2026-10-07).
 - **Next task:** BE-017 + APP-006. Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
@@ -36,7 +39,7 @@ _Last updated 2026-10-07._
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
   city (APP-009).
-- **Open pull requests:** #14 (WEB-008).
+- **Open pull requests:** none.
 
 ## Golden rules
 
