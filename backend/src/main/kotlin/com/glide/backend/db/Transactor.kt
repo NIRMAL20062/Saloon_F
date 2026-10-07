@@ -2,7 +2,6 @@ package com.glide.backend.db
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.jdbc.Database
 import java.util.UUID
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction as exposedTransaction
@@ -15,12 +14,14 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction as exposedTransact
  */
 interface Transactor {
     /**
-     * [salon]: the salon this piece of work is for (from the signed-in person's membership, D-036, never from the request).
-     * It is set as `app.salon_id` for this transaction only, and row-level security shows and accepts only that salon's
-     * rows (BE-031, D-027). Null: no salon, so no salon-owned row is visible.
+     * [salon]: the salon this piece of work is for (from the signed-in person's membership, D-036, never from the request);
+     * row-level security then shows and accepts only that salon's rows (BE-031, D-027). Null: no salon-owned row at all.
+     * [user]: the signed-in person, whose own rows (their membership) become visible. Both last for this transaction only;
+     * see [RowSecurity] to set the salon once it is known inside the transaction.
      */
     suspend fun <T> transaction(
         salon: UUID? = null,
+        user: UUID? = null,
         block: () -> T,
     ): T
 }
@@ -30,14 +31,13 @@ class ExposedTransactor(
 ) : Transactor {
     override suspend fun <T> transaction(
         salon: UUID?,
+        user: UUID?,
         block: () -> T,
     ): T =
         withContext(Dispatchers.IO) {
             exposedTransaction(database) {
-                if (salon != null) {
-                    // `true`: local to this transaction, so it can never leak to the next user of the pooled connection.
-                    exec("SELECT set_config('app.salon_id', ?, true)", listOf(TextColumnType() to salon.toString())) { }
-                }
+                salon?.let(RowSecurity::forSalon)
+                user?.let(RowSecurity::forUser)
                 block()
             }
         }

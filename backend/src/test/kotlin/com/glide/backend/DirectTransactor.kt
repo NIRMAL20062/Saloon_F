@@ -7,6 +7,7 @@ import java.util.UUID
 object DirectTransactor : Transactor {
     override suspend fun <T> transaction(
         salon: UUID?,
+        user: UUID?,
         block: () -> T,
     ): T = block()
 }
