@@ -60,6 +60,20 @@ jobs:
               - 'admin/**'
               - 'docs/api/openapi.yaml'
 
+  migrations:
+    name: Merged migrations unchanged
+    # A merged migration may already have run on a database, so a pull request may only add new ones (BE-034).
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          # The pull request's merge commit and its first parent: the target branch as it is now.
+          fetch-depth: 2
+      - run: .github/scripts/merged-migrations-unchanged.sh HEAD^1 HEAD
+
   backend:
     name: Backend + shared (ktlint, tests on real Postgres)
     needs: changes
@@ -207,7 +221,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [changes, backend, android, admin, e2e]
+    needs: [changes, migrations, backend, android, admin, e2e]
     runs-on: ubuntu-24.04
     steps:
       - name: All required jobs passed or were skipped
