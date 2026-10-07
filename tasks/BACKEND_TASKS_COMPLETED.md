@@ -258,6 +258,40 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
   contains this one: login, reopen, logout, onboarding (customer and salon), backend down → Retry
 
 
+### BE-017 · Salons and owners
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `044b4f3` `949453c` `e074677` `0449baf` `a56ea02` `b558109` `1d1e2da`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, D-046, DF-32
+- **Needs from team:** nothing (fields answered 2026-10-07: D-046).
+- **Scope:**
+  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a
+    reason, or SUSPENDED) and `salon_members` (salon, phone, user, role OWNER / STAFF (D-039), status ACTIVE / REMOVED), one
+    migration each, row-level security forced on both
+  - `POST /v1/salon/salons` (creator becomes OWNER; only a person whose side is SALON, D-030) · `GET /v1/salon/me` (my salon
+    and role) · `PUT /v1/salon/salon` (owner edits the profile while not live)
+  - one salon per person (D-035); every salon route takes the salon from the signed-in person's membership and checks the role
+    (D-036); everything except a staff member's own appointments is OWNER-only (D-039)
+- **Done when:**
+  - [x] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
+    **salon A can't read or change salon B** (every route); validation errors
+  - [x] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
+    RLS enabled + forced; test: `glide_app` with salon A set sees zero rows of salon B, with no salon set sees none
+  - [x] Security: salon id never trusted from the request; role checked on every route
+  - [x] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
+- **Built:** V7 `salons` (profile per D-046/DF-32, status, forced RLS: a row only in its own salon's transaction); V8
+  `salon_members` (one active membership per login and per phone across salons, one owner per salon, an owner has a login;
+  forced RLS: the salon's transaction or the member themself); `RowSecurity` (salon and person per transaction);
+  `POST /v1/salon/salons`, `GET /v1/salon/me`, `PUT /v1/salon/salon` (no salon id in any route, D-036); `Phones.indian`;
+  contract + OpenAPI + admin types. The generic 404 now replaces only a bare 404, so `NO_SALON` keeps its code
+- **Tests:** `SalonTablesTest` 6, `SalonMembersTablesTest` 6, `SalonRoutesTest` 11 (incl. a 4-request race, staff can't
+  edit, two salons isolated), `PhonesTest` 2, `ContractSerializationTest` +2, `OpenApiContractTest` +1. Backend total 162
+- **Security:** salon only from membership; owner-only edits; RLS forced on both tables; validation mirrors the database;
+  SECURITY.md updated; `/feature-security-check` PASS. Tracked: an unexpected database error's log can hold row values (BE-026)
+- **Database:** V7, V8 (applied to the Supabase dev database 2026-10-07)
+- **Verified by:** Claude on the Supabase dev database with two throwaway logins (created, read, refused a second salon,
+  B couldn't see A, landline phone, edit; all deleted afterwards); on the team phone (moto g54): login, reopen, logout,
+  onboarding customer + salon side, backend down → Retry. The salon screens come with APP-006
+
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

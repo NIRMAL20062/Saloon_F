@@ -87,25 +87,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
-### BE-017 · Salons and owners
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, D-046, DF-32
-- **Needs from team:** nothing (fields answered 2026-10-07: D-046).
-- **Scope:**
-  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a
-    reason, or SUSPENDED) and `salon_members` (salon, phone, user, role OWNER / STAFF (D-039), status ACTIVE / REMOVED), one
-    migration each, row-level security forced on both
-  - `POST /v1/salon/salons` (creator becomes OWNER; only a person whose side is SALON, D-030) · `GET /v1/salon/me` (my salon
-    and role) · `PUT /v1/salon/salon` (owner edits the profile while not live)
-  - one salon per person (D-035); every salon route takes the salon from the signed-in person's membership and checks the role
-    (D-036); everything except a staff member's own appointments is OWNER-only (D-039)
-- **Done when:**
-  - [x] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
-    **salon A can't read or change salon B** (every route); validation errors
-  - [x] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
-    RLS enabled + forced; test: `glide_app` with salon A set sees zero rows of salon B, with no salon set sees none
-  - [x] Security: salon id never trusted from the request; role checked on every route
-  - [x] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
-
 ### BE-032 · Bank details (encrypted) and "submit for verification"
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
 - **Needs from team:** an encryption key for bank details put into `.env` (the task report says how to make one).

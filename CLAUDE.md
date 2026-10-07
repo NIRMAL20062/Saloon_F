@@ -39,8 +39,10 @@ _Last updated 2026-10-07._
   never open their own).
 - **BE-031** merged 2026-10-07: the backend's queries run as the limited role `glide_app`, and a transaction can be for one
   salon (row-level security groundwork, DF-31). BE-017 split into BE-031, BE-017, BE-032, BE-033.
+- **BE-017** merged 2026-10-07: salons and owners: create, read and edit my salon (`/v1/salon/salons`, `/v1/salon/me`,
+  `/v1/salon/salon`), row-level security on `salons` and `salon_members`. Fields: D-046, DF-32 (no GST at onboarding).
 - **Now:** nothing in progress.
-- **Next task:** BE-017 (salons and owners), then BE-032 + APP-006 (bank details, the salon screens), with the review fixes in
+- **Next task:** BE-032 (bank details, encrypted; "submit for verification"), then APP-006 (the salon screens), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
