@@ -20,7 +20,8 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 ## Rules
 
 - Routes are thin: parse + validate input → call a service → respond with a `shared` DTO. Business rules live in services.
-- **Services own the transaction** (BE-025): a service runs each piece of work in one `transactor.transaction { }`, so
+- **Services own the transaction** (BE-025): a service runs each piece of work in one `transactor.transaction { }`
+  (`transaction(salon) { }` for salon-side work: row-level security then shows only that salon's rows, BE-031), so
   "check, then write" is one step; repositories run inside it and never open their own (Exposed refuses a query outside a
   transaction). Never call Supabase or anything slow inside the block (it can't suspend, on purpose).
 - All SQL goes through repositories (Exposed). Every query on a salon-owned table filters by `salon_id`, taken from the

@@ -36,9 +36,10 @@ CREATE TRIGGER <table>_set_updated_at BEFORE UPDATE ON <table>
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 ```
 
-- Salon-owned tables (once BE-017 has set up the limited database user, D-027): `ENABLE` + `FORCE ROW LEVEL SECURITY` and a
-  policy `USING (salon_id = current_setting('app.salon_id')::uuid)`, plus a test that the limited user sees zero rows of
-  another salon.
+- Salon-owned tables (D-027, BE-031): `ENABLE` + `FORCE ROW LEVEL SECURITY` and a policy
+  `USING (salon_id = nullif(current_setting('app.salon_id', true), '')::uuid)`, plus a test that `glide_app` with salon A
+  set sees zero rows of salon B and with no salon set sees none (see `AppRoleTest`). New tables get `glide_app`'s rights
+  automatically (V6's default privileges); revoke what it must not do (e.g. UPDATE/DELETE on append-only tables).
 - Uniqueness is per salon: `UNIQUE (salon_id, <col>)`, not global, unless the task says otherwise.
 - Foreign keys to other salon-owned tables should also carry `salon_id` so a row can't point into another salon
   (composite FK `(salon_id, x_id) REFERENCES x (salon_id, id)` where practical).
