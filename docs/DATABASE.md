@@ -23,13 +23,17 @@ Writing a migration: use the `/db-migration` skill.
 
 ## Migrations
 
-- File: `V<n>__<snake_case_summary>.sql`, `n` = next number. Flyway runs them on backend startup.
-- **Never edit a merged migration.** Flyway stores a checksum; the backend refuses to start and `MigrationTest` fails.
-  Fix forward with a new file.
+- File: `V<n>__<snake_case_summary>.sql`, `n` = next number, one table or one change per file, names that read like a
+  history (`V<n>__create_<table>`, `V<n>__fix_<what>`), a "why" comment on top (team, 2026-10-04). Flyway runs them on
+  backend startup.
+- **Never edit, delete or rename a merged migration.** CI's "Merged migrations unchanged" job refuses such a pull request
+  (BE-034). If one slips through, Flyway's checksum makes the backend refuse to start on every database that already ran
+  it. `MigrationTest` can't catch it: its database is built from the edited files. Fix forward with a new
+  `V<n>__fix_<what>.sql`.
 - **Backward-compatible first**: running app versions must keep working while a migration rolls out.
   Add nullable/defaulted columns → backfill → then `NOT NULL`. Renames/drops need a plan in the task.
 - `flyway clean` is disabled in every environment.
-- Every migration is tested on real Postgres by `MigrationTest` (all apply, re-run is a no-op, checksums match).
+- Every migration is tested on real Postgres by `MigrationTest` (all apply, re-run is a no-op, Flyway's validation passes).
 
 ## Current schema
 
