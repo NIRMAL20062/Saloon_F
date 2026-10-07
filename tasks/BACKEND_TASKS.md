@@ -6,22 +6,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and accounts
 
-### BE-025 · Services own the database transaction
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-024 · Decisions: D-025, D-027
-- **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
-  slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
-  nowhere to go. Needed before BE-017.
-- **Needs from team:** nothing.
-- **Scope:**
-  - one transaction helper that services call; repositories run inside the caller's transaction and never open their own
-  - existing services moved to it (users/profile, admins/invites + audit log)
-  - Not included: row-level security itself (BE-017); any change to what the API does
-- **Done when:**
-  - [x] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
-  - [x] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
-  - [x] Database: none
-  - [x] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
-
 ### BE-026 · Fix: emoji names answer 500; tests accept any database error
 - **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-018
 - **Why:** project review (2026-10-07): Kotlin counts 😀 as 2 characters and Postgres as 1, so a name at our limit passes our

@@ -32,8 +32,10 @@ _Last updated 2026-10-07._
   BE-017, WEB-004 + BE-012 moved up, open questions Q-017–Q-020. Razorpay and the Play Console wait until later (team).
   Follow-up (2026-10-07): BE-029 (remove an admin, D-043; before WEB-006), BE-030, WEB-011, APP-014 extended. No PR
   reviewer for now: the team merges after `ci-ok` (D-044).
+- **BE-025** merged 2026-10-07: services own the database transaction (one transaction per piece of work; repositories
+  never open their own).
 - **Now:** nothing in progress.
-- **Next task:** BE-025 (services own the transaction), then BE-017 + APP-006 (create a salon), with the review fixes in
+- **Next task:** BE-017 + APP-006 (create a salon), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
@@ -42,10 +44,8 @@ _Last updated 2026-10-07._
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); Q-019, Q-020.
-  **The `main` ruleset** is active (team, 2026-10-07: no deletion, no force push, changes only through a PR) but its
-  required checks list is empty, so a red CI doesn't block a merge: Settings → Rules → Rulesets → main → Require status
-  checks to pass → Add checks → **`ci-ok`** (D-021). Google sign-in is off in Supabase (done, team 2026-10-07).
-  **Start now, they take weeks:** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
+  The `main` ruleset is active with `ci-ok` required (team, 2026-10-07). Google sign-in is off in Supabase.
+  **Team will do later (2026-10-07):** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
   2026-10-07): Razorpay Route application + KYC, Play Console account.
 - **Open pull requests:** none.
