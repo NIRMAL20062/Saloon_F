@@ -13,7 +13,12 @@ Rules of record: `docs/DATABASE.md`. Only for schema changes a task asks for.
 
 **One table or one change per file** (team, 2026-10-04): a task that needs several tables gets several migrations, written
 and committed one at a time in dependency order, each with its tests.
-**Never edit a migration that's merged.** Fix forward with a new file (CI's `MigrationTest` detects edits).
+**Names read like a history** (team, 2026-10-04): `V<n>__create_<table>.sql`, `V<n>__add_<column>_to_<table>.sql`, and
+every fix `V<n>__fix_<what>.sql`. The file starts with a comment saying **why** (task ID, decision).
+**Never edit, delete or rename a migration that's merged.** It may already have run on a database. Fix forward with a new
+`V<n>__fix_<what>.sql`. CI's "Merged migrations unchanged" job refuses a pull request that breaks this (BE-034);
+`MigrationTest` can't, because it builds its database from the edited files. Before merging, a migration on your own
+branch can still be changed.
 
 ## 2. Table checklist
 
@@ -57,6 +62,6 @@ Table object in the feature package, column names and types identical to the SQL
 
 ## 5. Tests
 
-- `MigrationTest` already proves all migrations apply on real Postgres. Run `./gradlew :backend:test`.
+- `MigrationTest` already proves all migrations apply on real Postgres and a re-run changes nothing. Run `./gradlew :backend:test`.
 - Add a test per constraint that matters: e.g. inserting a negative amount fails, a duplicate per-salon name fails,
   and the same name in another salon succeeds.

@@ -167,6 +167,27 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
   token refresh or our backend; no schema errors; rerun 2 minutes later all 9 passed). HikariCP's keepalive kept the idle
   connections open, so the forced close is the stronger check
 
+### BE-034 · CI refuses a pull request that changes a merged migration
+- **Completed:** 2026-10-07 · **Commits:** `b18c857` `e68e308` `9cc1be1` `c528bc0`
+- **Status:** ✅ Done · **Owner:** Claude · **Depends on:** - · Decisions: D-042, DF-09
+- **Why:** found by the team (2026-10-07): nothing stopped an edited merged migration before it reached `main`.
+  `MigrationTest` builds a fresh database from the current files and compares it with those same files, so it always
+  passed, yet the db-migration skill and `docs/DATABASE.md` said it "detects edits". Missed by the project review the same day.
+- **Built:** CI job "Merged migrations unchanged" (`.github/scripts/merged-migrations-unchanged.sh`): on every pull request
+  it compares the merge commit with the target branch and fails when a migration already there is changed, deleted or
+  renamed; new files pass; `ci-ok` waits for it. Skill and `DATABASE.md` corrected, with the team's naming style
+  (`V<n>__create_<table>`, `V<n>__fix_<what>`, a "why" comment on top). `MigrationTest`'s validation test renamed to what
+  it really checks (same assertions).
+- **Done when:**
+  - [x] Tests: on a throwaway copy of the repo, with merge commits like GitHub's: edit, delete and rename of V3 fail; a
+    new V7, a docs-only change, and a V7 added then edited in the same PR pass
+  - [x] Security: read-only token (`contents: read`), `persist-credentials: false`, no secrets; checkout pinned by SHA
+  - [x] Database: none
+  - [x] Flow: the job runs on this task's PR and `ci-ok` needs it
+- **Tests:** the CI job itself; `MigrationTest` 5 green after the rename
+- **Security:** a pull request could change the script too, but that change shows in its diff like any CI change
+- **Database:** no migration. V5 keeps its two tables (written before the one-change rule; it has run on the dev database)
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

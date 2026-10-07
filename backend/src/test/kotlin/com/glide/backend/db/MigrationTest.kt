@@ -21,8 +21,10 @@ class MigrationTest {
     }
 
     @Test
-    fun `applied migrations match the files in the repo`() {
-        // Fails if someone edited a migration after it ran (checksum mismatch).
+    fun `flyway validation passes on a database built from the files`() {
+        // Catches broken file names, duplicate versions, or a file missing for a migration that ran. It can't catch an
+        // edit to a merged migration (this database was built from the edited files): CI's "Merged migrations unchanged"
+        // job does (BE-034).
         Flyway
             .configure()
             .dataSource(dataSource)
