@@ -32,6 +32,9 @@ _Last updated 2026-10-07._
   BE-017, WEB-004 + BE-012 moved up, open questions Q-017–Q-020. Razorpay and the Play Console wait until later (team).
   Follow-up (2026-10-07): BE-029 (remove an admin, D-043; before WEB-006), BE-030, WEB-011, APP-014 extended. No PR
   reviewer for now: the team merges after `ci-ok` (D-044).
+- **BE-034** merged 2026-10-07: CI refuses a pull request that changes, deletes or renames a merged migration
+  (`MigrationTest` never could, though the docs said so). **`main` ruleset active** (team, 2026-10-07): changes only by pull
+  request with `ci-ok` green; no force-push, no deleting `main`.
 - **Now:** nothing in progress.
 - **Next task:** BE-025 (services own the transaction), then BE-017 + APP-006 (create a salon), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
@@ -42,9 +45,7 @@ _Last updated 2026-10-07._
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
-  city (APP-009); Q-018–Q-020. **The `main` ruleset** (GitHub → Settings → Rules → Rulesets → main): today it is disabled
-  *and* targets no branch, so switching it on alone protects nothing. Set Target branches → **Include default branch**,
-  add the required status check **`ci-ok`** (source: GitHub Actions), then Enforcement status → **Active** (D-021, DF-15).
+  city (APP-009); Q-018–Q-020.
   **Start now, they take weeks:** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
   2026-10-07): Razorpay Route application + KYC, Play Console account.

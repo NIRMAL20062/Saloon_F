@@ -103,27 +103,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
-### BE-034 · CI refuses a pull request that changes a merged migration
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** - · Decisions: D-042, DF-09
-- **Why:** found by the team (2026-10-07): nothing stops an edited merged migration before it reaches `main`. `MigrationTest`
-  builds a fresh database from the current files and then compares it with those same files, so it always passes; the
-  db-migration skill and `docs/DATABASE.md` said it "detects edits". Only the backend refusing to start against the
-  Supabase database catches it, after the merge.
-- **Needs from team:** nothing.
-- **Scope:**
-  - a CI job "Merged migrations unchanged": on every pull request it fails if a migration file that exists on the target
-    branch is changed, deleted or renamed; new files pass; `ci-ok` waits for it
-  - the wrong claim fixed in the db-migration skill, `docs/DATABASE.md` and `MigrationTest`
-  - the team's migration style written into the skill (team, 2026-10-04): names that read like a history
-    (`V<n>__create_<table>`), a "why" comment on top, every fix as a new `V<n>__fix_<what>.sql`
-  - Not included: renaming or splitting existing migrations (they've run on the dev database)
-- **Done when:**
-  - [ ] Tests: the check run on a throwaway copy of the repo: editing, deleting or renaming a merged migration fails it;
-    adding a new one, or changing nothing, passes; CI green on this PR
-  - [ ] Security: the job reads the repo only (read-only token, no secrets)
-  - [ ] Database: none
-  - [ ] Flow: the job shows in this PR's checks and `ci-ok` waits for it
-
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-025 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
 - **Needs from team:** an encryption key for bank
