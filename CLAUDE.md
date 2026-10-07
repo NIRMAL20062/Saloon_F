@@ -37,8 +37,10 @@ _Last updated 2026-10-07._
   request with `ci-ok` green; no force-push, no deleting `main`.
 - **BE-025** merged 2026-10-07: services own the database transaction (one transaction per piece of work; repositories
   never open their own).
+- **BE-031** merged 2026-10-07: the backend's queries run as the limited role `glide_app`, and a transaction can be for one
+  salon (row-level security groundwork, DF-31). BE-017 split into BE-031, BE-017, BE-032, BE-033.
 - **Now:** nothing in progress.
-- **Next task:** BE-017 + APP-006 (create a salon), with the review fixes in
+- **Next task:** BE-017 (salons and owners), then BE-032 + APP-006 (bank details, the salon screens), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
