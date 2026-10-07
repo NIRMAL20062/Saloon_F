@@ -22,6 +22,8 @@ tags:
       Our team's admin website (D-013). Every /v1/admin endpoint needs a login that is in our admins table (matched on the
       Supabase user id) and has passed the authenticator-app step (token claim aal = aal2, DF-16). Otherwise 403 with
       NOT_ADMIN or MFA_REQUIRED.
+  - name: salon
+    description: The salon side (D-017). The salon is always the signed-in person's one salon (D-036); no route takes a salon id
 
 paths:
   /health/live:
@@ -228,6 +230,133 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         default: { $ref: "#/components/responses/Error" }
 
+  /v1/salon/salons:
+    post:
+      operationId: createSalon
+      tags: [salon]
+      summary: Create the signed-in person's salon; they become its owner (BE-017, D-033, D-035)
+      description: |
+        Only for a person who chose the salon side (D-030) and belongs to no salon yet. The salon starts as DRAFT.
+        Text fields are trimmed. The phone defaults to the owner's login number (D-046).
+      security:
+        - supabaseToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SalonProfileRequest" }
+            example: { name: Glow Studio, address: { line1: "12, MG Road", area: Indiranagar, landmark: Near the metro, city: Bengaluru, state: KARNATAKA, pincode: "560038" }, type: UNISEX }
+      responses:
+        "201":
+          description: Created; returns the salon (DRAFT) and the role OWNER
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MySalonResponse" }
+        "400":
+          description: Malformed body, or a field fails validation (error codes INVALID_SALON_NAME, INVALID_SALON_PHONE, INVALID_ADDRESS)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: The person hasn't chosen the salon side (error code NOT_SALON_SIDE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: The person already belongs to a salon (error code ALREADY_IN_SALON)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /v1/salon/me:
+    get:
+      operationId: getMySalon
+      tags: [salon]
+      summary: The signed-in person's one salon and their role in it (BE-017, D-036)
+      security:
+        - supabaseToken: []
+      responses:
+        "200":
+          description: The salon and the person's role
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MySalonResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404":
+          description: The person belongs to no salon yet (error code NO_SALON)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /v1/salon/salon:
+    put:
+      operationId: updateMySalon
+      tags: [salon]
+      summary: The owner edits the salon's profile while it isn't live (BE-017, D-039)
+      description: |
+        Same body and rules as creating it. Allowed while DRAFT, UNDER_VERIFICATION or REJECTED.
+      security:
+        - supabaseToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SalonProfileRequest" }
+            example: { name: Glow Studio, address: { line1: "12, MG Road", area: Indiranagar, landmark: Near the metro, city: Bengaluru, state: KARNATAKA, pincode: "560038" }, type: UNISEX }
+      responses:
+        "200":
+          description: Saved; returns the salon and the role OWNER
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MySalonResponse" }
+        "400":
+          description: Malformed body, or a field fails validation (error codes INVALID_SALON_NAME, INVALID_SALON_PHONE, INVALID_ADDRESS)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: The person is staff, not the owner (error code NOT_OWNER)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: The person belongs to no salon yet (error code NO_SALON)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: The salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   securitySchemes:
     supabaseToken:
@@ -291,6 +420,111 @@ components:
       type: string
       enum: [CUSTOMER, SALON]
       description: Which interface the app shows (D-024)
+
+    SalonProfileRequest:
+      type: object
+      additionalProperties: false
+      required: [name, address, type]
+      properties:
+        name:
+          type: string
+          maxLength: 30
+          description: 1–30 characters after trimming (D-046)
+        phone:
+          type: string
+          description: |
+            The number customers call: an Indian number of 10 digits, with or without +91, 91 or a leading 0; spaces and
+            dashes are fine. Missing or empty: the owner's login number (D-046, DF-32)
+        address: { $ref: "#/components/schemas/SalonAddress" }
+        type: { $ref: "#/components/schemas/SalonType" }
+
+    SalonAddress:
+      type: object
+      additionalProperties: false
+      required: [line1, area, city, state, pincode]
+      properties:
+        line1: { type: string, maxLength: 100, description: "House, shop or building, and street" }
+        area: { type: string, maxLength: 100, description: Area or locality }
+        landmark: { type: string, maxLength: 100, description: Optional }
+        city: { type: string, maxLength: 50 }
+        state: { $ref: "#/components/schemas/IndianState" }
+        pincode: { type: string, pattern: "^[1-9][0-9]{5}$" }
+
+    SalonResponse:
+      type: object
+      additionalProperties: false
+      required: [id, name, phone, address, type, status]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, maxLength: 30 }
+        phone: { type: string, pattern: "^91[2-9][0-9]{9}$", description: "E.164 without +, e.g. 919876543210" }
+        address: { $ref: "#/components/schemas/SalonAddress" }
+        type: { $ref: "#/components/schemas/SalonType" }
+        status: { $ref: "#/components/schemas/SalonStatus" }
+        rejectionReason: { type: string, description: Why our team rejected it; only when REJECTED }
+
+    MySalonResponse:
+      type: object
+      additionalProperties: false
+      required: [salon, role]
+      properties:
+        salon: { $ref: "#/components/schemas/SalonResponse" }
+        role: { $ref: "#/components/schemas/SalonRole" }
+
+    SalonType:
+      type: string
+      enum: [MEN, WOMEN, UNISEX]
+
+    SalonStatus:
+      type: string
+      enum: [DRAFT, UNDER_VERIFICATION, LIVE, REJECTED, SUSPENDED]
+      description: Onboarding state (D-033); only LIVE salons add staff, show up for customers and take bookings
+
+    SalonRole:
+      type: string
+      enum: [OWNER, STAFF]
+      description: The person's role in their one salon (D-039)
+
+    IndianState:
+      type: string
+      description: India's 28 states and 8 union territories (DF-32)
+      enum:
+        - ANDHRA_PRADESH
+        - ARUNACHAL_PRADESH
+        - ASSAM
+        - BIHAR
+        - CHHATTISGARH
+        - GOA
+        - GUJARAT
+        - HARYANA
+        - HIMACHAL_PRADESH
+        - JHARKHAND
+        - KARNATAKA
+        - KERALA
+        - MADHYA_PRADESH
+        - MAHARASHTRA
+        - MANIPUR
+        - MEGHALAYA
+        - MIZORAM
+        - NAGALAND
+        - ODISHA
+        - PUNJAB
+        - RAJASTHAN
+        - SIKKIM
+        - TAMIL_NADU
+        - TELANGANA
+        - TRIPURA
+        - UTTAR_PRADESH
+        - UTTARAKHAND
+        - WEST_BENGAL
+        - ANDAMAN_AND_NICOBAR_ISLANDS
+        - CHANDIGARH
+        - DADRA_AND_NAGAR_HAVELI_AND_DAMAN_AND_DIU
+        - DELHI
+        - JAMMU_AND_KASHMIR
+        - LADAKH
+        - LAKSHADWEEP
+        - PUDUCHERRY
 
     MeResponse:
       type: object

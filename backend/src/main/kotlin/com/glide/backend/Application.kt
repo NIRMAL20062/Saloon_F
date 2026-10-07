@@ -11,6 +11,8 @@ import com.glide.backend.auth.TokenVerifier
 import com.glide.backend.auth.configureAuthentication
 import com.glide.backend.config.AppConfig
 import com.glide.backend.db.DatabaseFactory
+import com.glide.backend.db.ExposedTransactor
+import com.glide.backend.db.Transactor
 import com.glide.backend.health.DatabaseHealthCheck
 import com.glide.backend.health.JdbcDatabaseHealthCheck
 import com.glide.backend.health.healthRoutes
@@ -18,8 +20,13 @@ import com.glide.backend.plugins.configureErrorHandling
 import com.glide.backend.plugins.configureMonitoring
 import com.glide.backend.plugins.configureSecurity
 import com.glide.backend.plugins.configureSerialization
+import com.glide.backend.salons.ExposedSalonRepository
+import com.glide.backend.salons.SalonRepository
+import com.glide.backend.salons.SalonService
+import com.glide.backend.salons.salonRoutes
 import com.glide.backend.users.ExposedUserRepository
 import com.glide.backend.users.UserRepository
+import com.glide.backend.users.UserService
 import com.glide.backend.users.meRoutes
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
@@ -33,15 +40,17 @@ fun main() {
     if (config.supabase.secretKey == null) {
         LoggerFactory.getLogger("com.glide.backend").warn("SUPABASE_SECRET_KEY is not set: admin invites are off")
     }
+    DatabaseFactory.migrate(config.database)
     val dataSource = DatabaseFactory.createDataSource(config.database)
-    DatabaseFactory.migrate(dataSource)
     val database = DatabaseFactory.connectExposed(dataSource)
     val dependencies =
         AppDependencies(
             databaseHealthCheck = JdbcDatabaseHealthCheck(dataSource),
             tokenVerifier = SupabaseTokenVerifier.forProject(config.supabase),
-            users = ExposedUserRepository(database),
-            admins = ExposedAdminRepository(database),
+            transactor = ExposedTransactor(database),
+            users = ExposedUserRepository(),
+            admins = ExposedAdminRepository(),
+            salons = ExposedSalonRepository(),
             authAdmin = SupabaseAuthAdmin.forProject(config.supabase),
         )
 
@@ -54,8 +63,11 @@ fun main() {
 data class AppDependencies(
     val databaseHealthCheck: DatabaseHealthCheck,
     val tokenVerifier: TokenVerifier,
+    /** Services run each piece of work in one transaction through it (BE-025). */
+    val transactor: Transactor,
     val users: UserRepository,
     val admins: AdminRepository,
+    val salons: SalonRepository,
     /** Supabase's admin API (secret key). Without the key: DisabledAuthAdmin, and invites answer 503. */
     val authAdmin: AuthAdmin,
 )
@@ -72,8 +84,9 @@ fun Application.module(
     configureAuthentication(dependencies.tokenVerifier)
     routing {
         healthRoutes(config.version, dependencies.databaseHealthCheck)
-        meRoutes(dependencies.users)
-        adminRoutes(dependencies.admins, AdminService(dependencies.admins, dependencies.authAdmin))
+        meRoutes(UserService(dependencies.transactor, dependencies.users))
+        adminRoutes(AdminService(dependencies.transactor, dependencies.admins, dependencies.authAdmin))
+        salonRoutes(SalonService(dependencies.transactor, dependencies.users, dependencies.salons))
     }
 }
 

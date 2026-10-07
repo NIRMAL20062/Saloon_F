@@ -35,8 +35,14 @@ _Last updated 2026-10-07._
 - **BE-034** merged 2026-10-07: CI refuses a pull request that changes, deletes or renames a merged migration
   (`MigrationTest` never could, though the docs said so). **`main` ruleset active** (team, 2026-10-07): changes only by pull
   request with `ci-ok` green; no force-push, no deleting `main`.
+- **BE-025** merged 2026-10-07: services own the database transaction (one transaction per piece of work; repositories
+  never open their own).
+- **BE-031** merged 2026-10-07: the backend's queries run as the limited role `glide_app`, and a transaction can be for one
+  salon (row-level security groundwork, DF-31). BE-017 split into BE-031, BE-017, BE-032, BE-033.
+- **BE-017** merged 2026-10-07: salons and owners: create, read and edit my salon (`/v1/salon/salons`, `/v1/salon/me`,
+  `/v1/salon/salon`), row-level security on `salons` and `salon_members`. Fields: D-046, DF-32 (no GST at onboarding).
 - **Now:** nothing in progress.
-- **Next task:** BE-025 (services own the transaction), then BE-017 + APP-006 (create a salon), with the review fixes in
+- **Next task:** BE-032 (bank details, encrypted; "submit for verification"), then APP-006 (the salon screens), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
@@ -44,9 +50,9 @@ _Last updated 2026-10-07._
   secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
-- **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
-  city (APP-009); Q-018–Q-020.
-  **Start now, they take weeks:** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
+- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); Q-019, Q-020.
+  Google sign-in is off in Supabase (team, 2026-10-07).
+  **Team will do later (2026-10-07):** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
   2026-10-07): Razorpay Route application + KYC, Play Console account.
 - **Open pull requests:** none.

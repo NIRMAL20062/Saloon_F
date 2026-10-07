@@ -10,21 +10,21 @@ import java.util.concurrent.ConcurrentHashMap
 class InMemoryAdminRepository : AdminRepository {
     private val admins = ConcurrentHashMap<UUID, Admin>()
 
-    override suspend fun find(userId: UUID): Admin? = admins[userId]
+    override fun find(userId: UUID): Admin? = admins[userId]
 
-    override suspend fun findByEmail(email: String): Admin? = admins.values.firstOrNull { it.email == email }
+    override fun findByEmail(email: String): Admin? = admins.values.firstOrNull { it.email == email }
 
-    override suspend fun activate(
+    override fun activate(
         userId: UUID,
         requestId: String?,
     ): Admin = admins.computeIfPresent(userId) { _, admin -> admin.copy(status = AdminStatus.ACTIVE) }!!
 
-    override suspend fun addFirst(
+    override fun addFirst(
         userId: UUID,
         email: String,
     ): Admin? = add(userId, email, null)
 
-    override suspend fun addInvited(
+    override fun addInvited(
         userId: UUID,
         email: String,
         invitedBy: UUID,

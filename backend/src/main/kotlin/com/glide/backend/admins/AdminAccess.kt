@@ -16,7 +16,7 @@ import io.ktor.server.routing.Route
 import io.ktor.util.AttributeKey
 
 class AdminAccessConfig {
-    lateinit var admins: AdminRepository
+    lateinit var admins: AdminService
 }
 
 private val AdminKey = AttributeKey<Admin>("glide.admin")
@@ -67,7 +67,7 @@ private val AdminAccess =
 
 /** Routes inside need a signed-in admin with MFA done: `adminOnly(admins) { get(...) { call.admin() } }`. */
 fun Route.adminOnly(
-    admins: AdminRepository,
+    admins: AdminService,
     build: Route.() -> Unit,
 ) {
     authenticate(USER_AUTH) {

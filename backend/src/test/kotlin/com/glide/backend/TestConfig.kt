@@ -5,6 +5,7 @@ import com.glide.backend.config.AppEnv
 import com.glide.backend.config.DatabaseConfig
 import com.glide.backend.config.SupabaseConfig
 import com.glide.backend.health.DatabaseHealthCheck
+import com.glide.backend.salons.ExposedSalonRepository
 
 /** Config for tests that don't touch a real database. */
 fun testConfig(
@@ -27,7 +28,10 @@ fun fakeDependencies(databaseHealthy: Boolean = true) =
     AppDependencies(
         databaseHealthCheck = DatabaseHealthCheck { databaseHealthy },
         tokenVerifier = TestTokens.verifier,
+        transactor = DirectTransactor,
         users = InMemoryUserRepository(),
         admins = InMemoryAdminRepository(),
+        // Stateless; salon route tests pair it with the test database's transactor (SalonRoutesTest).
+        salons = ExposedSalonRepository(),
         authAdmin = FakeAuthAdmin(),
     )

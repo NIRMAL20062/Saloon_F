@@ -1,6 +1,7 @@
 package com.glide.backend.users
 
 import com.glide.backend.TestTokens
+import com.glide.backend.db.ExposedTransactor
 import com.glide.backend.db.TestDatabase
 import com.glide.backend.fakeDependencies
 import com.glide.backend.module
@@ -247,7 +248,11 @@ class MeRoutesTest {
 
     private fun withApp(block: suspend ApplicationTestBuilder.() -> Unit) =
         testApplication {
-            val deps = fakeDependencies().copy(users = ExposedUserRepository(TestDatabase.exposed))
+            val deps =
+                fakeDependencies().copy(
+                    transactor = ExposedTransactor(TestDatabase.exposed),
+                    users = ExposedUserRepository(),
+                )
             application { module(testConfig(database = TestDatabase.config), deps) }
             block()
         }

@@ -20,9 +20,13 @@ object TestDatabase {
         DatabaseConfig(container.jdbcUrl, container.username, container.password)
     }
 
-    /** A migrated data source. Do not close it; it lives for the whole test run. */
+    /**
+     * A migrated data source, the backend's own pool: its connections work as the limited role (BE-031), so tests see what
+     * the backend sees, row-level security included. Do not close it; it lives for the whole test run.
+     */
     val dataSource: HikariDataSource by lazy {
-        DatabaseFactory.createDataSource(config).also { DatabaseFactory.migrate(it) }
+        DatabaseFactory.migrate(config)
+        DatabaseFactory.createDataSource(config)
     }
 
     /** Exposed connection to the same migrated database, for repository tests. */

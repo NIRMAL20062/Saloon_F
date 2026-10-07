@@ -12,12 +12,12 @@ import java.util.concurrent.ConcurrentHashMap
 class InMemoryUserRepository : UserRepository {
     private val users = ConcurrentHashMap<UUID, AppUser>()
 
-    override suspend fun ensure(user: AuthenticatedUser): AppUser =
+    override fun ensure(user: AuthenticatedUser): AppUser =
         users.compute(user.id) { _, existing ->
             existing?.copy(phone = user.phone ?: existing.phone) ?: AppUser(user.id, user.phone, null)
         }!!
 
-    override suspend fun chooseSide(
+    override fun chooseSide(
         id: UUID,
         side: UserSide,
     ): AppUser? {
@@ -26,7 +26,7 @@ class InMemoryUserRepository : UserRepository {
         return existing.copy(side = side).also { users[id] = it }
     }
 
-    override suspend fun updateProfile(
+    override fun updateProfile(
         id: UUID,
         profile: ProfileInput.Valid,
     ): AppUser = users.getValue(id).copy(name = profile.name, email = profile.email).also { users[id] = it }
