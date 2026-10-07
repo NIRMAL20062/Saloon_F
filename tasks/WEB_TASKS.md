@@ -36,12 +36,27 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: in the browser, both emails twice in a row → the same screens
 
-### WEB-006 · Admins page: invite more admins
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
+### WEB-011 · Admin website on Node 24
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** WEB-005
+- **Why:** project review (2026-10-07): `admin/package.json` targets Node 20 (`engines >=20.9`, `@types/node ^20`), which
+  reached end of life in April 2026, while CI runs Node 24.
+- **Needs from team:** Node 24 on the laptops that run the admin website.
+- **Scope:** `engines` and `@types/node` on Node 24; the Node version written in one place that CI and laptops both read
+  (e.g. `.nvmrc`); `admin/CLAUDE.md` says so. Not included: other dependency upgrades (BE-012).
+- **Done when:**
+  - [ ] Tests: `pnpm verify` passes on Node 24; CI takes its Node version from the same file
+  - [ ] Security: none
+  - [ ] Database: none
+  - [ ] Flow: on Node 24 the admin website starts and the login works against the real backend
+
+### WEB-006 · Admins page: invite and remove admins
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005, BE-029 · Decisions: D-013, D-043
 - **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
+  **Remove** on another admin's row (never your own, D-043) → confirm → they lose access at once; a removed admin can be invited again.
 - **Needs from team:** real emails need the email service (e.g. Brevo). The invite email's text was changed by the team on
   2026-10-04 (Supabase's default links to a browser login, which our admin website doesn't use, DF-20).
-- **Done when:** tests for list/invite/errors; invite audit-logged; in the browser, admin A invites B and B logs in.
+- **Done when:** tests for list/invite/remove/errors (no Remove on your own row); invite and removal audit-logged; in the
+  browser, admin A invites B and B logs in, then A removes B and B can't open admin pages.
 
 ### WEB-007 · Verify salons
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005, BE-022 · Decisions: D-033, DF-24

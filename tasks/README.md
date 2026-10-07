@@ -20,17 +20,20 @@ What gets built next, across all three files. Each step is one task = one pull r
 | 3b | APP-013 | the mockup look: red brand, welcome screen with photo, light only (D-040, D-041) | the welcome photo (given) |
 | 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
 | 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
+| 5b | BE-025 | nothing visible: services own the database transaction, so BE-017 can check-then-write safely | nothing |
 | 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | encryption key in `.env` |
 | 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
 | 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
 | 9 | APP-012 | owner adds staff by phone; staff log in straight to "My bookings" (D-039) | nothing |
-| 10 | WEB-006 | admins invite admins | nothing |
+| 10 | BE-029 → WEB-006 | admins invite and remove admins (D-043) | nothing |
 | 11 | APP-009 | customer side: location or city | launch city |
 | 12 | BE-021 | test users for every type | nothing |
 | 13 | APP-010 | crash reports in Firebase | `google-services.json` |
 
 Then Phase 2 (salon setup), Phase 3 (appointments), Phase 4 (customer booking)… as outlined in each file.
 Platform backlog items (security scanning, CD) are done in between when useful; they never block features.
+Fixes from the 2026-10-07 project review are picked in between when the team wants: BE-026, BE-027 → APP-014, BE-028,
+BE-030, APP-015, APP-016 (before APP-008), APP-017, WEB-009, WEB-010, WEB-011, then WEB-004 + BE-012.
 
 ## Task IDs and status
 
