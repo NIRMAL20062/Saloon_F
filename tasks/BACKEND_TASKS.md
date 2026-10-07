@@ -102,12 +102,12 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - tests run as `glide_app` too (the shared test pool is the backend's pool)
   - Not included: any salon table (BE-017); policies for a customer's own data (later, with the first such table)
 - **Done when:**
-  - [ ] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
+  - [x] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
     salon A's transaction sees only A's rows, can't write B's, and with no salon set sees none; the salon setting doesn't
     outlive its transaction; `glide_app` can't change `audit_log` or create tables; all existing tests green as `glide_app`
-  - [ ] Security: no new secret; the owner login is used only by Flyway
-  - [ ] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
-  - [ ] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
+  - [x] Security: no new secret; the owner login is used only by Flyway
+  - [x] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
+  - [x] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
 
 ### BE-017 · Salons and owners
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039
