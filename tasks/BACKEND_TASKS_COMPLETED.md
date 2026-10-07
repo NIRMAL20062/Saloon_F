@@ -141,6 +141,32 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
   email code only → 403 `MFA_REQUIRED`; real authenticator code → 200 ACTIVE (test factor removed afterwards); invite of
   `second.admin@glide.test` (existing login) → 201, again → 409; test phone user → 403 `NOT_ADMIN`; no login → 401
 
+### BE-024 · Fix: database connections lose the `glide` schema after a rollback
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `42d10bc` `edcc994` `032c445`
+- **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-023 · Decisions: D-042, DF-26
+- **Why:** found while testing WEB-005: after Supabase's pooler closed idle connections, new connections answered
+  `relation "admins" does not exist` (HTTP 500) until the backend restarted.
+- **Cause:** the pool runs with auto-commit off, so HikariCP's `search_path` setting sat inside each connection's first
+  transaction; a rollback of that transaction undid it for good.
+- **Fix:** `DatabaseFactory` sets the schema with `connectionInitSql`, and `isolateInternalQueries = true` makes HikariCP
+  commit it as the connection opens (checked in HikariCP 7.1.0's `PoolBase`: the init SQL is committed only with that flag).
+  Still `glide`, never `public`. Side effect: unused pooled connections no longer sit `idle in transaction` on Supabase.
+- **Done when:**
+  - [x] Test: a fresh pooled connection whose first transaction is rolled back still finds `glide` tables
+  - [x] Test: connections replaced by the pool (closed underneath, like the pooler does) still find `glide` tables
+  - [x] Database: no migration
+  - [x] Flow: on the Supabase database (see "Verified by")
+- **Tests:** `ConnectionSchemaTest` 2 (real Postgres, each with its own pool; both failed before the fix with "expected glide
+  but was public"). Backend total 124
+- **Security:** no routes, queries, tables, env vars or logging changed; `/feature-security-check` PASS
+- **Database:** no migration
+- **Verified by:** Claude, backend from the branch on the Supabase dev database, a test-number customer and `admin@glide.test`
+  (email code from the admin API + a test authenticator, removed afterwards; no SMS or email sent): `/v1/me` 200,
+  `/v1/admin/me` 200, `/v1/admin/me` as a customer 403 (×3) at the start; again after all 10 backend connections were closed
+  from the database side; again after 32 minutes idle (first try: one call timed out after 20 s, unclear whether Supabase's
+  token refresh or our backend; no schema errors; rerun 2 minutes later all 9 passed). HikariCP's keepalive kept the idle
+  connections open, so the forced close is the stronger check
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

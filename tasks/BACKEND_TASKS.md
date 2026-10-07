@@ -54,24 +54,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** tests: non-admin → 403; approve/reject only from UNDER_VERIFICATION; reject without a reason → 400; every
   decision and every bank-details view writes an audit row; OpenAPI updated.
 
-### BE-024 · Fix: database connections lose the `glide` schema after a rollback
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-023 · Decisions: D-042, DF-26
-- **Why:** found while testing WEB-005 (2026-10-04): after Supabase's connection pooler closed idle connections, the backend's
-  new connections answered `relation "admins" does not exist` (HTTP 500) until the backend was restarted. Any long-running
-  backend hits it, including the app's `/v1/me`.
-- **Cause (reproduced on real Postgres):** HikariCP sets `search_path` to `glide` inside the connection's first transaction
-  (we run with auto-commit off). If that transaction is rolled back, the setting is undone and the connection keeps the
-  default `search_path` for good.
-- **Needs from team:** nothing.
-- **Scope:** make the schema setting survive rollbacks (commit it when the connection is set up, e.g. HikariCP
-  `connectionInitSql`), keeping DF-26 (`glide`, never `public`). Not included: changing pool sizes or timeouts.
-- **Done when:**
-  - [x] Test: a fresh pooled connection whose first transaction is rolled back still finds `glide` tables
-  - [x] Test: connections replaced by the pool (closed underneath, like the pooler does) still find `glide` tables
-  - [x] Database: no migration
-  - [ ] Flow: backend left idle on the Supabase database until the pooler closes connections, then `/v1/me` and
-    `/v1/admin/me` still answer 200
-
 ## Next phases (outline)
 
 - **Phase 2** BE-1xx working hours, closed days · services (duration, price in paise) · staff hours, leave · salon customers list (PRODUCT §6.3)
