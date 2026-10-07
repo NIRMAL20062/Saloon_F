@@ -12,6 +12,8 @@ import com.glide.shared.me.MeResponse
 import com.glide.shared.me.UpdateProfileRequest
 import com.glide.shared.me.UpdateSideRequest
 import com.glide.shared.me.UserSide
+import com.glide.shared.salon.BankDetailsRequest
+import com.glide.shared.salon.BankDetailsResponse
 import com.glide.shared.salon.IndianState
 import com.glide.shared.salon.MySalonResponse
 import com.glide.shared.salon.SalonAddress
@@ -148,6 +150,18 @@ class ContractSerializationTest {
              "state":"DELHI","pincode":"110001"},"type":"MEN"}
             """.trimIndent(),
             ApiJson.encodeToString(SalonProfileRequest("Glow", address = address, type = SalonType.MEN)),
+        )
+    }
+
+    @Test
+    fun `bank details travel masked one way, in full the other`() {
+        assertJsonEquals(
+            """{"accountHolderName":"Asha Rao","accountNumber":"50100123456789","ifsc":"HDFC0001234"}""",
+            ApiJson.encodeToString(BankDetailsRequest("Asha Rao", "50100123456789", "HDFC0001234")),
+        )
+        assertJsonEquals(
+            """{"accountHolderName":"Asha Rao","accountNumberLast4":"6789","ifsc":"HDFC0001234"}""",
+            ApiJson.encodeToString(BankDetailsResponse("Asha Rao", "6789", "HDFC0001234")),
         )
     }
 

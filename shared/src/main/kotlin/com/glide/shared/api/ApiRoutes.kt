@@ -34,4 +34,10 @@ object ApiRoutes {
 
     /** The owner edits the salon's profile while it isn't live (BE-017). */
     const val SALON_PROFILE = "$V1/salon/salon"
+
+    /** The owner saves (PUT) or reads (GET) the salon's bank details, always masked (BE-032, DF-24). */
+    const val SALON_BANK_DETAILS = "$V1/salon/bank-details"
+
+    /** The owner sends the salon to our team for verification (BE-032, D-033). */
+    const val SALON_SUBMIT = "$V1/salon/submit-for-verification"
 }

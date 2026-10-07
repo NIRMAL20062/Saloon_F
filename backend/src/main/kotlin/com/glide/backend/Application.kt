@@ -10,6 +10,7 @@ import com.glide.backend.auth.SupabaseTokenVerifier
 import com.glide.backend.auth.TokenVerifier
 import com.glide.backend.auth.configureAuthentication
 import com.glide.backend.config.AppConfig
+import com.glide.backend.crypto.FieldCipher
 import com.glide.backend.db.DatabaseFactory
 import com.glide.backend.db.ExposedTransactor
 import com.glide.backend.db.Transactor
@@ -89,7 +90,14 @@ fun Application.module(
         healthRoutes(config.version, dependencies.databaseHealthCheck)
         meRoutes(UserService(dependencies.transactor, dependencies.users))
         adminRoutes(AdminService(dependencies.transactor, dependencies.admins, dependencies.authAdmin))
-        salonRoutes(SalonService(dependencies.transactor, dependencies.users, dependencies.salons))
+        salonRoutes(
+            SalonService(
+                dependencies.transactor,
+                dependencies.users,
+                dependencies.salons,
+                config.bankDetailsKey?.let(::FieldCipher),
+            ),
+        )
     }
 }
 

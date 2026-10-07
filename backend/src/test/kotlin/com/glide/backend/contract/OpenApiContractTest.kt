@@ -182,6 +182,15 @@ class OpenApiContractTest {
             check(HttpMethod.Post, ApiRoutes.SALON_SALONS, profile, 409)
             check(HttpMethod.Get, ApiRoutes.SALON_ME, null, 200)
             check(HttpMethod.Put, ApiRoutes.SALON_PROFILE, profile, 200)
+
+            // Bank details and submitting (BE-032).
+            val bank = """{"accountHolderName":"Asha","accountNumber":"50100123456789","ifsc":"HDFC0001234"}"""
+            check(HttpMethod.Get, ApiRoutes.SALON_BANK_DETAILS, null, 404)
+            check(HttpMethod.Post, ApiRoutes.SALON_SUBMIT, null, 409)
+            check(HttpMethod.Put, ApiRoutes.SALON_BANK_DETAILS, bank.replace("HDFC0001234", "nope"), 400)
+            check(HttpMethod.Put, ApiRoutes.SALON_BANK_DETAILS, bank, 200)
+            check(HttpMethod.Get, ApiRoutes.SALON_BANK_DETAILS, null, 200)
+            check(HttpMethod.Post, ApiRoutes.SALON_SUBMIT, null, 200)
         }
 
     @Test

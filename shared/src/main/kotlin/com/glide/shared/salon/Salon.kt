@@ -141,6 +141,21 @@ object SalonErrorCodes {
     /** Only the salon's owner can do this (D-039). */
     const val NOT_OWNER = "NOT_OWNER"
 
-    /** A live or suspended salon's profile can't be changed here. */
+    /** A live or suspended salon's profile or bank details can't be changed here, nor can it be submitted again. */
     const val SALON_NOT_EDITABLE = "SALON_NOT_EDITABLE"
+
+    /** The account holder's name is empty, longer than 100 characters, or has control characters. */
+    const val INVALID_ACCOUNT_HOLDER = "INVALID_ACCOUNT_HOLDER"
+
+    /** The account number isn't 9 to 18 digits. */
+    const val INVALID_ACCOUNT_NUMBER = "INVALID_ACCOUNT_NUMBER"
+
+    /** The IFSC isn't 4 letters, 0, then 6 letters or digits. */
+    const val INVALID_IFSC = "INVALID_IFSC"
+
+    /** No bank details saved yet: `GET` answers 404; submitting for verification answers 409. */
+    const val NO_BANK_DETAILS = "NO_BANK_DETAILS"
+
+    /** The server has no encryption key for bank details, so it can't save them (503). */
+    const val BANK_DETAILS_UNAVAILABLE = "BANK_DETAILS_UNAVAILABLE"
 }

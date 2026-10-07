@@ -357,6 +357,140 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         default: { $ref: "#/components/responses/Error" }
 
+  /v1/salon/bank-details:
+    put:
+      operationId: saveMyBankDetails
+      tags: [salon]
+      summary: The owner saves or replaces the salon's bank details while it isn't live (BE-032, DF-24, DF-33)
+      description: |
+        The account number is stored only encrypted (AES-256-GCM, key from the server's environment) and is never sent
+        back: responses carry its last 4 digits. Never logged.
+      security:
+        - supabaseToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BankDetailsRequest" }
+            example: { accountHolderName: Asha Rao, accountNumber: "50100123456789", ifsc: HDFC0001234 }
+      responses:
+        "200":
+          description: Saved; returns the details masked
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankDetailsResponse" }
+        "400":
+          description: Malformed body, or a field fails validation (error codes INVALID_ACCOUNT_HOLDER, INVALID_ACCOUNT_NUMBER, INVALID_IFSC)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: The person is staff, not the owner (error code NOT_OWNER)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: The person belongs to no salon yet (error code NO_SALON)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: The salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "503":
+          description: The server has no encryption key for bank details (error code BANK_DETAILS_UNAVAILABLE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+    get:
+      operationId: getMyBankDetails
+      tags: [salon]
+      summary: The owner reads the salon's bank details, masked (BE-032, DF-24)
+      security:
+        - supabaseToken: []
+      responses:
+        "200":
+          description: The bank details, masked
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankDetailsResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: The person is staff, not the owner (error code NOT_OWNER)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: No salon (error code NO_SALON) or no bank details saved yet (error code NO_BANK_DETAILS)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /v1/salon/submit-for-verification:
+    post:
+      operationId: submitMySalon
+      tags: [salon]
+      summary: The owner sends the salon to our team for verification (BE-032, D-033)
+      description: |
+        DRAFT or REJECTED with bank details saved → UNDER_VERIFICATION (an old rejection reason is cleared). Already under
+        verification → the same answer, so retrying is safe.
+      security:
+        - supabaseToken: []
+      responses:
+        "200":
+          description: Submitted (or already under verification); returns the salon
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MySalonResponse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403":
+          description: The person is staff, not the owner (error code NOT_OWNER)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: The person belongs to no salon yet (error code NO_SALON)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "409":
+          description: No bank details yet (error code NO_BANK_DETAILS), or the salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE)
+          headers:
+            X-Request-Id: { $ref: "#/components/headers/XRequestId" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   securitySchemes:
     supabaseToken:
@@ -470,6 +604,24 @@ components:
       properties:
         salon: { $ref: "#/components/schemas/SalonResponse" }
         role: { $ref: "#/components/schemas/SalonRole" }
+
+    BankDetailsRequest:
+      type: object
+      additionalProperties: false
+      required: [accountHolderName, accountNumber, ifsc]
+      properties:
+        accountHolderName: { type: string, maxLength: 100, description: 1–100 characters after trimming }
+        accountNumber: { type: string, description: "9–18 digits; spaces are dropped" }
+        ifsc: { type: string, description: "11 characters: 4 letters, 0, 6 letters or digits; small letters are fine" }
+
+    BankDetailsResponse:
+      type: object
+      additionalProperties: false
+      required: [accountHolderName, accountNumberLast4, ifsc]
+      properties:
+        accountHolderName: { type: string, maxLength: 100 }
+        accountNumberLast4: { type: string, pattern: "^[0-9]{4}$", description: The last 4 digits only; never the full number (DF-24) }
+        ifsc: { type: string, pattern: "^[A-Z]{4}0[A-Z0-9]{6}$" }
 
     SalonType:
       type: string

@@ -11,6 +11,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
+import org.jetbrains.exposed.v1.jdbc.upsert
 import java.util.UUID
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.toJavaUuid
@@ -20,6 +21,14 @@ import kotlin.uuid.toKotlinUuid
 data class Membership(
     val salonId: UUID,
     val role: SalonRole,
+)
+
+/** Bank details as stored: the account number only encrypted, plus its last 4 digits (DF-24, DF-33). */
+data class StoredBankDetails(
+    val accountHolderName: String,
+    val accountNumberEncrypted: String,
+    val accountNumberLast4: String,
+    val ifsc: String,
 )
 
 data class Salon(
@@ -67,6 +76,17 @@ interface SalonRepository {
         profile: SalonInput.Valid,
         phone: String,
     )
+
+    /** Saves or replaces the salon's bank details. The transaction must be for [salonId]. */
+    fun saveBankDetails(
+        salonId: UUID,
+        details: StoredBankDetails,
+    )
+
+    fun bankDetails(salonId: UUID): StoredBankDetails?
+
+    /** DRAFT or REJECTED → UNDER_VERIFICATION, clearing an old rejection reason (D-033). */
+    fun submitForVerification(salonId: UUID)
 }
 
 @OptIn(ExperimentalUuidApi::class)
@@ -121,6 +141,40 @@ class ExposedSalonRepository : SalonRepository {
         Salons.update({ Salons.id eq id.toKotlinUuid() }) {
             it[Salons.phone] = phone
             it.write(profile)
+        }
+    }
+
+    override fun saveBankDetails(
+        salonId: UUID,
+        details: StoredBankDetails,
+    ) {
+        SalonBankDetails.upsert {
+            it[SalonBankDetails.salonId] = salonId.toKotlinUuid()
+            it[accountHolderName] = details.accountHolderName
+            it[accountNumberEncrypted] = details.accountNumberEncrypted
+            it[accountNumberLast4] = details.accountNumberLast4
+            it[ifsc] = details.ifsc
+        }
+    }
+
+    override fun bankDetails(salonId: UUID): StoredBankDetails? =
+        SalonBankDetails
+            .selectAll()
+            .where { SalonBankDetails.salonId eq salonId.toKotlinUuid() }
+            .singleOrNull()
+            ?.let {
+                StoredBankDetails(
+                    it[SalonBankDetails.accountHolderName],
+                    it[SalonBankDetails.accountNumberEncrypted],
+                    it[SalonBankDetails.accountNumberLast4],
+                    it[SalonBankDetails.ifsc],
+                )
+            }
+
+    override fun submitForVerification(salonId: UUID) {
+        Salons.update({ Salons.id eq salonId.toKotlinUuid() }) {
+            it[status] = SalonStatus.UNDER_VERIFICATION
+            it[rejectionReason] = null
         }
     }
 

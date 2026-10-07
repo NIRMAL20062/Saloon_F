@@ -4,6 +4,8 @@ import com.glide.backend.auth.USER_AUTH
 import com.glide.backend.auth.user
 import com.glide.backend.plugins.respondError
 import com.glide.shared.api.ApiRoutes
+import com.glide.shared.salon.BankDetailsRequest
+import com.glide.shared.salon.BankDetailsResponse
 import com.glide.shared.salon.MySalonResponse
 import com.glide.shared.salon.SalonAddress
 import com.glide.shared.salon.SalonErrorCodes
@@ -37,6 +39,30 @@ fun Route.salonRoutes(salons: SalonService) {
         put(ApiRoutes.SALON_PROFILE) {
             val profile = call.validProfile() ?: return@put
             call.respondOutcome(salons.updateProfile(call.user(), profile), HttpStatusCode.OK)
+        }
+
+        // The owner saves the bank details (BE-032); the answer is masked, and the body is never logged.
+        put(ApiRoutes.SALON_BANK_DETAILS) {
+            val details =
+                when (val input = BankDetailsInput.from(call.receive<BankDetailsRequest>())) {
+                    is BankDetailsInput.Valid -> input
+
+                    is BankDetailsInput.Invalid -> return@put call.respondError(
+                        HttpStatusCode.BadRequest,
+                        input.code,
+                        input.message,
+                    )
+                }
+            call.respondOutcome(salons.saveBankDetails(call.user(), details), HttpStatusCode.OK)
+        }
+
+        get(ApiRoutes.SALON_BANK_DETAILS) {
+            call.respondOutcome(salons.bankDetails(call.user()), HttpStatusCode.OK)
+        }
+
+        // The owner sends the salon to our team for verification (D-033).
+        post(ApiRoutes.SALON_SUBMIT) {
+            call.respondOutcome(salons.submitForVerification(call.user()), HttpStatusCode.OK)
         }
     }
 }
@@ -86,12 +112,37 @@ private suspend fun ApplicationCall.respondOutcome(
         respondError(
             HttpStatusCode.Conflict,
             SalonErrorCodes.SALON_NOT_EDITABLE,
-            "A live salon's profile can't be changed here.",
+            "A live salon can't be changed or submitted here.",
         )
     }
 
     SalonService.Outcome.PhoneNeeded -> {
         respondError(HttpStatusCode.BadRequest, SalonErrorCodes.INVALID_SALON_PHONE, "Give the salon's phone number.")
+    }
+
+    is SalonService.Outcome.BankSaved -> {
+        val details = outcome.details
+        respond(success, BankDetailsResponse(details.accountHolderName, details.accountNumberLast4, details.ifsc))
+    }
+
+    SalonService.Outcome.NoBankDetails -> {
+        respondError(HttpStatusCode.NotFound, SalonErrorCodes.NO_BANK_DETAILS, "No bank details saved yet.")
+    }
+
+    SalonService.Outcome.SubmitNeedsBankDetails -> {
+        respondError(
+            HttpStatusCode.Conflict,
+            SalonErrorCodes.NO_BANK_DETAILS,
+            "Save the bank details before submitting.",
+        )
+    }
+
+    SalonService.Outcome.BankUnavailable -> {
+        respondError(
+            HttpStatusCode.ServiceUnavailable,
+            SalonErrorCodes.BANK_DETAILS_UNAVAILABLE,
+            "Bank details can't be saved right now.",
+        )
     }
 }
 

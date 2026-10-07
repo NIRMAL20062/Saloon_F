@@ -193,6 +193,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/salon/bank-details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The owner reads the salon's bank details, masked (BE-032, DF-24) */
+        get: operations["getMyBankDetails"];
+        /**
+         * The owner saves or replaces the salon's bank details while it isn't live (BE-032, DF-24, DF-33)
+         * @description The account number is stored only encrypted (AES-256-GCM, key from the server's environment) and is never sent
+         *     back: responses carry its last 4 digits. Never logged.
+         */
+        put: operations["saveMyBankDetails"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/salon/submit-for-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The owner sends the salon to our team for verification (BE-032, D-033)
+         * @description DRAFT or REJECTED with bank details saved → UNDER_VERIFICATION (an old rejection reason is cleared). Already under
+         *     verification → the same answer, so retrying is safe.
+         */
+        post: operations["submitMySalon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -247,6 +290,20 @@ export interface components {
         MySalonResponse: {
             salon: components["schemas"]["SalonResponse"];
             role: components["schemas"]["SalonRole"];
+        };
+        BankDetailsRequest: {
+            /** @description 1–100 characters after trimming */
+            accountHolderName: string;
+            /** @description 9–18 digits; spaces are dropped */
+            accountNumber: string;
+            /** @description 11 characters: 4 letters, 0, 6 letters or digits; small letters are fine */
+            ifsc: string;
+        };
+        BankDetailsResponse: {
+            accountHolderName: string;
+            /** @description The last 4 digits only; never the full number (DF-24) */
+            accountNumberLast4: string;
+            ifsc: string;
         };
         /** @enum {string} */
         SalonType: "MEN" | "WOMEN" | "UNISEX";
@@ -868,6 +925,186 @@ export interface operations {
                 };
             };
             /** @description The salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE) */
+            409: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getMyBankDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bank details, masked */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankDetailsResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person is staff, not the owner (error code NOT_OWNER) */
+            403: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No salon (error code NO_SALON) or no bank details saved yet (error code NO_BANK_DETAILS) */
+            404: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    saveMyBankDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "accountHolderName": "Asha Rao",
+                 *       "accountNumber": "50100123456789",
+                 *       "ifsc": "HDFC0001234"
+                 *     }
+                 */
+                "application/json": components["schemas"]["BankDetailsRequest"];
+            };
+        };
+        responses: {
+            /** @description Saved; returns the details masked */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankDetailsResponse"];
+                };
+            };
+            /** @description Malformed body, or a field fails validation (error codes INVALID_ACCOUNT_HOLDER, INVALID_ACCOUNT_NUMBER, INVALID_IFSC) */
+            400: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person is staff, not the owner (error code NOT_OWNER) */
+            403: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The person belongs to no salon yet (error code NO_SALON) */
+            404: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE) */
+            409: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The server has no encryption key for bank details (error code BANK_DETAILS_UNAVAILABLE) */
+            503: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    submitMySalon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Submitted (or already under verification); returns the salon */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySalonResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person is staff, not the owner (error code NOT_OWNER) */
+            403: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The person belongs to no salon yet (error code NO_SALON) */
+            404: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description No bank details yet (error code NO_BANK_DETAILS), or the salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE) */
             409: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
