@@ -34,6 +34,7 @@ import io.ktor.server.routing.getAllRoutes
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -43,14 +44,17 @@ import kotlin.test.assertTrue
 
 /** /v1/admin end to end: real auth plugin, real repository, real PostgreSQL; Supabase's admin API is a fake. */
 class AdminRoutesTest {
-    private val admins = ExposedAdminRepository(TestDatabase.exposed)
+    private val admins = ExposedAdminRepository()
+
+    private fun <T> tx(block: () -> T): T = transaction(TestDatabase.exposed) { block() }
+
     private val supabase = FakeAuthAdmin()
     private val firstId = UUID.randomUUID()
 
     @BeforeTest
     fun firstAdmin() {
         resetAdmins()
-        runBlocking { admins.addFirst(firstId, "first@glide.test") }
+        runBlocking { tx { admins.addFirst(firstId, "first@glide.test") } }
     }
 
     private val firstAdmin get() = TestTokens.adminToken(firstId, "first@glide.test")
@@ -105,7 +109,7 @@ class AdminRoutesTest {
             assertEquals(AdminErrorCodes.MFA_REQUIRED, me.error().error.code)
             assertEquals(HttpStatusCode.Forbidden, invited.status)
             assertEquals(AdminErrorCodes.MFA_REQUIRED, invited.error().error.code)
-            assertEquals(AdminStatus.INVITED, admins.find(firstId)!!.status)
+            assertEquals(AdminStatus.INVITED, tx { admins.find(firstId) }!!.status)
             assertEquals(emptyList(), supabase.invitesSent)
         }
 
@@ -116,7 +120,7 @@ class AdminRoutesTest {
 
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(AdminResponse(firstId.toString(), "first@glide.test", AdminStatus.ACTIVE), response.admin())
-            assertEquals(AdminStatus.ACTIVE, admins.find(firstId)!!.status)
+            assertEquals(AdminStatus.ACTIVE, tx { admins.find(firstId) }!!.status)
         }
 
     @Test
@@ -169,7 +173,7 @@ class AdminRoutesTest {
             assertEquals(listOf("new.admin@glide.test"), supabase.invitesSent)
             assertEquals(
                 Admin(newId, "new.admin@glide.test", AdminStatus.INVITED, invitedBy = firstId),
-                admins.find(newId),
+                tx { admins.find(newId) },
             )
         }
 
@@ -270,7 +274,7 @@ class AdminRoutesTest {
 
             assertEquals(HttpStatusCode.BadGateway, response.status)
             assertEquals(AdminErrorCodes.INVITE_FAILED, response.error().error.code)
-            assertNull(admins.findByEmail("b@glide.test"))
+            assertNull(tx { admins.findByEmail("b@glide.test") })
         }
 
     @Test
@@ -280,7 +284,7 @@ class AdminRoutesTest {
 
             assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
             assertEquals(AdminErrorCodes.INVITES_UNAVAILABLE, response.error().error.code)
-            assertNull(admins.findByEmail("b@glide.test"))
+            assertNull(tx { admins.findByEmail("b@glide.test") })
         }
 
     @Test

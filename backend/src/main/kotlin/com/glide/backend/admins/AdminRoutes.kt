@@ -13,11 +13,8 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 
-fun Route.adminRoutes(
-    admins: AdminRepository,
-    service: AdminService,
-) {
-    adminOnly(admins) {
+fun Route.adminRoutes(service: AdminService) {
+    adminOnly(service) {
         // Who is signed in to the admin website. Also how the website checks "admin + MFA done" after login (WEB-005).
         get(ApiRoutes.ADMIN_ME) {
             call.respond(call.admin().toResponse())

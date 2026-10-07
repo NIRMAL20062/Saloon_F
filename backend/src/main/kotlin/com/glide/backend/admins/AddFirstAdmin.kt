@@ -2,6 +2,7 @@ package com.glide.backend.admins
 
 import com.glide.backend.config.AppConfig
 import com.glide.backend.db.DatabaseFactory
+import com.glide.backend.db.ExposedTransactor
 import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
@@ -18,8 +19,9 @@ fun main(args: Array<String>) {
     val (exitCode, message) =
         dataSource.use {
             DatabaseFactory.migrate(it)
-            val admins = ExposedAdminRepository(DatabaseFactory.connectExposed(it))
-            val service = AdminService(admins, SupabaseAuthAdmin.forProject(config.supabase))
+            val transactor = ExposedTransactor(DatabaseFactory.connectExposed(it))
+            val service =
+                AdminService(transactor, ExposedAdminRepository(), SupabaseAuthAdmin.forProject(config.supabase))
             runBlocking { addFirstAdmin(args, service) }
         }
     println(message)

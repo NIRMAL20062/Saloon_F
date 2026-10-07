@@ -45,7 +45,7 @@ fun main() {
             tokenVerifier = SupabaseTokenVerifier.forProject(config.supabase),
             transactor = ExposedTransactor(database),
             users = ExposedUserRepository(),
-            admins = ExposedAdminRepository(database),
+            admins = ExposedAdminRepository(),
             authAdmin = SupabaseAuthAdmin.forProject(config.supabase),
         )
 
@@ -79,7 +79,7 @@ fun Application.module(
     routing {
         healthRoutes(config.version, dependencies.databaseHealthCheck)
         meRoutes(UserService(dependencies.transactor, dependencies.users))
-        adminRoutes(dependencies.admins, AdminService(dependencies.admins, dependencies.authAdmin))
+        adminRoutes(AdminService(dependencies.transactor, dependencies.admins, dependencies.authAdmin))
     }
 }
 
