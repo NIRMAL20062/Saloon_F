@@ -7,7 +7,7 @@ Kotlin · Ktor 3 (Netty) · Exposed · Flyway · PostgreSQL 17 · HikariCP. JVM 
 ```
 Application.kt        main(), AppDependencies, Application.module(config, deps): wires plugins + routes
 config/               AppConfig: env vars only, validated at startup
-db/                   DatabaseFactory: pool, migrations, Exposed
+db/                   DatabaseFactory: pool, migrations, Exposed; Transactor: one transaction per piece of work
 plugins/              Security, Monitoring (request IDs, logs), ErrorHandling (error envelope), Serialization
 health/               /health, /health/live
 admins/               admin access guard (adminOnly), /v1/admin routes, Supabase admin API client, addFirstAdmin command
@@ -20,6 +20,9 @@ src/main/resources/db/migration/   Flyway SQL: V<n>__<snake_case>.sql
 ## Rules
 
 - Routes are thin: parse + validate input → call a service → respond with a `shared` DTO. Business rules live in services.
+- **Services own the transaction** (BE-025): a service runs each piece of work in one `transactor.transaction { }`, so
+  "check, then write" is one step; repositories run inside it and never open their own (Exposed refuses a query outside a
+  transaction). Never call Supabase or anything slow inside the block (it can't suspend, on purpose).
 - All SQL goes through repositories (Exposed). Every query on a salon-owned table filters by `salon_id`, taken from the
   signed-in person's one salon membership (D-035, D-036), with a role check; never from the request body.
   A customer's own data is filtered by their user id (D-025). Row-level security is the second guard (D-027, docs/DATABASE.md).

@@ -41,10 +41,10 @@ _Last updated 2026-10-07._
   secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
-- **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
-  city (APP-009); Q-018–Q-020. **The `main` ruleset** (GitHub → Settings → Rules → Rulesets → main): today it is disabled
-  *and* targets no branch, so switching it on alone protects nothing. Set Target branches → **Include default branch**,
-  add the required status check **`ci-ok`** (source: GitHub Actions), then Enforcement status → **Active** (D-021, DF-15).
+- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); Q-019, Q-020.
+  **The `main` ruleset** is active (team, 2026-10-07: no deletion, no force push, changes only through a PR) but its
+  required checks list is empty, so a red CI doesn't block a merge: Settings → Rules → Rulesets → main → Require status
+  checks to pass → Add checks → **`ci-ok`** (D-021). Google sign-in is off in Supabase (done, team 2026-10-07).
   **Start now, they take weeks:** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
   2026-10-07): Razorpay Route application + KYC, Play Console account.
