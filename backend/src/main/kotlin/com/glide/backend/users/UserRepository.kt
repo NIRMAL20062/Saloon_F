@@ -2,18 +2,14 @@ package com.glide.backend.users
 
 import com.glide.backend.auth.AuthenticatedUser
 import com.glide.shared.me.UserSide
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.util.UUID
 import kotlin.uuid.ExperimentalUuidApi
@@ -43,74 +39,70 @@ data class AppUser(
     val email: String? = null,
 )
 
+/** Runs inside the caller's transaction ([com.glide.backend.db.Transactor], BE-025); never opens its own. */
 interface UserRepository {
     /** Returns the user's row, creating it on their first request. Safe when two first requests race. */
-    suspend fun ensure(user: AuthenticatedUser): AppUser
+    fun ensure(user: AuthenticatedUser): AppUser
 
     /**
      * Saves the onboarding choice. Returns the user, or null when a *different* side was already chosen (the choice is
      * final, D-030). Choosing the same side again is accepted, so app retries are safe.
      */
-    suspend fun chooseSide(
+    fun chooseSide(
         id: UUID,
         side: UserSide,
     ): AppUser?
 
     /** Saves this person's own name and email (already validated, see [ProfileInput]). A null [email] clears it. */
-    suspend fun updateProfile(
+    fun updateProfile(
         id: UUID,
         profile: ProfileInput.Valid,
     ): AppUser
 }
 
 @OptIn(ExperimentalUuidApi::class)
-class ExposedUserRepository(
-    private val database: Database,
-) : UserRepository {
-    override suspend fun ensure(user: AuthenticatedUser): AppUser =
-        db {
-            val id = user.id.toKotlinUuid()
-            // INSERT ... ON CONFLICT DO NOTHING: parallel first requests can't create two rows.
-            AppUsers.insertIgnore {
-                it[AppUsers.id] = id
-                it[phone] = user.phone
-            }
-            val row = find(id)
-            // Keep the phone in sync if the person changed it in Supabase.
-            if (user.phone != null && row[AppUsers.phone] != user.phone) {
-                AppUsers.update({ AppUsers.id eq id }) { it[phone] = user.phone }
-                find(id).toAppUser()
-            } else {
-                row.toAppUser()
-            }
+class ExposedUserRepository : UserRepository {
+    override fun ensure(user: AuthenticatedUser): AppUser {
+        val id = user.id.toKotlinUuid()
+        // INSERT ... ON CONFLICT DO NOTHING: parallel first requests can't create two rows.
+        AppUsers.insertIgnore {
+            it[AppUsers.id] = id
+            it[phone] = user.phone
         }
+        val row = find(id)
+        // Keep the phone in sync if the person changed it in Supabase.
+        return if (user.phone != null && row[AppUsers.phone] != user.phone) {
+            AppUsers.update({ AppUsers.id eq id }) { it[phone] = user.phone }
+            find(id).toAppUser()
+        } else {
+            row.toAppUser()
+        }
+    }
 
-    override suspend fun chooseSide(
+    override fun chooseSide(
         id: UUID,
         side: UserSide,
-    ): AppUser? =
-        db {
-            val kid = id.toKotlinUuid()
-            // Only rows with no side yet (or the same side) match, so a switch updates nothing and never hits the trigger.
-            val updated =
-                AppUsers.update({ (AppUsers.id eq kid) and (AppUsers.side.isNull() or (AppUsers.side eq side)) }) {
-                    it[AppUsers.side] = side
-                }
-            if (updated == 1) find(kid).toAppUser() else null
-        }
+    ): AppUser? {
+        val kid = id.toKotlinUuid()
+        // Only rows with no side yet (or the same side) match, so a switch updates nothing and never hits the trigger.
+        val updated =
+            AppUsers.update({ (AppUsers.id eq kid) and (AppUsers.side.isNull() or (AppUsers.side eq side)) }) {
+                it[AppUsers.side] = side
+            }
+        return if (updated == 1) find(kid).toAppUser() else null
+    }
 
-    override suspend fun updateProfile(
+    override fun updateProfile(
         id: UUID,
         profile: ProfileInput.Valid,
-    ): AppUser =
-        db {
-            val kid = id.toKotlinUuid()
-            AppUsers.update({ AppUsers.id eq kid }) {
-                it[name] = profile.name
-                it[email] = profile.email
-            }
-            find(kid).toAppUser()
+    ): AppUser {
+        val kid = id.toKotlinUuid()
+        AppUsers.update({ AppUsers.id eq kid }) {
+            it[name] = profile.name
+            it[email] = profile.email
         }
+        return find(kid).toAppUser()
+    }
 
     private fun find(id: Uuid): ResultRow = AppUsers.selectAll().where { AppUsers.id eq id }.single()
 
@@ -122,6 +114,4 @@ class ExposedUserRepository(
             this[AppUsers.name],
             this[AppUsers.email],
         )
-
-    private suspend fun <T> db(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 }

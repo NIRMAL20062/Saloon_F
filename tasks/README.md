@@ -21,7 +21,7 @@ What gets built next, across all three files. Each step is one task = one pull r
 | 4 | BE-018 + APP-005 | first login asks "customer or salon?" (final, D-030); customers enter name/email | nothing |
 | 5 | WEB-002 → BE-020 → WEB-005 | admin website: email code + authenticator login | first admin's email; Supabase email + MFA on; service-role key |
 | 5b | BE-025 | nothing visible: services own the database transaction, so BE-017 can check-then-write safely | nothing |
-| 6 | BE-017 + APP-006 | owner creates a salon + bank details → "under verification" | encryption key in `.env` |
+| 6 | BE-031 → BE-017 → BE-032 + APP-006 | owner creates a salon + bank details → "under verification" (BE-017 split in three, 2026-10-07; staff is BE-033, before APP-012) | salon fields (BE-017); encryption key in `.env` (BE-032) |
 | 7 | BE-019 → BE-022 + WEB-007 | audit log; admins verify salons → the salon goes live (D-033) | nothing |
 | 8 | APP-007, APP-008 | customer side tabs; salon home + menu by role | nothing |
 | 9 | APP-012 | owner adds staff by phone; staff log in straight to "My bookings" (D-039) | nothing |

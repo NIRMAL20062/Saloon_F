@@ -27,6 +27,7 @@ fun fakeDependencies(databaseHealthy: Boolean = true) =
     AppDependencies(
         databaseHealthCheck = DatabaseHealthCheck { databaseHealthy },
         tokenVerifier = TestTokens.verifier,
+        transactor = DirectTransactor,
         users = InMemoryUserRepository(),
         admins = InMemoryAdminRepository(),
         authAdmin = FakeAuthAdmin(),

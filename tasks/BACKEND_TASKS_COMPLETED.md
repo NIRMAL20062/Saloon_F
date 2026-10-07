@@ -188,6 +188,76 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** a pull request could change the script too, but that change shows in its diff like any CI change
 - **Database:** no migration. V5 keeps its two tables (written before the one-change rule; it has run on the dev database)
 
+### BE-025 · Services own the database transaction
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `dd7d06c` `e3a52e4` `960428f` `4212c51` `8aa10e2` `2d10f0e`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-024 · Decisions: D-025, D-027
+- **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
+  slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
+  nowhere to go. Needed before BE-017.
+- **Needs from team:** nothing.
+- **Scope:**
+  - one transaction helper that services call; repositories run inside the caller's transaction and never open their own
+  - existing services moved to it (users/profile, admins/invites + audit log)
+  - Not included: row-level security itself (BE-017); any change to what the API does
+- **Done when:**
+  - [x] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
+  - [x] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
+  - [x] Database: none
+  - [x] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
+- **Built:** `db/Transactor` (one `transaction { }` per piece of work; the block can't suspend, so no Supabase call runs
+  inside); `UserRepository` and `AdminRepository` run inside the caller's transaction; new `UserService`; `AdminService`
+  owns its transactions, with the Supabase calls of an invite between them; the admin check in front of `/v1/admin` goes
+  through the service. Only `Transactor` opens transactions. No API change
+- **Tests:** `TransactorTest` 3, `UserServiceTest` 2, `AdminRepositoryTest` +1 (invite and audit row kept or dropped
+  together). Backend total 130
+- **Security:** no new queries, routes, env vars or logging; audit row in the same transaction as the change (tested);
+  `/feature-security-check` PASS
+- **Database:** none
+- **Verified by:** Claude, backend from the branch on the Supabase dev database: test number …003 profile saved with the same
+  values, same side again 200, a switch 409, one-letter name 400, profile unchanged; `admin@glide.test` (email code from the
+  admin API + test authenticator) `/v1/admin/me` 200, invite of an existing login 201 (no email), again 409, a customer 403;
+  test admin, its login and the test authenticator removed afterwards. Not run on the phone (no app change)
+
+
+### BE-031 · Limited database role and salon context (row-level security groundwork)
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `84ee2a3` `208ca4d` `66f11ca` `6b09d1f`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-025 · Decisions: D-027, DF-26
+- **Why:** first part of BE-017, split off so each PR stays small (review 2026-10-07). Row-level security (D-027) needs the
+  backend's queries to run as a role that is neither superuser, owner nor `BYPASSRLS`; on Supabase our `postgres` login has
+  `BYPASSRLS`, so policies would do nothing for it. The project review also asked that tests run as that role.
+- **Needs from team:** nothing (no new secret: see Scope).
+- **Scope:**
+  - migration: role `glide_app` (no login, no `BYPASSRLS`), allowed to read/write our tables in `glide`; `audit_log` only
+    read and insert; the same for tables added later
+  - every pooled connection switches to it (`SET ROLE glide_app`, committed when the connection opens, like BE-024);
+    Flyway keeps migrating as the owner login
+  - `Transactor` can run a transaction for one salon: sets `app.salon_id` for that transaction only (`set_config(…, true)`)
+  - tests run as `glide_app` too (the shared test pool is the backend's pool)
+  - Not included: any salon table (BE-017); policies for a customer's own data (later, with the first such table)
+- **Done when:**
+  - [x] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
+    salon A's transaction sees only A's rows, can't write B's, and with no salon set sees none; the salon setting doesn't
+    outlive its transaction; `glide_app` can't change `audit_log` or create tables; all existing tests green as `glide_app`
+  - [x] Security: no new secret; the owner login is used only by Flyway
+  - [x] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
+  - [x] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
+- **Built:** migration V6: role `glide_app` (no login, no password, not superuser, owner of nothing, no `BYPASSRLS`), with
+  read/write on our tables (audit log read + insert; migration history read), also for tables added later; every pooled
+  connection does `SET ROLE glide_app` (committed as it opens); Flyway migrates as the owner login before the pool starts;
+  `transactor.transaction(salon)` sets `app.salon_id` for that transaction only. BE-017 was split into BE-031, BE-017,
+  BE-032, BE-033 (same scope). DF-31 records the role switch instead of a second login
+- **Tests:** `AppRoleTest` 6 (role attributes; a probe table with forced RLS: salon A sees only A, no salon sees none, A
+  can't write B; the setting ends with its transaction; no changes to the audit log or migration history, no new tables).
+  Every existing test now runs as `glide_app`. Backend total 136
+- **Security:** no new secret; on Supabase the owner login has `BYPASSRLS`, so the role switch is what makes policies apply;
+  `/feature-security-check` PASS
+- **Database:** V6, applied to the Supabase dev database 2026-10-07 (`success=true`); the pooler doesn't carry the role
+  switch over to other clients (checked)
+- **Verified by:** Claude on the Supabase dev database: `/v1/me`, profile save, side, `/v1/admin/me`, an admin invite
+  (audit row written by `glide_app`) all OK; on the team phone (moto g54) with the backend of BE-017's branch, which
+  contains this one: login, reopen, logout, onboarding (customer and salon), backend down → Retry
+
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

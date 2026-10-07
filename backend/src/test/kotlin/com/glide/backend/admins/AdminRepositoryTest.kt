@@ -6,16 +6,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 /** Real PostgreSQL (Testcontainers) with the real migrations. */
 class AdminRepositoryTest {
-    private val repository = ExposedAdminRepository(TestDatabase.exposed)
+    private val repository = ExposedAdminRepository()
+
+    private fun <T> tx(block: () -> T): T = transaction(TestDatabase.exposed) { block() }
 
     @BeforeTest
     fun emptyAdmins() = resetAdmins()
@@ -25,11 +29,11 @@ class AdminRepositoryTest {
         runBlocking {
             val id = UUID.randomUUID()
 
-            val admin = repository.addFirst(id, "first@glide.test")
+            val admin = tx { repository.addFirst(id, "first@glide.test") }
 
             assertEquals(Admin(id, "first@glide.test", AdminStatus.INVITED, invitedBy = null), admin)
-            assertEquals(admin, repository.find(id))
-            assertEquals(admin, repository.findByEmail("first@glide.test"))
+            assertEquals(admin, tx { repository.find(id) })
+            assertEquals(admin, tx { repository.findByEmail("first@glide.test") })
             assertEquals(
                 listOf(
                     AuditRow(
@@ -48,20 +52,20 @@ class AdminRepositoryTest {
             val results =
                 (1..5)
                     .map { n ->
-                        async(Dispatchers.IO) { repository.addFirst(UUID.randomUUID(), "first$n@glide.test") }
+                        async(Dispatchers.IO) { tx { repository.addFirst(UUID.randomUUID(), "first$n@glide.test") } }
                     }.awaitAll()
 
             assertEquals(1, results.count { it != null })
-            assertNull(repository.addFirst(UUID.randomUUID(), "later@glide.test"))
+            assertNull(tx { repository.addFirst(UUID.randomUUID(), "later@glide.test") })
         }
 
     @Test
     fun `an invited admin records who invited them and the request, in the audit log too`() =
         runBlocking {
-            val first = repository.addFirst(UUID.randomUUID(), "first@glide.test")!!
+            val first = tx { repository.addFirst(UUID.randomUUID(), "first@glide.test") }!!
             val id = UUID.randomUUID()
 
-            val invited = repository.addInvited(id, "b@glide.test", first.userId, "req-42")
+            val invited = tx { repository.addInvited(id, "b@glide.test", first.userId, "req-42") }
 
             assertEquals(Admin(id, "b@glide.test", AdminStatus.INVITED, first.userId), invited)
             assertEquals(
@@ -80,13 +84,13 @@ class AdminRepositoryTest {
     @Test
     fun `the same email or login can't be added twice, and nothing is audit-logged for the refusal`() =
         runBlocking {
-            val first = repository.addFirst(UUID.randomUUID(), "first@glide.test")!!
+            val first = tx { repository.addFirst(UUID.randomUUID(), "first@glide.test") }!!
             val b = UUID.randomUUID()
-            repository.addInvited(b, "b@glide.test", first.userId, null)
+            tx { repository.addInvited(b, "b@glide.test", first.userId, null) }
             val other = UUID.randomUUID()
 
-            assertNull(repository.addInvited(other, "b@glide.test", first.userId, null))
-            assertNull(repository.addInvited(b, "c@glide.test", first.userId, null))
+            assertNull(tx { repository.addInvited(other, "b@glide.test", first.userId, null) })
+            assertNull(tx { repository.addInvited(b, "c@glide.test", first.userId, null) })
             assertEquals(emptyList(), auditRows(other))
             assertEquals(1, auditRows(b).size)
         }
@@ -95,23 +99,39 @@ class AdminRepositoryTest {
     fun `activation turns INVITED into ACTIVE once, stamps the time, and is audit-logged once`() =
         runBlocking {
             val id = UUID.randomUUID()
-            repository.addFirst(id, "first@glide.test")
+            tx { repository.addFirst(id, "first@glide.test") }
 
-            val results = (1..5).map { async(Dispatchers.IO) { repository.activate(id, "req-1") } }.awaitAll()
+            val results = (1..5).map { async(Dispatchers.IO) { tx { repository.activate(id, "req-1") } } }.awaitAll()
 
             results.forEach { assertEquals(AdminStatus.ACTIVE, it.status) }
             assertNotNull(activatedAt(id))
             assertEquals(1, auditRows(id).count { it.action == "ADMIN_ACTIVATED" })
-            assertEquals(AdminStatus.ACTIVE, repository.activate(id, "req-2").status)
+            assertEquals(AdminStatus.ACTIVE, tx { repository.activate(id, "req-2") }.status)
             assertEquals(1, auditRows(id).count { it.action == "ADMIN_ACTIVATED" })
         }
 
     @Test
     fun `unknown logins and emails are not admins`() =
         runBlocking {
-            assertNull(repository.find(UUID.randomUUID()))
-            assertNull(repository.findByEmail("nobody@glide.test"))
+            assertNull(tx { repository.find(UUID.randomUUID()) })
+            assertNull(tx { repository.findByEmail("nobody@glide.test") })
         }
+
+    @Test
+    fun `an invite and its audit row are kept or dropped together, in the caller's transaction (BE-025)`() {
+        val first = tx { repository.addFirst(UUID.randomUUID(), "first@glide.test") }!!
+        val id = UUID.randomUUID()
+
+        assertFailsWith<IllegalStateException> {
+            tx {
+                repository.addInvited(id, "b@glide.test", first.userId, "req-7")
+                error("a later step of the same piece of work failed")
+            }
+        }
+
+        assertNull(tx { repository.find(id) })
+        assertEquals(emptyList(), auditRows(id))
+    }
 
     private data class AuditRow(
         val actor: UUID?,

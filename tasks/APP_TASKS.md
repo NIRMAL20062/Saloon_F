@@ -60,7 +60,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Flow: documented in `android/CLAUDE.md` (how to run it)
 
 ### APP-006 · Salon onboarding: create your salon, then verification
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-005, BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-005, BE-017, BE-032 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
 - **Needs from team:** nothing; fields below come from the plan (veto any). Razorpay may ask for more KYC details in Phase 6.
 - **Flow (owner):**
   - "Create your salon": name, phone, address, type (men / women / unisex, also a customer search filter) → you are its **owner**
@@ -69,7 +69,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     salon is **live** and the salon home opens; if rejected, the reason is shown → fix → submit again
 - **Done when:**
   - [ ] Tests: every screen state; create → submit → under verification → live; rejected → fix → resubmit
-  - [ ] Security: the account number is masked once saved and never logged; tenant isolation tests (BE-017)
+  - [ ] Security: the account number is masked once saved and never logged; tenant isolation tests (BE-017, BE-032)
   - [ ] Flow: on the phone, test number A creates "Test Salon A" and submits bank details → "Under verification"; an admin
     approves on the website → the app shows the salon as live
 
@@ -111,7 +111,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** a test crash shows in Firebase; no personal data (phone, name) in analytics events.
 
 ### APP-012 · Add staff by phone
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-008, BE-017, BE-022 · Spec: PRODUCT §6.2 · Decisions: D-033, D-039, DF-23
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-008, BE-033 · Spec: PRODUCT §6.2 · Decisions: D-033, D-039, DF-23
 - **Needs from team:** nothing.
 - **Flow:**
   - the owner of a **live** salon → Staff → list (name, or phone until a name exists: Q-012; role) → "Add": phone number
