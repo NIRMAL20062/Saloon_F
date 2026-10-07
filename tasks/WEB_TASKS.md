@@ -10,13 +10,25 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ### WEB-005 · Admin login: email code + authenticator app
 - **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
-- **Needs from team:** same Supabase project; the first admin's email.
+- **Needs from team:** same Supabase project; the first admin's email. Done 2026-10-07: custom SMTP via Brevo (Supabase's
+  built-in email allows ~2 a hour; Brevo's IP blocking turned off for SMTP keys, since Supabase's servers change address).
+  Magic Link email template (Authentication → Emails), code only, because a link logs in through the browser, which the
+  admin website doesn't use (DF-20), and redirects to the Site URL:
+  subject `Your Glide Admin login code`; body: "Enter this code on the Glide Admin login page: `{{ .Token }}`. It works for
+  10 minutes and only once. If you didn't try to log in, ignore this email: Glide Admin also asks for the code from the
+  authenticator app."
 - **Flow:** email → 6-digit code from the email → first time: set up an authenticator app (QR) → enter its code → admin home.
   Everything under the panel requires login; session expires after inactivity; logout.
 - **Done when:**
-  - [ ] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
-  - [ ] Security: Supabase is called only from the Next.js server (DF-20); session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
-  - [ ] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
+  - [x] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
+    (Vitest: 127 admin tests, incl. `guard.test.ts`, `actions.test.ts`, `pages.test.tsx`, `forms.test.tsx`)
+  - [x] Security: Supabase is called only from the Next.js server (DF-20); session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
+    (checked in the browser too: `__Host-` cookie httpOnly/Secure/Strict, `document.cookie` empty, no token in pages or JS bundles)
+  - [x] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
+    (headless Chrome, real Supabase + backend, 2026-10-07: the team member's email, invited by `admin@glide.test`: email
+    code → authenticator setup → home → logout → second login with the authenticator code; an email without a login gets
+    the same screens and every code is refused. "No access" for a non-admin *with* a login: unit tests + BE-020's backend
+    check; no such email account to try in the browser)
 
 ### WEB-006 · Admins page: invite more admins
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
