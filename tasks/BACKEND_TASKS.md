@@ -88,7 +88,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
 ### BE-032 · Bank details (encrypted) and "submit for verification"
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24, DF-33
 - **Needs from team:** an encryption key for bank details put into `.env` (the task report says how to make one).
 - **Scope:** `salon_bank_details` (account holder name, account number **encrypted**, IFSC; masked in every app response,
   DF-24); `PUT /v1/salon/bank-details` (owner only) · `POST /v1/salon/submit-for-verification` (needs a complete profile and
