@@ -8,6 +8,34 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Admin login and salon verification
 
+### WEB-009 · Fix: logout and the time limits also end the Supabase login
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** WEB-008
+- **Why:** project review (2026-10-07): logout and the 30 min / 12 h limits only delete the cookie. If the session had
+  already timed out, Supabase isn't told, so a copied cookie's refresh token stays usable.
+- **Needs from team:** nothing.
+- **Scope:** logout signs the login out at Supabase even when its access token has expired (refresh first if needed); a
+  session ended by the time limits is signed out at Supabase too (best effort). Not included: revoking access tokens before
+  they expire (at most 1 hour; the backend checks them itself).
+- **Done when:**
+  - [ ] Tests: logout with an expired access token still signs out at Supabase; an idle or too-old session is signed out
+    when the proxy ends it; a Supabase error never blocks the logout
+  - [ ] Security: after logout, the old refresh token is refused by Supabase
+  - [ ] Database: none
+  - [ ] Flow: in the browser: log in, copy the cookie, log out → the copied cookie can't refresh
+
+### WEB-010 · Fix: the login page doesn't reveal which emails have a login
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** WEB-005
+- **Why:** project review (2026-10-07): asking for a code twice gives "too many attempts" only for emails that have a login
+  (Supabase's own per-user limit), so admin emails can be discovered.
+- **Needs from team:** nothing.
+- **Scope:** our own "wait a minute before the next code" rule for every email, so the screens and messages are the same
+  whether or not the email has a login. Login rate limits per IP stay in the Pre-launch hosting task.
+- **Done when:**
+  - [ ] Tests: a second request within a minute gets the same message for an admin email and an unknown email
+  - [ ] Security: no difference in screens or messages between an admin email and an unknown one
+  - [ ] Database: none
+  - [ ] Flow: in the browser, both emails twice in a row → the same screens
+
 ### WEB-006 · Admins page: invite more admins
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
 - **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
@@ -32,7 +60,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Platform backlog (done alongside features; never blocks them)
 
 - ⬜ **WEB-003** System status page (Phase 0 proof; optional now that real admin pages are coming)
-- ⬜ **WEB-004** Playwright browser tests in CI: first for the WEB-005 login flow against the real backend
+- ⬜ **WEB-004** Playwright browser tests in CI: first for the WEB-005 login flow against the real backend. **Moved up** by the
+  project review (2026-10-07): do it after WEB-010, together with BE-012 (dependency scanning)
 
 ## Pre-launch (outline)
 
