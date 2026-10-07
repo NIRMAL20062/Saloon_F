@@ -19,7 +19,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
               in again.
             </p>
           ) : null}
-          <p>We&apos;ll email you a 6-digit code. Only Glide team admins can log in.</p>
+          <p>We&apos;ll email you a login code. Only Glide team admins can log in.</p>
         </>
       }
     >

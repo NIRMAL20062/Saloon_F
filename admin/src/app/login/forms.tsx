@@ -35,20 +35,24 @@ export function EmailForm({ action }: { action: Action<FormState> }) {
   );
 }
 
-/** A 6-digit code: from the email, or from the authenticator app. */
+/**
+ * A one-time code: from the email (6 to 10 digits, a Supabase project setting) or from the authenticator app (always 6).
+ */
 export function CodeForm({
   action,
   label,
   submitLabel = "Continue",
+  maxDigits = 6,
 }: {
   action: Action<FormState>;
   label: string;
   submitLabel?: string;
+  maxDigits?: number;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
     <form action={formAction} noValidate>
-      <CodeInput label={label} />
+      <CodeInput label={label} maxDigits={maxDigits} />
       <ErrorText error={state.error} />
       <button type="submit" disabled={pending} className={button}>
         {pending ? "Checking…" : submitLabel}
@@ -57,7 +61,7 @@ export function CodeForm({
   );
 }
 
-function CodeInput({ label }: { label: string }) {
+function CodeInput({ label, maxDigits = 6 }: { label: string; maxDigits?: number }) {
   return (
     <>
       <label htmlFor="code" className="text-sm font-medium text-zinc-800">
@@ -69,7 +73,7 @@ function CodeInput({ label }: { label: string }) {
         inputMode="numeric"
         autoComplete="one-time-code"
         pattern="[0-9]*"
-        maxLength={6}
+        maxLength={maxDigits}
         required
         autoFocus
         className={`${input} mt-1 tracking-[0.4em]`}

@@ -16,7 +16,7 @@ export type SetupState = FormState & { enrollment?: TotpEnrollment };
 const MESSAGES = {
   invalidEmail: "Enter a valid email address.",
   cannotSend: "We can't send a code to this email address.",
-  invalidEmailCode: "Enter the 6-digit code from the email.",
+  invalidEmailCode: "Enter the code from the email (only its digits).",
   invalidAppCode: "Enter the 6-digit code from your authenticator app.",
   wrongCode: "That code is wrong or has expired. Check it and try again.",
   rateLimited: "Too many attempts. Wait a few minutes and try again.",
@@ -25,12 +25,17 @@ const MESSAGES = {
 } as const;
 
 const emailSchema = z.string().trim().toLowerCase().pipe(z.email()).pipe(z.string().max(254));
-const codeSchema = z
-  .string()
-  .transform((code) => code.replace(/\s/g, ""))
-  .pipe(z.string().regex(/^\d{6}$/));
+const digits = (pattern: RegExp) =>
+  z
+    .string()
+    .transform((code) => code.replace(/\s/g, ""))
+    .pipe(z.string().regex(pattern));
+/** Supabase's email code: its length is a project setting (6 to 10 digits; the dev project uses 8). */
+const emailCodeSchema = digits(/^\d{6,10}$/);
+/** Authenticator apps always show 6 digits. */
+const appCodeSchema = digits(/^\d{6}$/);
 
-/** Step 1: email → Supabase emails a 6-digit code. */
+/** Step 1: email → Supabase emails a login code. */
 export async function sendCode(_previous: FormState, form: FormData): Promise<FormState> {
   const email = emailSchema.safeParse(form.get("email") ?? "");
   if (!email.success) return { error: MESSAGES.invalidEmail };
@@ -49,7 +54,7 @@ export async function sendCode(_previous: FormState, form: FormData): Promise<Fo
 export async function verifyEmailCode(_previous: FormState, form: FormData): Promise<FormState> {
   const pending = await readPendingLogin();
   if (!pending) redirect("/login");
-  const code = codeSchema.safeParse(form.get("code") ?? "");
+  const code = emailCodeSchema.safeParse(form.get("code") ?? "");
   if (!code.success) return { error: MESSAGES.invalidEmailCode };
   let session: AdminSession;
   try {
@@ -88,7 +93,7 @@ export async function setUpAuthenticator(previous: SetupState, form: FormData): 
     }
   }
   const factorId = String(form.get("factorId") ?? "");
-  const code = codeSchema.safeParse(form.get("code") ?? "");
+  const code = appCodeSchema.safeParse(form.get("code") ?? "");
   if (!factorId || !previous.enrollment) return { error: MESSAGES.unavailable };
   if (!code.success) return { ...previous, error: MESSAGES.invalidAppCode };
   return finishMfa(session, factorId, code.data, previous);
@@ -97,7 +102,7 @@ export async function setUpAuthenticator(previous: SetupState, form: FormData): 
 /** Later logins: the code from the authenticator app set up before. */
 export async function verifyAuthenticator(_previous: FormState, form: FormData): Promise<FormState> {
   const session = await loginInProgress();
-  const code = codeSchema.safeParse(form.get("code") ?? "");
+  const code = appCodeSchema.safeParse(form.get("code") ?? "");
   if (!code.success) return { error: MESSAGES.invalidAppCode };
   let factorId: string | undefined;
   try {

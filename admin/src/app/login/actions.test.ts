@@ -105,8 +105,19 @@ describe("verifyEmailCode", () => {
   test("a code that isn't 6 digits is refused before asking Supabase", async () => {
     await codeSentTo("admin@glide.test");
 
-    expect(await verifyEmailCode({}, form({ code: "12a" }))).toEqual({ error: "Enter the 6-digit code from the email." });
+    expect(await verifyEmailCode({}, form({ code: "12a" }))).toEqual({ error: "Enter the code from the email (only its digits)." });
     expect(supabase.verifyEmailCode).not.toHaveBeenCalled();
+  });
+
+  test("email codes of 6 to 10 digits reach Supabase intact (the length is a Supabase setting; dev uses 8)", async () => {
+    await codeSentTo("admin@glide.test");
+    supabase.verifyEmailCode.mockRejectedValue(new SupabaseAuthError("invalid_code", 403));
+
+    for (const code of ["123456", "1234 5678", "1234567890"]) await verifyEmailCode({}, form({ code }));
+
+    expect(supabase.verifyEmailCode.mock.calls.map((call) => call[1])).toEqual(["123456", "12345678", "1234567890"]);
+    expect(await verifyEmailCode({}, form({ code: "12345678901" }))).toEqual({ error: "Enter the code from the email (only its digits)." });
+    expect(supabase.verifyEmailCode).toHaveBeenCalledTimes(3);
   });
 
   test("a wrong or expired code shows an error and logs nobody in", async () => {
@@ -215,6 +226,13 @@ describe("verifyAuthenticator", () => {
 
     expect(await redirectOf(() => verifyAuthenticator({}, form({ code: "333333" })))).toBe("/");
     expect(supabase.verifyTotp).toHaveBeenCalledWith(AAL1, "f1", "333333");
+  });
+
+  test("authenticator codes are exactly 6 digits", async () => {
+    await loggedInWithEmailCode();
+
+    expect(await verifyAuthenticator({}, form({ code: "12345678" }))).toEqual({ error: "Enter the 6-digit code from your authenticator app." });
+    expect(supabase.verifyTotp).not.toHaveBeenCalled();
   });
 
   test("a wrong code is an error; no authenticator yet goes to setup", async () => {

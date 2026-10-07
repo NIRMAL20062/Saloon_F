@@ -67,6 +67,8 @@ describe("email code page", () => {
     expect(screen.getByRole("heading", { name: "Check your email" })).toBeInTheDocument();
     expect(screen.getByText("admin@glide.test")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Use another email" })).toHaveAttribute("href", "/login");
+    // Supabase's email codes can be up to 10 digits (the dev project sends 8).
+    expect(screen.getByLabelText("Code from the email")).toHaveAttribute("maxlength", "10");
   });
 
   test("without a code having been sent, back to the email step", async () => {
@@ -102,6 +104,7 @@ describe("authenticator pages", () => {
     render(await AuthenticatorCodePage());
 
     expect(screen.getByRole("heading", { name: "Authenticator code" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Code from the app")).toHaveAttribute("maxlength", "6");
     expect(screen.getByRole("button", { name: "Log in" })).toBeInTheDocument();
   });
 });
