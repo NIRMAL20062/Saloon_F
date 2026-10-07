@@ -40,6 +40,9 @@ fun main() {
     if (config.supabase.secretKey == null) {
         LoggerFactory.getLogger("com.glide.backend").warn("SUPABASE_SECRET_KEY is not set: admin invites are off")
     }
+    if (config.bankDetailsKey == null) {
+        LoggerFactory.getLogger("com.glide.backend").warn("BANK_DETAILS_KEY is not set: salons can't save bank details")
+    }
     DatabaseFactory.migrate(config.database)
     val dataSource = DatabaseFactory.createDataSource(config.database)
     val database = DatabaseFactory.connectExposed(dataSource)
