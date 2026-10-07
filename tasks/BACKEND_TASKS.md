@@ -87,33 +87,72 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
-### BE-017 · Salons, bank details, staff, roles and tenant isolation
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-025 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
-- **Needs from team:** an encryption key for bank
-  details put into `.env` by the team (the task report says how to make one).
+### BE-031 · Limited database role and salon context (row-level security groundwork)
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-025 · Decisions: D-027, DF-26
+- **Why:** first part of BE-017, split off so each PR stays small (review 2026-10-07). Row-level security (D-027) needs the
+  backend's queries to run as a role that is neither superuser, owner nor `BYPASSRLS`; on Supabase our `postgres` login has
+  `BYPASSRLS`, so policies would do nothing for it. The project review also asked that tests run as that role.
+- **Needs from team:** nothing (no new secret: see Scope).
 - **Scope:**
-  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a reason, or SUSPENDED)
-  - `salon_bank_details` (account holder name, account number **encrypted**, IFSC); masked in every app response (DF-24)
-  - `salon_members` (salon, phone, user (filled in at that number's first login), role OWNER / STAFF (D-039), status ACTIVE / REMOVED)
-  - `POST /v1/salon/salons` (creator becomes OWNER) · `PUT /v1/salon/bank-details` · `POST /v1/salon/submit-for-verification` ·
-    `GET /v1/salon/me/salons` · `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner only, **live salons only**)
-  - a number added as staff is joined to the salon at its first login and its side becomes SALON (DF-23); a number that already
-    chose CUSTOMER is refused with a clear error code
-  - one salon per person (D-035): a phone that is already in another salon can't be added; every salon route takes the salon from
-    the signed-in person's membership and checks the role (D-036); everything except a staff member's own appointments is OWNER-only (D-039);
-    STAFF reach only their own appointments (D-039)
-  - row-level security (D-027): Flyway keeps the owner user; the backend's queries run as a new limited database user (not superuser,
-    not owner; created by the local setup and Testcontainers, password from env); each transaction sets `app.salon_id`
+  - migration: role `glide_app` (no login, no `BYPASSRLS`), allowed to read/write our tables in `glide`; `audit_log` only
+    read and insert; the same for tables added later
+  - every pooled connection switches to it (`SET ROLE glide_app`, committed when the connection opens, like BE-024);
+    Flyway keeps migrating as the owner login
+  - `Transactor` can run a transaction for one salon: sets `app.salon_id` for that transaction only (`set_config(…, true)`)
+  - tests run as `glide_app` too (the shared test pool is the backend's pool)
+  - Not included: any salon table (BE-017); policies for a customer's own data (later, with the first such table)
 - **Done when:**
-  - [ ] Tests: create salon → submit → UNDER_VERIFICATION; adding staff refused unless LIVE; staff joined at first login; a
-    customer's number refused; STAFF → 403 on owner routes and on other staff's appointments; **salon A can't read or change salon B** (every route);
-    adding a phone already in another salon → refused
-  - [ ] Database: migrations with constraints (exactly one OWNER, unique phone per salon, valid statuses, IFSC format); RLS
-    enabled + forced; test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
-  - [ ] Security: account number encrypted at rest, masked in responses, never logged; salon id never trusted from the request
-    body; audit-logged once BE-019 lands
-  - [ ] Tests run as the limited database user, not a superuser (review 2026-10-07), so a missing policy or salon filter
-    fails them
+  - [ ] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
+    salon A's transaction sees only A's rows, can't write B's, and with no salon set sees none; the salon setting doesn't
+    outlive its transaction; `glide_app` can't change `audit_log` or create tables; all existing tests green as `glide_app`
+  - [ ] Security: no new secret; the owner login is used only by Flyway
+  - [ ] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
+  - [ ] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
+
+### BE-017 · Salons and owners
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039
+- **Needs from team:** answers on the salon's fields (address parts? GST number now or later? the salon's phone).
+- **Scope:**
+  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a
+    reason, or SUSPENDED) and `salon_members` (salon, phone, user, role OWNER / STAFF (D-039), status ACTIVE / REMOVED), one
+    migration each, row-level security forced on both
+  - `POST /v1/salon/salons` (creator becomes OWNER; only a person whose side is SALON, D-030) · `GET /v1/salon/me` (my salon
+    and role) · `PUT /v1/salon/salon` (owner edits the profile while not live)
+  - one salon per person (D-035); every salon route takes the salon from the signed-in person's membership and checks the role
+    (D-036); everything except a staff member's own appointments is OWNER-only (D-039)
+- **Done when:**
+  - [ ] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
+    **salon A can't read or change salon B** (every route); validation errors
+  - [ ] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
+    RLS enabled + forced; test: `glide_app` with salon A set sees zero rows of salon B, with no salon set sees none
+  - [ ] Security: salon id never trusted from the request; role checked on every route
+  - [ ] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
+
+### BE-032 · Bank details (encrypted) and "submit for verification"
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
+- **Needs from team:** an encryption key for bank details put into `.env` (the task report says how to make one).
+- **Scope:** `salon_bank_details` (account holder name, account number **encrypted**, IFSC; masked in every app response,
+  DF-24); `PUT /v1/salon/bank-details` (owner only) · `POST /v1/salon/submit-for-verification` (needs a complete profile and
+  bank details; DRAFT or REJECTED → UNDER_VERIFICATION)
+- **Done when:**
+  - [ ] Tests: save → masked; submit without bank details refused; submit → UNDER_VERIFICATION; resubmit after REJECTED;
+    STAFF → 403; salon A can't read or change salon B's bank details
+  - [ ] Database: migration with IFSC format check; RLS forced; the stored value is not the account number in clear
+  - [ ] Security: account number encrypted at rest with a key from env, masked in responses, never logged; audit-logged once
+    BE-019 lands
+  - [ ] Flow: on the Supabase database, "Test Salon A" saves bank details and submits → UNDER_VERIFICATION
+
+### BE-033 · Staff: add and remove, join at first login
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-022 · Spec: PRODUCT §6.2 · Decisions: D-035, D-039, DF-23
+- **Scope:** `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner only, **live salons only**); a number added as
+  staff is joined to the salon at its first login and its side becomes SALON (DF-23); a number that already chose CUSTOMER,
+  or is in another salon, is refused with a clear error code; removing keeps history (status REMOVED)
+- **Done when:**
+  - [ ] Tests: adding staff refused unless LIVE; staff joined at first login; a customer's number refused; a number in another
+    salon refused; STAFF → 403 on owner routes; salon A can't list or remove salon B's staff
+  - [ ] Database: uses BE-017's `salon_members`; no new table
+  - [ ] Security: owner-only routes; staff see nothing but their own appointments (D-039)
+  - [ ] Flow: on the Supabase database, live "Test Salon A" adds test number B; B's first login lands in the salon
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §7 (audit log: every admin and money action)
@@ -129,7 +168,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Done when:** running it twice changes nothing; [docs/TESTING.md](../docs/TESTING.md) lists the logins (codes live in the password manager).
 
 ### BE-022 · Salon verification by our admins
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-019, BE-020 · Decisions: D-033, DF-24
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-032, BE-019, BE-020 · Decisions: D-033, DF-24
 - **Scope:** `salon_verifications` (salon, admin, decision APPROVED / REJECTED, reason, when) ·
   `GET /v1/admin/salons?status=UNDER_VERIFICATION` · `GET /v1/admin/salons/{id}` (profile + full bank details; every view
   audit-logged) · `POST /v1/admin/salons/{id}/approve` · `POST /v1/admin/salons/{id}/reject` (reason required) → the salon becomes
