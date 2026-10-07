@@ -22,8 +22,11 @@ object DatabaseFactory {
                 username = config.user
                 password = config.password
                 poolName = "glide-db"
-                // Every connection works in our schema (sets search_path), so SQL and Exposed use unqualified names.
-                schema = SCHEMA
+                // Every connection works in our schema, so SQL and Exposed use unqualified names. The setting is
+                // committed when the connection opens: with auto-commit off it would otherwise sit in the connection's
+                // first transaction, and a rollback of that transaction would undo it for good (BE-024).
+                connectionInitSql = "SET search_path TO $SCHEMA"
+                isIsolateInternalQueries = true
                 maximumPoolSize = MAX_POOL_SIZE
                 connectionTimeout = CONNECTION_TIMEOUT_MS
                 // Exposed manages transactions itself.

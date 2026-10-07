@@ -25,10 +25,9 @@ _Last updated 2026-10-07._
   (DF-28, DF-29). First admin in the dev project: `admin@glide.test` (its codes come from the admin API, no inbox).
 - **WEB-005** merged 2026-10-07: admin website login (email code + authenticator app), every page locked, 30 min idle /
   12 h sessions (DF-30). Checked in a real browser against real Supabase + backend.
-- **Now:** nothing in progress. The team gave the go-ahead for BE-024 (2026-10-07), to be started in a **new session**.
-- **Next task:** BE-024 (fix found during WEB-005: database connections lose the `glide` schema after a rollback; until
-  then, restart the backend if it answers 500 "relation does not exist"), then BE-017 + APP-006. Full order:
-  [tasks/README.md § Build order](tasks/README.md#build-order).
+- **BE-024** merged 2026-10-07: database connections keep the `glide` schema after a rollback (no more backend restarts).
+- **Now:** WEB-008 (admin login security follow-up from the WEB-005 re-check), PR #14.
+- **Next task:** BE-017 + APP-006. Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
   SMTP, set up by the team 2026-10-07); the Magic Link email shows only the code, no link (template in WEB-005; changed by the team 2026-10-07). Public keys only in the repo;
@@ -37,7 +36,7 @@ _Last updated 2026-10-07._
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
   city (APP-009).
-- **Open pull requests:** none.
+- **Open pull requests:** #14 (WEB-008).
 
 ## Golden rules
 
