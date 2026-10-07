@@ -12,6 +12,14 @@ import com.glide.shared.me.MeResponse
 import com.glide.shared.me.UpdateProfileRequest
 import com.glide.shared.me.UpdateSideRequest
 import com.glide.shared.me.UserSide
+import com.glide.shared.salon.IndianState
+import com.glide.shared.salon.MySalonResponse
+import com.glide.shared.salon.SalonAddress
+import com.glide.shared.salon.SalonProfileRequest
+import com.glide.shared.salon.SalonResponse
+import com.glide.shared.salon.SalonRole
+import com.glide.shared.salon.SalonStatus
+import com.glide.shared.salon.SalonType
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlin.test.Test
@@ -92,6 +100,55 @@ class ContractSerializationTest {
         val json = ApiJson.encodeToString(MeResponse("u-1", "919000000001"))
 
         assertJsonEquals("""{"id":"u-1","phone":"919000000001"}""", json)
+    }
+
+    @Test
+    fun `my salon response has the documented wire format`() {
+        val json =
+            ApiJson.encodeToString(
+                MySalonResponse(
+                    SalonResponse(
+                        id = "s-1",
+                        name = "Glow Studio",
+                        phone = "919876543210",
+                        address =
+                            SalonAddress(
+                                "12, MG Road",
+                                "Indiranagar",
+                                null,
+                                "Bengaluru",
+                                IndianState.KARNATAKA,
+                                "560038",
+                            ),
+                        type = SalonType.UNISEX,
+                        status = SalonStatus.DRAFT,
+                    ),
+                    SalonRole.OWNER,
+                ),
+            )
+
+        assertJsonEquals(
+            """
+            {"salon":{"id":"s-1","name":"Glow Studio","phone":"919876543210",
+             "address":{"line1":"12, MG Road","area":"Indiranagar","city":"Bengaluru","state":"KARNATAKA","pincode":"560038"},
+             "type":"UNISEX","status":"DRAFT"},"role":"OWNER"}
+            """.trimIndent(),
+            json,
+        )
+    }
+
+    @Test
+    fun `salon profile request leaves out a missing phone and landmark`() {
+        val address =
+            SalonAddress("12, MG Road", "Indiranagar", "Near the metro", "Bengaluru", IndianState.DELHI, "110001")
+
+        assertJsonEquals(
+            """
+            {"name":"Glow","address":{"line1":"12, MG Road","area":"Indiranagar","landmark":"Near the metro","city":"Bengaluru",
+             "state":"DELHI","pincode":"110001"},"type":"MEN"}
+            """.trimIndent(),
+            ApiJson.encodeToString(SalonProfileRequest("Glow", address = address, type = SalonType.MEN)),
+        )
     }
 
     @Test

@@ -135,6 +135,64 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/salon/salons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create the signed-in person's salon; they become its owner (BE-017, D-033, D-035)
+         * @description Only for a person who chose the salon side (D-030) and belongs to no salon yet. The salon starts as DRAFT.
+         *     Text fields are trimmed. The phone defaults to the owner's login number (D-046).
+         */
+        post: operations["createSalon"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/salon/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in person's one salon and their role in it (BE-017, D-036) */
+        get: operations["getMySalon"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/salon/salon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * The owner edits the salon's profile while it isn't live (BE-017, D-039)
+         * @description Same body and rules as creating it. Allowed while DRAFT, UNDER_VERIFICATION or REJECTED.
+         */
+        put: operations["updateMySalon"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -152,6 +210,61 @@ export interface components {
          * @enum {string}
          */
         UserSide: "CUSTOMER" | "SALON";
+        SalonProfileRequest: {
+            /** @description 1–30 characters after trimming (D-046) */
+            name: string;
+            /**
+             * @description The number customers call: an Indian number of 10 digits, with or without +91, 91 or a leading 0; spaces and
+             *     dashes are fine. Missing or empty: the owner's login number (D-046, DF-32)
+             */
+            phone?: string;
+            address: components["schemas"]["SalonAddress"];
+            type: components["schemas"]["SalonType"];
+        };
+        SalonAddress: {
+            /** @description House, shop or building, and street */
+            line1: string;
+            /** @description Area or locality */
+            area: string;
+            /** @description Optional */
+            landmark?: string;
+            city: string;
+            state: components["schemas"]["IndianState"];
+            pincode: string;
+        };
+        SalonResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description E.164 without +, e.g. 919876543210 */
+            phone: string;
+            address: components["schemas"]["SalonAddress"];
+            type: components["schemas"]["SalonType"];
+            status: components["schemas"]["SalonStatus"];
+            /** @description Why our team rejected it; only when REJECTED */
+            rejectionReason?: string;
+        };
+        MySalonResponse: {
+            salon: components["schemas"]["SalonResponse"];
+            role: components["schemas"]["SalonRole"];
+        };
+        /** @enum {string} */
+        SalonType: "MEN" | "WOMEN" | "UNISEX";
+        /**
+         * @description Onboarding state (D-033); only LIVE salons add staff, show up for customers and take bookings
+         * @enum {string}
+         */
+        SalonStatus: "DRAFT" | "UNDER_VERIFICATION" | "LIVE" | "REJECTED" | "SUSPENDED";
+        /**
+         * @description The person's role in their one salon (D-039)
+         * @enum {string}
+         */
+        SalonRole: "OWNER" | "STAFF";
+        /**
+         * @description India's 28 states and 8 union territories (DF-32)
+         * @enum {string}
+         */
+        IndianState: "ANDHRA_PRADESH" | "ARUNACHAL_PRADESH" | "ASSAM" | "BIHAR" | "CHHATTISGARH" | "GOA" | "GUJARAT" | "HARYANA" | "HIMACHAL_PRADESH" | "JHARKHAND" | "KARNATAKA" | "KERALA" | "MADHYA_PRADESH" | "MAHARASHTRA" | "MANIPUR" | "MEGHALAYA" | "MIZORAM" | "NAGALAND" | "ODISHA" | "PUNJAB" | "RAJASTHAN" | "SIKKIM" | "TAMIL_NADU" | "TELANGANA" | "TRIPURA" | "UTTAR_PRADESH" | "UTTARAKHAND" | "WEST_BENGAL" | "ANDAMAN_AND_NICOBAR_ISLANDS" | "CHANDIGARH" | "DADRA_AND_NAGAR_HAVELI_AND_DAMAN_AND_DIU" | "DELHI" | "JAMMU_AND_KASHMIR" | "LADAKH" | "LAKSHADWEEP" | "PUDUCHERRY";
         MeResponse: {
             /**
              * Format: uuid
@@ -571,6 +684,191 @@ export interface operations {
             };
             /** @description The server has no Supabase secret key, so it can't invite (error code INVITES_UNAVAILABLE) */
             503: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    createSalon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "name": "Glow Studio",
+                 *       "address": {
+                 *         "line1": "12, MG Road",
+                 *         "area": "Indiranagar",
+                 *         "landmark": "Near the metro",
+                 *         "city": "Bengaluru",
+                 *         "state": "KARNATAKA",
+                 *         "pincode": "560038"
+                 *       },
+                 *       "type": "UNISEX"
+                 *     }
+                 */
+                "application/json": components["schemas"]["SalonProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Created; returns the salon (DRAFT) and the role OWNER */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySalonResponse"];
+                };
+            };
+            /** @description Malformed body, or a field fails validation (error codes INVALID_SALON_NAME, INVALID_SALON_PHONE, INVALID_ADDRESS) */
+            400: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person hasn't chosen the salon side (error code NOT_SALON_SIDE) */
+            403: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The person already belongs to a salon (error code ALREADY_IN_SALON) */
+            409: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getMySalon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The salon and the person's role */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySalonResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person belongs to no salon yet (error code NO_SALON) */
+            404: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    updateMySalon: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "name": "Glow Studio",
+                 *       "address": {
+                 *         "line1": "12, MG Road",
+                 *         "area": "Indiranagar",
+                 *         "landmark": "Near the metro",
+                 *         "city": "Bengaluru",
+                 *         "state": "KARNATAKA",
+                 *         "pincode": "560038"
+                 *       },
+                 *       "type": "UNISEX"
+                 *     }
+                 */
+                "application/json": components["schemas"]["SalonProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Saved; returns the salon and the role OWNER */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MySalonResponse"];
+                };
+            };
+            /** @description Malformed body, or a field fails validation (error codes INVALID_SALON_NAME, INVALID_SALON_PHONE, INVALID_ADDRESS) */
+            400: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            /** @description The person is staff, not the owner (error code NOT_OWNER) */
+            403: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The person belongs to no salon yet (error code NO_SALON) */
+            404: {
+                headers: {
+                    "X-Request-Id": components["headers"]["XRequestId"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The salon is LIVE or SUSPENDED (error code SALON_NOT_EDITABLE) */
+            409: {
                 headers: {
                     "X-Request-Id": components["headers"]["XRequestId"];
                     [name: string]: unknown;

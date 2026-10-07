@@ -20,6 +20,10 @@ import com.glide.backend.plugins.configureErrorHandling
 import com.glide.backend.plugins.configureMonitoring
 import com.glide.backend.plugins.configureSecurity
 import com.glide.backend.plugins.configureSerialization
+import com.glide.backend.salons.ExposedSalonRepository
+import com.glide.backend.salons.SalonRepository
+import com.glide.backend.salons.SalonService
+import com.glide.backend.salons.salonRoutes
 import com.glide.backend.users.ExposedUserRepository
 import com.glide.backend.users.UserRepository
 import com.glide.backend.users.UserService
@@ -46,6 +50,7 @@ fun main() {
             transactor = ExposedTransactor(database),
             users = ExposedUserRepository(),
             admins = ExposedAdminRepository(),
+            salons = ExposedSalonRepository(),
             authAdmin = SupabaseAuthAdmin.forProject(config.supabase),
         )
 
@@ -62,6 +67,7 @@ data class AppDependencies(
     val transactor: Transactor,
     val users: UserRepository,
     val admins: AdminRepository,
+    val salons: SalonRepository,
     /** Supabase's admin API (secret key). Without the key: DisabledAuthAdmin, and invites answer 503. */
     val authAdmin: AuthAdmin,
 )
@@ -80,6 +86,7 @@ fun Application.module(
         healthRoutes(config.version, dependencies.databaseHealthCheck)
         meRoutes(UserService(dependencies.transactor, dependencies.users))
         adminRoutes(AdminService(dependencies.transactor, dependencies.admins, dependencies.authAdmin))
+        salonRoutes(SalonService(dependencies.transactor, dependencies.users, dependencies.salons))
     }
 }
 

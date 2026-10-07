@@ -59,3 +59,88 @@ enum class IndianState(
     LAKSHADWEEP("Lakshadweep"),
     PUDUCHERRY("Puducherry"),
 }
+
+/** A salon's address in the usual Indian parts (D-046). Each text part is trimmed; limits in [SalonRules]. */
+@Serializable
+data class SalonAddress(
+    /** House, shop or building, and street. */
+    val line1: String,
+    /** Area or locality. */
+    val area: String,
+    /** Optional; empty or missing means none. */
+    val landmark: String? = null,
+    val city: String,
+    val state: IndianState,
+    /** 6 digits, not starting with 0. */
+    val pincode: String,
+)
+
+/** Body of `POST /v1/salon/salons` and `PUT /v1/salon/salon`. */
+@Serializable
+data class SalonProfileRequest(
+    /** 1–30 characters after trimming (D-046). */
+    val name: String,
+    /**
+     * The number customers call: an Indian number, with or without +91, 91 or a leading 0; spaces and dashes are fine.
+     * Missing or empty: the owner's login number (D-046).
+     */
+    val phone: String? = null,
+    val address: SalonAddress,
+    val type: SalonType,
+)
+
+/** A salon as the app sees it. */
+@Serializable
+data class SalonResponse(
+    /** UUID. */
+    val id: String,
+    val name: String,
+    /** E.164 without "+", e.g. `919876543210`. */
+    val phone: String,
+    val address: SalonAddress,
+    val type: SalonType,
+    val status: SalonStatus,
+    /** Why our team rejected it; only when [status] is REJECTED. */
+    val rejectionReason: String? = null,
+)
+
+/** Body of `GET /v1/salon/me`, `POST /v1/salon/salons` and `PUT /v1/salon/salon`: the person's one salon and their role. */
+@Serializable
+data class MySalonResponse(
+    val salon: SalonResponse,
+    val role: SalonRole,
+)
+
+/** Limits of a salon's profile, shared so the app can check them before sending (D-046, DF-32). */
+object SalonRules {
+    const val NAME_MAX = 30
+    const val ADDRESS_PART_MAX = 100
+    const val CITY_MAX = 50
+}
+
+/** Error codes of the /v1/salon endpoints (see ErrorCodes for the shared ones). */
+object SalonErrorCodes {
+    /** The name is empty, longer than 30 characters, or has control characters. */
+    const val INVALID_SALON_NAME = "INVALID_SALON_NAME"
+
+    /** The phone isn't an Indian number of 10 digits (after +91, 91 or 0), or none was given and the login has none. */
+    const val INVALID_SALON_PHONE = "INVALID_SALON_PHONE"
+
+    /** An address part is missing or too long, or the PIN code isn't 6 digits; the message names the part. */
+    const val INVALID_ADDRESS = "INVALID_ADDRESS"
+
+    /** Creating a salon needs the salon side, chosen at onboarding (D-030). */
+    const val NOT_SALON_SIDE = "NOT_SALON_SIDE"
+
+    /** The person already belongs to a salon (one salon per person, D-035). */
+    const val ALREADY_IN_SALON = "ALREADY_IN_SALON"
+
+    /** The person belongs to no salon yet. */
+    const val NO_SALON = "NO_SALON"
+
+    /** Only the salon's owner can do this (D-039). */
+    const val NOT_OWNER = "NOT_OWNER"
+
+    /** A live or suspended salon's profile can't be changed here. */
+    const val SALON_NOT_EDITABLE = "SALON_NOT_EDITABLE"
+}
