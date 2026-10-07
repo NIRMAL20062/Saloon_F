@@ -6,8 +6,67 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and accounts
 
+### BE-025 · Services own the database transaction
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-024 · Decisions: D-025, D-027
+- **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
+  slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
+  nowhere to go. Needed before BE-017.
+- **Needs from team:** nothing.
+- **Scope:**
+  - one transaction helper that services call; repositories run inside the caller's transaction and never open their own
+  - existing services moved to it (users/profile, admins/invites + audit log)
+  - Not included: row-level security itself (BE-017); any change to what the API does
+- **Done when:**
+  - [ ] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
+  - [ ] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
+  - [ ] Database: none
+  - [ ] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
+
+### BE-026 · Fix: emoji names answer 500; tests accept any database error
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-018
+- **Why:** project review (2026-10-07): Kotlin counts 😀 as 2 characters and Postgres as 1, so a name at our limit passes our
+  check, the database refuses it and the server answers 500; that error's log can include the phone number. Separately,
+  `UserRepositoryTest` accepts any `SQLException`, so "relation does not exist" (BE-024) passes it.
+- **Needs from team:** nothing.
+- **Scope:**
+  - text limits counted the way Postgres counts (code points) for every validated text field
+  - a database refusal never reaches the client as 500 for input we validate, and database errors never log request data
+  - `UserRepositoryTest`'s two database-rule tests check the exact Postgres error (SQL state), like `AdminTablesTest`
+- **Done when:**
+  - [ ] Tests: a name of emoji exactly at the limit is accepted, one more is refused with `VALIDATION_ERROR`; the two
+    database-rule tests fail if the table is missing
+  - [ ] Security: no phone numbers or request bodies in database error logs
+  - [ ] Database: none
+  - [ ] Flow: on the phone, a customer name made of emoji saves
+
+### BE-027 · Fix: Supabase unreachable answers 503, not "sign in again"
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-016
+- **Why:** project review (2026-10-07): if Supabase's signing keys can't be fetched, every request gets 401, and the app
+  signs everyone out.
+- **Needs from team:** nothing.
+- **Scope:** keys that can't be fetched (and aren't cached) → 503 `SERVICE_UNAVAILABLE` in the error envelope; a token that
+  is really bad stays 401. The app side is APP-014.
+- **Done when:**
+  - [ ] Tests: keys unreachable → 503; cached keys keep working while Supabase is down; a forged or expired token → 401
+  - [ ] Security: a token is never accepted without checking its signature
+  - [ ] Database: none
+  - [ ] Flow: backend with Supabase blocked → `/v1/me` answers 503; unblocked → 200 without logging in again
+
+### BE-028 · API enums tolerate values an older app doesn't know
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-016
+- **Why:** project review (2026-10-07): the shared JSON setup has no fallback for unknown enum values, so adding one
+  appointment or payment status would break every older app version.
+- **Needs from team:** nothing.
+- **Scope:** every enum the app receives decodes an unknown value to a fallback (`UNKNOWN`) instead of failing; the backend
+  still refuses unknown values it receives; a contract test lists every enum
+- **Done when:**
+  - [ ] Tests: a response with a status from the future decodes; the backend still answers 400 to an unknown value sent to it
+  - [ ] Security: none beyond input validation staying strict on the backend
+  - [ ] Database: none
+  - [ ] Flow: the app still logs in and shows the profile
+
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
+- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-025 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
 - **Needs from team:** an encryption key for bank
   details put into `.env` by the team (the task report says how to make one).
 - **Scope:**
@@ -31,6 +90,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
     enabled + forced; test: the limited user with salon A set sees zero rows of salon B, and with no salon set sees zero rows
   - [ ] Security: account number encrypted at rest, masked in responses, never logged; salon id never trusted from the request
     body; audit-logged once BE-019 lands
+  - [ ] Tests run as the limited database user, not a superuser (review 2026-10-07), so a missing policy or salon filter
+    fails them
 
 ### BE-019 · Audit log
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §7 (audit log: every admin and money action)

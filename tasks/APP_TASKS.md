@@ -9,6 +9,53 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Login and onboarding
 
+### APP-014 · Fix: login session edge cases
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** APP-004, BE-027
+- **Why:** project review (2026-10-07): a refresh already running can bring back a session right after logout
+  (`AuthRepository.kt:110`); a failed Keystore write during a refresh crashes the app (`SessionStore.kt:63`, common on cheap
+  phones); the login token is added to every request of our only HTTP client, whatever the server.
+- **Needs from team:** nothing.
+- **Scope:**
+  - logout waits for (or cancels) a refresh in progress; nothing revives a logged-out session
+  - a Keystore failure logs out cleanly with our own message, never a crash
+  - the token is attached only to requests to our backend's host
+  - a 503 from the backend (BE-027) never logs out
+- **Done when:**
+  - [ ] Tests: logout during a refresh stays logged out; a Keystore write failure → logged out, no crash; a request to
+    another host carries no token; 503 keeps the session
+  - [ ] Security: no token sent to any other host; no token in logs
+  - [ ] Database: none
+  - [ ] Flow: on the team phone: login, logout, login again; backend stopped → "try again", still logged in
+
+### APP-015 · Fix: phone login rough edges
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** APP-004
+- **Why:** project review (2026-10-07): on Android 7–10 the keyboard covers the input fields (`adjustResize` missing);
+  if Android kills the app while someone reads the SMS, they're back at the phone step and need a new code (another
+  SMS); pasting "+91 98765 43210" gives a wrong number.
+- **Needs from team:** nothing.
+- **Scope:** `adjustResize`; the code step (number, resend timer) survives the app being killed; pasted or typed numbers
+  with +91, 0, spaces or dashes become the right 10 digits
+- **Done when:**
+  - [ ] Tests: number clean-up cases; the ViewModel restores the code step from saved state; Robolectric screen with the
+    keyboard open
+  - [ ] Security: the code itself is never saved
+  - [ ] Database: none
+  - [ ] Flow: on the team phone with a test number: paste "+91 …", go to the code step, kill the app from the developer
+    options, reopen → still on the code step, the code works
+
+### APP-017 · One login test on a real device against the real dev stack
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** APP-014
+- **Why:** project review (2026-10-07): the flow tests fake both Supabase and the backend, so the real token handling,
+  refresh and repositories never run together; there are no on-device tests (`androidTest`).
+- **Needs from team:** nothing (uses a test number; its code comes from the environment, never git).
+- **Scope:** one instrumented test: test number → code → `/v1/me` through the real `AuthRepository`, OkHttp and backend
+  (`adb reverse`); run by hand before each Android PR, not in CI
+- **Done when:**
+  - [ ] Tests: the instrumented test passes on the team phone
+  - [ ] Security: no codes or tokens in the repo or the test output
+  - [ ] Database: none
+  - [ ] Flow: documented in `android/CLAUDE.md` (how to run it)
+
 ### APP-006 · Salon onboarding: create your salon, then verification
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-005, BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
 - **Needs from team:** nothing; fields below come from the plan (veto any). Razorpay may ask for more KYC details in Phase 6.
@@ -27,6 +74,20 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-005 · Spec: PRODUCT §5
 - **Scope:** bottom navigation **Home, Search, Bookings, Profile**; empty states for the first three until their features arrive; Profile shows name/email (edit) and logout.
 - **Done when:** tests for navigation and Back; on the phone all four tabs open.
+
+### APP-016 · Design: the offline cache (D-019), before APP-008
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** APP-007
+- **Why:** project review (2026-10-07): repositories are one-off calls, but the offline cache (D-019) needs repositories that
+  keep screens up to date from a local database. Changing this after many screens exist is expensive.
+- **Needs from team:** approval of the design note.
+- **Scope:** a short design note (local database, what is cached, how screens observe it, how it refreshes) recorded as an
+  implementation default, plus one existing repository (profile) converted as the pattern
+- **Done when:**
+  - [ ] Tests: the converted repository serves the cached profile with the backend down and updates the screen when it
+    comes back
+  - [ ] Security: what may be cached on the phone is listed (no tokens, no bank details)
+  - [ ] Database: none on the backend
+  - [ ] Flow: on the team phone, airplane mode → the profile still shows
 
 ### APP-008 · Salon side: home + menu by role
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** APP-006 · Decision: D-039
@@ -83,6 +144,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 - APP-9xx **Staging build** with a visible STAGING banner via Firebase App Distribution. _Needs from team: testers' emails, a Firebase service-account key as a GitHub secret._
 - APP-9xx Launcher icon + logo (the look itself is APP-011). _Needs from team: the logo._
+- APP-9xx Release build tested end to end: production Supabase project and backend URL (today it points at the dev
+  project), signing set up (review 2026-10-07). _Needs from team: production Supabase project._
 - APP-9xx Release signing + Play Store listing (privacy policy, account deletion, data-safety form: PRODUCT §15). _Needs from team: Play Console account (US$25 one-time), upload keystore._
 
 ## Not planned
