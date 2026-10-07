@@ -65,6 +65,44 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: the app still logs in and shows the profile
 
+### BE-029 · Remove an admin
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-020, BE-025 · Decisions: D-043, DF-28, DF-29
+- **Why:** project review (2026-10-07): an admin can be invited but never removed (`admins.status` is only INVITED / ACTIVE),
+  so someone who leaves the team, or whose login is stolen, keeps full access. Needed before WEB-006 invites a second admin.
+- **Needs from team:** nothing.
+- **Scope:**
+  - `GET /v1/admin/admins`: every admin with email, status, who invited them and when (the list WEB-006 shows)
+  - `POST /v1/admin/admins/{userId}/remove`: the admin becomes REMOVED; refused for yourself and for the last active admin
+    (D-043); removing an already removed admin changes nothing; audit-logged in the same transaction (DF-28)
+  - a removed admin's next `/v1/admin` request is refused (the backend already checks the table on every request, DF-29)
+  - inviting a removed admin's email again makes them INVITED again (emails are unique)
+  - Not included: deleting or banning their Supabase login (it may also be used in the app)
+- **Done when:**
+  - [ ] Tests: remove → their next admin request is 403; yourself → refused; unknown id → 404; already removed → no change;
+    two admins removing each other at the same time leave one active; re-invite → INVITED, then logs in; not an admin or
+    no authenticator step → refused (every new route in the "every admin route is guarded" test)
+  - [ ] Security: only admins with the authenticator step; the removal and the re-invite are audit-logged
+  - [ ] Database: new migration: status REMOVED, `removed_at`, `removed_by`; the status/date checks updated so a removed
+    admin who was active stays valid
+  - [ ] Flow: on the Supabase database, admin A removes B through the API → B's `/v1/admin/me` is refused
+
+### BE-030 · Fix: audit rows get a request ID the server made; a test that depends on timing
+- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-020, BE-024
+- **Why:** project review (2026-10-07): the backend reuses a client's `X-Request-Id` (so app and server logs line up) and
+  writes it into `audit_log.request_id`, so an admin can put any ID they like into the append-only audit log. Separately,
+  `ConnectionSchemaTest` waits a fixed 600 ms for HikariCP's 500 ms "check the connection again" window, which can fail at
+  random on a slow CI machine.
+- **Needs from team:** nothing.
+- **Scope:**
+  - every request also gets an ID the server makes; audit rows store that one; the client's ID still shows in the logs
+  - `ConnectionSchemaTest` no longer depends on a fixed wait (e.g. its test pool checks every connection it hands out)
+- **Done when:**
+  - [ ] Tests: an admin invite sent with a chosen `X-Request-Id` writes an audit row with a server-made ID; the schema
+    test has no sleep
+  - [ ] Security: audit rows only hold IDs the server made
+  - [ ] Database: none
+  - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
+
 ### BE-017 · Salons, bank details, staff, roles and tenant isolation
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-025 · Spec: PRODUCT §3, §6.1, §6.2 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, DF-23, DF-24
 - **Needs from team:** an encryption key for bank
@@ -137,4 +175,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - ⬜ **BE-9xx** Uptime monitor on `/health`. _Needs from team: free UptimeRobot / Better Stack account._
 - ⬜ **BE-9xx** Daily database backups + one practice restore. _Needs from team: a free storage bucket (Cloudflare R2)._
 - ⬜ **BE-9xx** Real client IP behind the host's proxy so rate limiting works per user.
+- ⬜ **BE-9xx** Database timeouts: a statement timeout and a socket timeout on the backend's connections, so a slow database
+  or a full connection pool answers 503 quickly instead of a 500 after ~15 s (review 2026-10-07).
 - ⬜ **BE-9xx** Production + live keys (Razorpay live, WhatsApp business number). _Needs from team: Razorpay + Meta business KYC; a CA's advice on GST/TCS (PRODUCT §8.2); rotate the dev Supabase secret key (it was shared in a chat; team will do it)._

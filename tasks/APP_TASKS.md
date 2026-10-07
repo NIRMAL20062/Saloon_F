@@ -13,16 +13,19 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** APP-004, BE-027
 - **Why:** project review (2026-10-07): a refresh already running can bring back a session right after logout
   (`AuthRepository.kt:110`); a failed Keystore write during a refresh crashes the app (`SessionStore.kt:63`, common on cheap
-  phones); the login token is added to every request of our only HTTP client, whatever the server.
+  phones); the login token is added to every request of our only HTTP client, whatever the server. Follow-up: when a
+  refresh fails because the phone is offline, the request goes out with no token, so the person sees "sign in again"
+  instead of "no connection".
 - **Needs from team:** nothing.
 - **Scope:**
   - logout waits for (or cancels) a refresh in progress; nothing revives a logged-out session
   - a Keystore failure logs out cleanly with our own message, never a crash
   - the token is attached only to requests to our backend's host
   - a 503 from the backend (BE-027) never logs out
+  - a refresh that fails for lack of network never sends the request without a token: "no connection", still logged in
 - **Done when:**
   - [ ] Tests: logout during a refresh stays logged out; a Keystore write failure → logged out, no crash; a request to
-    another host carries no token; 503 keeps the session
+    another host carries no token; 503 keeps the session; an offline refresh → network error, no request without a token
   - [ ] Security: no token sent to any other host; no token in logs
   - [ ] Database: none
   - [ ] Flow: on the team phone: login, logout, login again; backend stopped → "try again", still logged in
