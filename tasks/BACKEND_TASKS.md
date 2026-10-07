@@ -87,28 +87,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
-### BE-031 · Limited database role and salon context (row-level security groundwork)
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-025 · Decisions: D-027, DF-26
-- **Why:** first part of BE-017, split off so each PR stays small (review 2026-10-07). Row-level security (D-027) needs the
-  backend's queries to run as a role that is neither superuser, owner nor `BYPASSRLS`; on Supabase our `postgres` login has
-  `BYPASSRLS`, so policies would do nothing for it. The project review also asked that tests run as that role.
-- **Needs from team:** nothing (no new secret: see Scope).
-- **Scope:**
-  - migration: role `glide_app` (no login, no `BYPASSRLS`), allowed to read/write our tables in `glide`; `audit_log` only
-    read and insert; the same for tables added later
-  - every pooled connection switches to it (`SET ROLE glide_app`, committed when the connection opens, like BE-024);
-    Flyway keeps migrating as the owner login
-  - `Transactor` can run a transaction for one salon: sets `app.salon_id` for that transaction only (`set_config(…, true)`)
-  - tests run as `glide_app` too (the shared test pool is the backend's pool)
-  - Not included: any salon table (BE-017); policies for a customer's own data (later, with the first such table)
-- **Done when:**
-  - [x] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
-    salon A's transaction sees only A's rows, can't write B's, and with no salon set sees none; the salon setting doesn't
-    outlive its transaction; `glide_app` can't change `audit_log` or create tables; all existing tests green as `glide_app`
-  - [x] Security: no new secret; the owner login is used only by Flyway
-  - [x] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
-  - [x] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
-
 ### BE-017 · Salons and owners
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039
 - **Needs from team:** answers on the salon's fields (address parts? GST number now or later? the salon's phone).
