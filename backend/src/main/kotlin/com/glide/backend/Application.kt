@@ -36,8 +36,8 @@ fun main() {
     if (config.supabase.secretKey == null) {
         LoggerFactory.getLogger("com.glide.backend").warn("SUPABASE_SECRET_KEY is not set: admin invites are off")
     }
+    DatabaseFactory.migrate(config.database)
     val dataSource = DatabaseFactory.createDataSource(config.database)
-    DatabaseFactory.migrate(dataSource)
     val database = DatabaseFactory.connectExposed(dataSource)
     val dependencies =
         AppDependencies(

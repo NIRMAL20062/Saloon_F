@@ -15,10 +15,10 @@ import kotlin.system.exitProcess
  */
 fun main(args: Array<String>) {
     val config = AppConfig.fromEnv(System.getenv(), version = "command")
+    DatabaseFactory.migrate(config.database)
     val dataSource = DatabaseFactory.createDataSource(config.database)
     val (exitCode, message) =
         dataSource.use {
-            DatabaseFactory.migrate(it)
             val transactor = ExposedTransactor(DatabaseFactory.connectExposed(it))
             val service =
                 AdminService(transactor, ExposedAdminRepository(), SupabaseAuthAdmin.forProject(config.supabase))

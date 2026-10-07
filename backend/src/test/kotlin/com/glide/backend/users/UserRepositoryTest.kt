@@ -20,7 +20,7 @@ class UserRepositoryTest {
     private val repository = ExposedUserRepository()
     private val transactor = ExposedTransactor(TestDatabase.exposed)
 
-    private suspend fun <T> tx(block: () -> T): T = transactor.transaction(block)
+    private suspend fun <T> tx(block: () -> T): T = transactor.transaction(block = block)
 
     @Test
     fun `first request creates the user with no side yet`() =
