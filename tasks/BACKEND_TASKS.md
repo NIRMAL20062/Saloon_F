@@ -17,10 +17,10 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - existing services moved to it (users/profile, admins/invites + audit log)
   - Not included: row-level security itself (BE-017); any change to what the API does
 - **Done when:**
-  - [ ] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
-  - [ ] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
-  - [ ] Database: none
-  - [ ] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
+  - [x] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
+  - [x] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
+  - [x] Database: none
+  - [x] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
 
 ### BE-026 · Fix: emoji names answer 500; tests accept any database error
 - **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-018
