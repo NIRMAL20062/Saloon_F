@@ -121,12 +121,12 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - one salon per person (D-035); every salon route takes the salon from the signed-in person's membership and checks the role
     (D-036); everything except a staff member's own appointments is OWNER-only (D-039)
 - **Done when:**
-  - [ ] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
+  - [x] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
     **salon A can't read or change salon B** (every route); validation errors
-  - [ ] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
+  - [x] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
     RLS enabled + forced; test: `glide_app` with salon A set sees zero rows of salon B, with no salon set sees none
-  - [ ] Security: salon id never trusted from the request; role checked on every route
-  - [ ] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
+  - [x] Security: salon id never trusted from the request; role checked on every route
+  - [x] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
 
 ### BE-032 · Bank details (encrypted) and "submit for verification"
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24
