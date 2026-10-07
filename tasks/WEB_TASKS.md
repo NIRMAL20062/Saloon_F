@@ -8,6 +8,33 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Admin login and salon verification
 
+### WEB-008 · Fix: admin login security follow-up (from the WEB-005 re-check)
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** WEB-005 · Decisions: DF-20, DF-30
+- **Why:** a re-check of WEB-005 (2026-10-07, finished just after it merged) proved two holes on a running copy of the admin
+  website: an idle session could still open admin pages by adding a prefetch header, and a token the backend refuses sent
+  the browser round `/` → `/login?expired=1` → `/` without end.
+- **Needs from team:** nothing.
+- **Scope:**
+  - `admin/src/proxy.ts` no longer skips requests with `purpose: prefetch` / `next-router-prefetch`: prefetches are checked
+    like any page request, but don't count as activity (so the 30-minute idle rule of DF-30 stays as it is).
+  - `readSession()` / `requireAdmin()` refuse sessions idle for 30 minutes or older than 12 hours themselves (DF-30), so
+    pages don't rely on the proxy alone.
+  - The proxy deletes the session cookie on `/login?expired=1`, and the login page never sends a visitor back to `/` when
+    `expired` is in the address.
+  - `admin/CLAUDE.md`: the proxy skips `/api`, so any future `/api` route must call `requireAdmin()` itself.
+  - Not included: login rate limiting (known gap in docs/SECURITY.md); any other change to the WEB-005 flow.
+- **Done when:**
+  - [ ] Tests: the proxy's matcher runs on prefetch requests (and still skips `/api` and static files); an idle session's
+    prefetch is sent to log in, and a prefetch doesn't record activity; `readSession()` gives nothing for an idle or
+    too-old session and `requireAdmin()` then sends to `/login?expired=1`; `/login?expired=1` deletes the session cookie;
+    the login page with `expired` doesn't redirect to `/`
+  - [ ] Security: no admin page or Server Action works with an idle or too-old session, whatever the headers; a token the
+    backend refuses ends on the login page, never in a loop
+  - [ ] Database: none
+  - [ ] Flow: in the browser, against the real backend + Supabase: an idle session gets the login page with and without a
+    prefetch header; a session whose token the backend refuses ends on the login page with the "logged out" message and
+    no loop; logging in again works
+
 ### WEB-006 · Admins page: invite more admins
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
 - **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
