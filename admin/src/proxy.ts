@@ -6,15 +6,18 @@ import { supabaseAuth } from "./auth/supabase-auth";
 import { buildCsp, createNonce } from "./security/csp";
 
 /**
- * Runs before every page: sends anyone without a full admin login to /login (WEB-005, DF-30), keeps the session alive
- * (activity, token refresh), and adds a fresh nonce-based Content-Security-Policy. Pages check again with
- * requireAdmin(); this is the first line, not the only one.
+ * Runs before every page, prefetches included: sends anyone without a full admin login to /login (WEB-005, DF-30),
+ * keeps the session alive (activity, token refresh), and adds a fresh nonce-based Content-Security-Policy. Pages check
+ * again with requireAdmin(); this is the first line, not the only one.
  */
 export async function proxy(request: NextRequest) {
-  const decision = await guard(request.nextUrl.pathname, request.cookies.get(SESSION_COOKIE)?.value, Date.now(), {
-    secret: getEnv().ADMIN_SESSION_SECRET,
-    refresh: (refreshToken) => supabaseAuth().refresh(refreshToken),
-  });
+  const decision = await guard(
+    request.nextUrl.pathname,
+    request.cookies.get(SESSION_COOKIE)?.value,
+    Date.now(),
+    { secret: getEnv().ADMIN_SESSION_SECRET, refresh: (refreshToken) => supabaseAuth().refresh(refreshToken) },
+    { prefetch: isPrefetch(request.headers) },
+  );
 
   if (decision.kind === "redirect") {
     const response = NextResponse.redirect(new URL(decision.location, request.url));
@@ -39,15 +42,13 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+/** Next.js's router and browsers mark prefetches with one of these headers. */
+function isPrefetch(headers: Headers): boolean {
+  return headers.has("next-router-prefetch") || headers.get("purpose") === "prefetch" || headers.get("sec-purpose")?.startsWith("prefetch") === true;
+}
+
 export const config = {
-  matcher: [
-    {
-      // Pages and Server Actions only: skip API routes, static files and prefetches.
-      source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-  ],
+  // Pages, Server Actions and prefetches; not static files. Not /api either: an /api route must call requireAdmin()
+  // itself. Never skip requests by header: a client chooses its headers (WEB-008).
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

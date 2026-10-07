@@ -17,8 +17,20 @@ export type GuardDecision =
 
 export type GuardDeps = { secret: string; refresh: (refreshToken: string) => Promise<SupabaseTokens> };
 
+/**
+ * [prefetch]: the browser fetching a linked page ahead of a click. It is checked like any request but isn't activity,
+ * or an open page would keep its login alive by itself (WEB-008).
+ */
+export type GuardRequest = { prefetch?: boolean };
+
 /** What the proxy does with one page request (DF-30). Pure apart from [deps.refresh], so every rule is unit-tested. */
-export async function guard(path: string, cookie: string | undefined, now: number, deps: GuardDeps): Promise<GuardDecision> {
+export async function guard(
+  path: string,
+  cookie: string | undefined,
+  now: number,
+  deps: GuardDeps,
+  request: GuardRequest = {},
+): Promise<GuardDecision> {
   if (PUBLIC_PATHS.includes(path)) return { kind: "allow" };
 
   const session = await unseal<AdminSession>(cookie, deps.secret);
@@ -33,6 +45,7 @@ export async function guard(path: string, cookie: string | undefined, now: numbe
   if (session.accessExpiresAt - now < REFRESH_MARGIN_MS) {
     try {
       next = sessionFromTokens(await deps.refresh(session.refreshToken), now, session);
+      if (request.prefetch) next = { ...next, lastSeenAt: session.lastSeenAt };
     } catch (error) {
       if (error instanceof SupabaseAuthError && error.reason === "session_gone") {
         return { kind: "redirect", location: "/login?expired=1", clearCookie: true };
@@ -41,7 +54,7 @@ export async function guard(path: string, cookie: string | undefined, now: numbe
       // admin to log in again.
       return { kind: "allow" };
     }
-  } else if (now - session.lastSeenAt >= TOUCH_EVERY_MS) {
+  } else if (!request.prefetch && now - session.lastSeenAt >= TOUCH_EVERY_MS) {
     next = { ...session, lastSeenAt: now };
   } else {
     return { kind: "allow" };
