@@ -18,6 +18,7 @@ vi.mock("./login/actions", () => ({
   verifyEmailCode: vi.fn(),
   setUpAuthenticator: vi.fn(),
   verifyAuthenticator: vi.fn(),
+  continueLogin: vi.fn(),
   logout: vi.fn(),
 }));
 
@@ -26,6 +27,8 @@ const { default: EmailCodePage } = await import("./login/code/page");
 const { default: AuthenticatorCodePage } = await import("./login/mfa/page");
 const { default: AuthenticatorSetupPage } = await import("./login/mfa/setup/page");
 const { default: NoAccessPage } = await import("./no-access/page");
+const { default: ContinueLoginPage } = await import("./login/continue/page");
+const { default: ErrorPage } = await import("./error");
 const { default: Home } = await import("./page");
 
 const aal1: AdminSession = { email: "a@b.in", accessToken: "t", refreshToken: "r", accessExpiresAt: 0, mfa: false, startedAt: 0, lastSeenAt: 0 };
@@ -107,6 +110,33 @@ describe("authenticator pages", () => {
     expect(screen.getByLabelText("Code from the app")).toHaveAttribute("maxlength", "6");
     expect(screen.getByRole("button", { name: "Log in" })).toBeInTheDocument();
   });
+});
+
+describe("'couldn't finish logging in' page", () => {
+  test("offers to try again or start over", async () => {
+    state.session = aal1;
+
+    render(await ContinueLoginPage());
+
+    expect(screen.getByRole("heading", { name: "Couldn't finish logging in" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Start again" })).toHaveAttribute("href", "/login");
+  });
+
+  test("without a login, back to the start", async () => {
+    expect(await redirectOf(() => ContinueLoginPage())).toBe("/login");
+  });
+});
+
+test("error page: our own words and a reference, never the error's text; Try again retries", () => {
+  const retry = vi.fn();
+  render(<ErrorPage error={Object.assign(new Error("ECONNREFUSED 10.0.0.5:8080 secret detail"), { digest: "d-42" })} retry={retry} />);
+
+  expect(screen.getByRole("heading", { name: "Something went wrong" })).toBeInTheDocument();
+  expect(screen.getByText("Reference: d-42")).toBeInTheDocument();
+  expect(document.body.textContent).not.toContain("secret detail");
+  screen.getByRole("button", { name: "Try again" }).click();
+  expect(retry).toHaveBeenCalled();
 });
 
 test("no-access page offers another email", () => {

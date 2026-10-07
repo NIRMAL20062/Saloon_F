@@ -82,6 +82,19 @@ function CodeInput({ label, maxDigits = 6 }: { label: string; maxDigits?: number
   );
 }
 
+/** "Try again" after a login step was accepted but the next one couldn't be reached. */
+export function ContinueForm({ action }: { action: Action<FormState> }) {
+  const [state, formAction, pending] = useActionState(action, {});
+  return (
+    <form action={formAction}>
+      <ErrorText error={state.error} />
+      <button type="submit" disabled={pending} className={button}>
+        {pending ? "Trying…" : "Try again"}
+      </button>
+    </form>
+  );
+}
+
 /** First login: create the authenticator (QR + secret), then confirm it with its first code. */
 export function AuthenticatorSetup({ action }: { action: Action<SetupState> }) {
   const [state, formAction, pending] = useActionState(action, {});

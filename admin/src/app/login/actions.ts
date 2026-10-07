@@ -65,8 +65,8 @@ export async function verifyEmailCode(_previous: FormState, form: FormData): Pro
   await clearPendingLogin();
   await writeSession(session);
   const next = await nextStep(session);
-  if (typeof next !== "string") return next;
-  redirect(next);
+  // The code is used up, so this screen can't be retried: a page with "Try again" takes over.
+  redirect(typeof next === "string" ? next : "/login/continue");
 }
 
 /**
@@ -114,6 +114,18 @@ export async function verifyAuthenticator(_previous: FormState, form: FormData):
   return finishMfa(session, factorId, code.data, {});
 }
 
+/**
+ * "Try again" after a code was accepted but the next step couldn't be decided (backend or Supabase didn't answer).
+ * Asks again where this login goes; works for logins with or without the authenticator step done.
+ */
+export async function continueLogin(): Promise<FormState> {
+  const session = await readSession();
+  if (!session) redirect("/login");
+  const next = await nextStep(session);
+  if (typeof next !== "string") return next;
+  redirect(next);
+}
+
 export async function logout(): Promise<void> {
   const session = await readSession();
   if (session) {
@@ -135,8 +147,7 @@ async function finishMfa<S extends FormState>(session: AdminSession, factorId: s
   }
   await writeSession(upgraded);
   const next = await nextStep(upgraded);
-  if (typeof next !== "string") return { ...keep, ...next };
-  redirect(next);
+  redirect(typeof next === "string" ? next : "/login/continue");
 }
 
 /** Where a fresh login goes, decided by the backend (BE-020): home, authenticator setup/code, or "no access". */

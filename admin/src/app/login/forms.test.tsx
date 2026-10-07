@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, test, vi } from "vitest";
-import { AuthenticatorSetup, CodeForm, EmailForm } from "./forms";
+import { AuthenticatorSetup, CodeForm, ContinueForm, EmailForm } from "./forms";
 
 vi.mock("./actions", () => ({}));
 
@@ -97,4 +97,12 @@ describe("AuthenticatorSetup", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Login isn't working right now.");
   });
+});
+
+test("ContinueForm shows the error when trying again fails", async () => {
+  render(<ContinueForm action={async () => ({ error: "Glide's server isn't answering." })} />);
+
+  submit("Try again");
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Glide's server isn't answering.");
 });

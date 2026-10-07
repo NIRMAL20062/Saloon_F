@@ -26,7 +26,7 @@ vi.mock("@/auth/supabase-auth", async (original) => ({
   supabaseAuth: () => supabase,
 }));
 
-const { logout, sendCode, setUpAuthenticator, verifyAuthenticator, verifyEmailCode } = await import("./actions");
+const { continueLogin, logout, sendCode, setUpAuthenticator, verifyAuthenticator, verifyEmailCode } = await import("./actions");
 
 const SECRET = TEST_ENV.ADMIN_SESSION_SECRET;
 const AAL1 = accessToken({ email: "admin@glide.test", aal: "aal1" });
@@ -161,14 +161,13 @@ describe("verifyEmailCode", () => {
     expect(supabase.enrollTotp).not.toHaveBeenCalled();
   });
 
-  test("backend down shows our message with the request ID", async () => {
+  test("backend down after a good code: the login is kept and a 'Try again' page takes over (the code is used up)", async () => {
     await codeSentTo("admin@glide.test");
     supabase.verifyEmailCode.mockResolvedValue(tokens(AAL1));
     checkAdmin.mockRejectedValue(new ApiError("BACKEND_UNREACHABLE", undefined, "req-9"));
 
-    expect(await verifyEmailCode({}, form({ code: "123456" }))).toEqual({
-      error: "Glide's server isn't answering. Try again in a minute. (request req-9)",
-    });
+    expect(await redirectOf(() => verifyEmailCode({}, form({ code: "123456" })))).toBe("/login/continue");
+    expect(await session()).toMatchObject({ email: "admin@glide.test", mfa: false });
   });
 });
 
@@ -244,6 +243,37 @@ describe("verifyAuthenticator", () => {
     supabase.factors.mockResolvedValue([]);
     expect(await redirectOf(() => verifyAuthenticator({}, form({ code: "333333" })))).toBe("/login/mfa/setup");
   });
+});
+
+describe("continueLogin", () => {
+  test("still down: our message with the request ID", async () => {
+    await loggedInWithEmailCode();
+    checkAdmin.mockRejectedValue(new ApiError("BACKEND_UNREACHABLE", undefined, "req-9"));
+
+    expect(await continueLogin()).toEqual({ error: "Glide's server isn't answering. Try again in a minute. (request req-9)" });
+  });
+
+  test("back up: goes on to the right step", async () => {
+    await loggedInWithEmailCode();
+    checkAdmin.mockResolvedValue({ kind: "mfa_required" });
+    supabase.factors.mockResolvedValue([]);
+
+    expect(await redirectOf(() => continueLogin())).toBe("/login/mfa/setup");
+  });
+
+  test("without a login, back to the start", async () => {
+    expect(await redirectOf(() => continueLogin())).toBe("/login");
+  });
+});
+
+test("backend down right after the authenticator step also lands on 'Try again'", async () => {
+  await loggedInWithEmailCode();
+  supabase.factors.mockResolvedValue([{ id: "f1", type: "totp", verified: true }]);
+  supabase.verifyTotp.mockResolvedValue(tokens(AAL2));
+  checkAdmin.mockRejectedValue(new ApiError("BACKEND_UNREACHABLE", undefined, undefined));
+
+  expect(await redirectOf(() => verifyAuthenticator({}, form({ code: "333333" })))).toBe("/login/continue");
+  expect(await session()).toMatchObject({ mfa: true });
 });
 
 test("logout ends the login at Supabase, deletes the cookie and shows the login page", async () => {

@@ -3,7 +3,7 @@ import { ABSOLUTE_LIMIT_MS, type AdminSession, seal, sessionFromTokens, sessionS
 import { SupabaseAuthError } from "./supabase-auth";
 
 /** Pages anyone may open: the login steps and "no access". Every other page needs a full admin login. */
-export const PUBLIC_PATHS = ["/login", "/login/code", "/login/mfa", "/login/mfa/setup", "/no-access"];
+export const PUBLIC_PATHS = ["/login", "/login/code", "/login/mfa", "/login/mfa/setup", "/login/continue", "/no-access"];
 
 /** Refresh the Supabase access token when it has less than this left, so a page never uses an expired one. */
 export const REFRESH_MARGIN_MS = 2 * 60 * 1000;
