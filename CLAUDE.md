@@ -30,9 +30,11 @@ _Last updated 2026-10-07._
   check, pages apply the 30 min / 12 h limits themselves, no redirect loop, `/api-keys`-like pages covered).
 - **Project review 2026-10-07** turned into tasks: BE-025–BE-028, APP-014–APP-017, WEB-009, WEB-010, a line added to
   BE-017, WEB-004 + BE-012 moved up, open questions Q-017–Q-020. Razorpay and the Play Console wait until later (team).
+  Follow-up (2026-10-07): BE-029 (remove an admin, D-043; before WEB-006), BE-030, WEB-011, APP-014 extended. No PR
+  reviewer for now: the team merges after `ci-ok` (D-044).
 - **Now:** nothing in progress.
-- **Next task:** BE-025 (services own the transaction), then BE-017 + APP-006 (create a salon), with the small fixes
-  (BE-026, BE-027 → APP-014, WEB-009, WEB-010) in between when the team picks them. Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
+- **Next task:** BE-025 (services own the transaction), then BE-017 + APP-006 (create a salon), with the review fixes in
+  between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
   SMTP, set up by the team 2026-10-07); the Magic Link email shows only the code, no link (template in WEB-005; changed by the team 2026-10-07). Public keys only in the repo;
@@ -40,7 +42,9 @@ _Last updated 2026-10-07._
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch
-  city (APP-009); turn on the `main` ruleset with `ci-ok` required (it exists but is disabled; D-021); Q-017–Q-020.
+  city (APP-009); Q-018–Q-020. **The `main` ruleset** (GitHub → Settings → Rules → Rulesets → main): today it is disabled
+  *and* targets no branch, so switching it on alone protects nothing. Set Target branches → **Include default branch**,
+  add the required status check **`ci-ok`** (source: GitHub Actions), then Enforcement status → **Active** (D-021, DF-15).
   **Start now, they take weeks:** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
   2026-10-07): Razorpay Route application + KYC, Play Console account.
