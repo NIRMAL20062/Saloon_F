@@ -25,8 +25,35 @@ describe("which requests the proxy sees", () => {
     expect(runsOn("/_next/static/chunks/app.js")).toBe(false);
     expect(runsOn("/_next/image")).toBe(false);
     expect(runsOn("/favicon.ico")).toBe(false);
+    expect(runsOn("/api")).toBe(false);
     expect(runsOn("/api/anything")).toBe(false);
   });
+
+  test("pages whose name only starts like those are still covered", () => {
+    expect(runsOn("/api-keys")).toBe(true);
+    expect(runsOn("/apiary/1")).toBe(true);
+    expect(runsOn("/favicon.ico.html")).toBe(true);
+  });
+});
+
+test("a browser prefetch doesn't record activity; a page view does", async () => {
+  const now = Date.now();
+  const session: AdminSession = {
+    email: "admin@glide.test",
+    accessToken: accessToken({ email: "admin@glide.test", aal: "aal2" }),
+    refreshToken: "rt",
+    accessExpiresAt: now + 30 * 60_000,
+    mfa: true,
+    startedAt: now - 60 * 60_000,
+    lastSeenAt: now - 5 * 60_000,
+  };
+  const cookie = `${SESSION_COOKIE}=${await seal(session, TEST_ENV.ADMIN_SESSION_SECRET, 60 * 60_000)}`;
+
+  const prefetch = await proxy(new NextRequest("http://localhost:3000/", { headers: { cookie, "sec-purpose": "prefetch" } }));
+  const view = await proxy(new NextRequest("http://localhost:3000/", { headers: { cookie } }));
+
+  expect(prefetch.headers.get("set-cookie")).toBeNull();
+  expect(view.headers.get("set-cookie")).toContain(`${SESSION_COOKIE}=`);
 });
 
 const idleSession = async () => {

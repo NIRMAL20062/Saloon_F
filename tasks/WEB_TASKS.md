@@ -16,7 +16,9 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 - **Needs from team:** nothing.
 - **Scope:**
   - `admin/src/proxy.ts` no longer skips requests with `purpose: prefetch` / `next-router-prefetch`: prefetches are checked
-    like any page request, but don't count as activity (so the 30-minute idle rule of DF-30 stays as it is).
+    like any page request. Browser prefetches (`Sec-Purpose`) don't count as activity; Next.js's own link prefetches can't
+    be told apart (Next removes their headers before the proxy) and count like a visit, as they follow a hover or scroll.
+  - The matcher's `/api` exclusion no longer skips pages that merely start with "api" (e.g. `/api-keys`).
   - `readSession()` / `requireAdmin()` refuse sessions idle for 30 minutes or older than 12 hours themselves (DF-30), so
     pages don't rely on the proxy alone.
   - The proxy deletes the session cookie on `/login?expired=1`, and the login page never sends a visitor back to `/` when
@@ -25,7 +27,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - Not included: login rate limiting (known gap in docs/SECURITY.md); any other change to the WEB-005 flow.
 - **Done when:**
   - [ ] Tests: the proxy's matcher runs on prefetch requests (and still skips `/api` and static files); an idle session's
-    prefetch is sent to log in, and a prefetch doesn't record activity; `readSession()` gives nothing for an idle or
+    prefetch is sent to log in, and a browser prefetch doesn't record activity; `/api-keys` is covered; `readSession()` gives nothing for an idle or
     too-old session and `requireAdmin()` then sends to `/login?expired=1`; `/login?expired=1` deletes the session cookie;
     the login page with `expired` doesn't redirect to `/`
   - [ ] Security: no admin page or Server Action works with an idle or too-old session, whatever the headers; a token the

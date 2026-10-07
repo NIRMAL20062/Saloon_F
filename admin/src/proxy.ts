@@ -44,13 +44,17 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-/** Next.js's router and browsers mark prefetches with one of these headers. */
+/**
+ * A browser prefetch (`<link rel=prefetch>`, speculation rules). Next.js's own link prefetches can't be told apart here:
+ * Next removes `next-router-prefetch` and `rsc` before the proxy runs. They happen when a link is hovered or scrolls
+ * into view, so they count as activity like any visit (DF-30).
+ */
 function isPrefetch(headers: Headers): boolean {
-  return headers.has("next-router-prefetch") || headers.get("purpose") === "prefetch" || headers.get("sec-purpose")?.startsWith("prefetch") === true;
+  return headers.get("purpose") === "prefetch" || headers.get("sec-purpose")?.startsWith("prefetch") === true;
 }
 
 export const config = {
-  // Pages, Server Actions and prefetches; not static files. Not /api either: an /api route must call requireAdmin()
-  // itself. Never skip requests by header: a client chooses its headers (WEB-008).
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  // Pages, Server Actions and prefetches; not static files. Not /api or /api/…: an /api route must call requireAdmin()
+  // itself (a page like /api-keys is still covered). Never skip requests by header: a client chooses its headers (WEB-008).
+  matcher: ["/((?!api/|api$|_next/static|_next/image|favicon.ico$).*)"],
 };
