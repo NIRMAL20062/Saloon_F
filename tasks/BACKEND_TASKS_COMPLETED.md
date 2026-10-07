@@ -292,6 +292,35 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
   onboarding customer + salon side, backend down → Retry. The salon screens come with APP-006
 
 
+### BE-032 · Bank details (encrypted) and "submit for verification"
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `dd25e14` `bad1dbf` `76dfcd7` `218e73c` `790eea8`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24, DF-33
+- **Needs from team:** `BANK_DETAILS_KEY` in `.env` (`openssl rand -base64 32`; DF-33). Until then the bank routes answer 503.
+- **Scope:** `salon_bank_details` (account holder name, account number **encrypted**, IFSC; masked in every app response,
+  DF-24); `PUT /v1/salon/bank-details` (owner only) · `POST /v1/salon/submit-for-verification` (needs a complete profile and
+  bank details; DRAFT or REJECTED → UNDER_VERIFICATION)
+- **Done when:**
+  - [x] Tests: save → masked; submit without bank details refused; submit → UNDER_VERIFICATION; resubmit after REJECTED;
+    STAFF → 403; salon A can't read or change salon B's bank details
+  - [x] Database: migration with IFSC format check; RLS forced; the stored value is not the account number in clear
+  - [x] Security: account number encrypted at rest with a key from env, masked in responses, never logged; audit-logged once
+    BE-019 lands
+  - [x] Flow: on the Supabase database, "Test Salon A" saves bank details and submits → UNDER_VERIFICATION
+- **Built:** `BANK_DETAILS_KEY` (32 bytes base64; optional on a laptop → bank routes 503; required on staging/production;
+  never printed); `FieldCipher` (AES-256-GCM, Java built-in, salon id bound in, `v1:` prefix); V9 `salon_bank_details`
+  (encrypted only, last 4 apart, IFSC check, forced RLS); `PUT|GET /v1/salon/bank-details` (owner, masked),
+  `POST /v1/salon/submit-for-verification` (DRAFT/REJECTED + bank details → UNDER_VERIFICATION, safe retry). DF-33
+- **Tests:** `FieldCipherTest` 4, `AppConfigTest` +3, `SalonBankDetailsTablesTest` 4, `SalonBankRoutesTest` 10, contract
+  tests (bank and submit answers match the spec). Backend total 183
+- **Security:** account number encrypted at rest, bound to its salon, refused in clear by the database, last 4 only in
+  responses and errors, never logged, owner only; SECURITY.md updated; `/feature-security-check` PASS. Audit rows: BE-019
+- **Database:** V9 (applied to the Supabase dev database 2026-10-07)
+- **Verified by:** Claude on the Supabase dev database (throwaway owners and a throwaway key, all deleted afterwards): submit
+  without bank → 409, wrong IFSC → 400, saved and read masked, stored `v1:…` only, submit → UNDER_VERIFICATION, retry
+  same, another salon sees nothing; on the team phone (moto g54): login, System status UP, reopen, logout. The bank screens
+  come with APP-006
+
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

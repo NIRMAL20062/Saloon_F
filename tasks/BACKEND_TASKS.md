@@ -87,20 +87,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [ ] Database: none
   - [ ] Flow: an admin invite on the Supabase database writes its audit row; the access log still shows the request ID
 
-### BE-032 · Bank details (encrypted) and "submit for verification"
-- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24, DF-33
-- **Needs from team:** `BANK_DETAILS_KEY` in `.env` (`openssl rand -base64 32`; DF-33). Until then the bank routes answer 503.
-- **Scope:** `salon_bank_details` (account holder name, account number **encrypted**, IFSC; masked in every app response,
-  DF-24); `PUT /v1/salon/bank-details` (owner only) · `POST /v1/salon/submit-for-verification` (needs a complete profile and
-  bank details; DRAFT or REJECTED → UNDER_VERIFICATION)
-- **Done when:**
-  - [x] Tests: save → masked; submit without bank details refused; submit → UNDER_VERIFICATION; resubmit after REJECTED;
-    STAFF → 403; salon A can't read or change salon B's bank details
-  - [x] Database: migration with IFSC format check; RLS forced; the stored value is not the account number in clear
-  - [x] Security: account number encrypted at rest with a key from env, masked in responses, never logged; audit-logged once
-    BE-019 lands
-  - [x] Flow: on the Supabase database, "Test Salon A" saves bank details and submits → UNDER_VERIFICATION
-
 ### BE-033 · Staff: add and remove, join at first login
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-017, BE-022 · Spec: PRODUCT §6.2 · Decisions: D-035, D-039, DF-23
 - **Scope:** `GET|POST /v1/salon/staff`, `DELETE /v1/salon/staff/{id}` (owner only, **live salons only**); a number added as

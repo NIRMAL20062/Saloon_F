@@ -41,8 +41,10 @@ _Last updated 2026-10-07._
   salon (row-level security groundwork, DF-31). BE-017 split into BE-031, BE-017, BE-032, BE-033.
 - **BE-017** merged 2026-10-07: salons and owners: create, read and edit my salon (`/v1/salon/salons`, `/v1/salon/me`,
   `/v1/salon/salon`), row-level security on `salons` and `salon_members`. Fields: D-046, DF-32 (no GST at onboarding).
+- **BE-032** merged 2026-10-07: bank details stored encrypted (AES-256-GCM, `BANK_DETAILS_KEY`), shown masked, and
+  "submit for verification" (DF-33).
 - **Now:** nothing in progress.
-- **Next task:** BE-032 (bank details, encrypted; "submit for verification"), then APP-006 (the salon screens), with the review fixes in
+- **Next task:** APP-006 (the salon screens: create your salon, bank details, under verification), with the review fixes in
   between when the team picks them (list under the build order). Full order: [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
   (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
@@ -50,7 +52,8 @@ _Last updated 2026-10-07._
   secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
-- **Waiting on the team (not blocking yet):** WhatsApp Business API approval; launch city (APP-009); Q-019, Q-020.
+- **Waiting on the team (not blocking yet):** `BANK_DETAILS_KEY` in `.env` (`openssl rand -base64 32`, a copy in the
+  password manager; until then saving bank details answers 503); WhatsApp Business API approval; launch city (APP-009); Q-019, Q-020.
   Google sign-in is off in Supabase (team, 2026-10-07).
   **Team will do later (2026-10-07):** India SMS rules (DLT: business, sender ID, message template). **SMS cost protection:**
   Supabase SMS rate limits (or CAPTCHA), Twilio Geo permissions India only, a Twilio spending alert. Later (team,
