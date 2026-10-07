@@ -46,4 +46,5 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Pre-launch (outline)
 
-- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login. _Needs from team: a free hosting account (e.g. Vercel)._
+- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login, **with its own login rate limits** (per client IP and
+  per email; SECURITY.md known gap). _Needs from team: a free hosting account (e.g. Vercel)._
