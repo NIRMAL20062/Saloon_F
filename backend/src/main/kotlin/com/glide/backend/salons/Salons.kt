@@ -8,7 +8,7 @@ import kotlin.uuid.ExperimentalUuidApi
 
 private const val ENUM_MAX_LENGTH = 64
 
-/** Mirrors V7__salons.sql. A row is visible only in a transaction for that salon (row-level security, BE-031). */
+/** Mirrors V7__create_salons.sql. A row is visible only in a transaction for that salon (row-level security, BE-031). */
 @OptIn(ExperimentalUuidApi::class)
 object Salons : Table("salons") {
     val id = uuid("id")
