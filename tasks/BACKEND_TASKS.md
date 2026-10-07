@@ -110,8 +110,8 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   - [x] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
 
 ### BE-017 · Salons and owners
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039
-- **Needs from team:** answers on the salon's fields (address parts? GST number now or later? the salon's phone).
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, D-046, DF-32
+- **Needs from team:** nothing (fields answered 2026-10-07: D-046).
 - **Scope:**
   - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a
     reason, or SUSPENDED) and `salon_members` (salon, phone, user, role OWNER / STAFF (D-039), status ACTIVE / REMOVED), one

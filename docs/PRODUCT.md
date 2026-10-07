@@ -117,7 +117,9 @@ Reschedule: allowed within the policy (e.g. up to 2 h before, at most twice), no
 ## 6. Salon side
 
 ### 6.1 Onboarding and verification (D-033)
-1. Owner: "Create your salon": name, phone, address, type (men / women / unisex), ❓ GST number.
+1. Owner: "Create your salon": name (up to 30 characters), phone (the owner's login number unless changed), address
+   (house/shop/building and street, area, optional landmark, city, state, PIN code), type (men / women / unisex) (D-046).
+   No GST number at onboarding (DF-32).
 2. Bank details: account holder name, account number (typed twice), IFSC. Stored encrypted, shown masked (DF-24).
 3. "Submit for verification" → **under verification** (details can still be edited) → an admin approves → **live**, or rejects
    with a reason → fix → submit again.
