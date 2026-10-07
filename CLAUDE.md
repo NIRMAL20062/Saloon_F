@@ -6,7 +6,7 @@ Full stack: [docs/TECH_STACK.md](docs/TECH_STACK.md) · Every decision so far: [
 
 ## Where we are (read this first; update it in every task's pull request)
 
-_Last updated 2026-10-04._
+_Last updated 2026-10-07._
 
 - **What we build:** [docs/PRODUCT.md](docs/PRODUCT.md), the whole MVP as decided (D-038). The old planning files are gone; where
   anything disagrees, [docs/DECISIONS.md](docs/DECISIONS.md) wins.
@@ -23,12 +23,16 @@ _Last updated 2026-10-04._
 - **WEB-002** merged 2026-10-04: the admin website calls the backend through a typed, server-only client (DF-27).
 - **BE-020** merged 2026-10-04: admins list, admin-only routes (admin + authenticator app), invites, append-only audit log
   (DF-28, DF-29). First admin in the dev project: `admin@glide.test` (its codes come from the admin API, no inbox).
-- **Now:** nothing in progress; waiting for the team's go-ahead to start WEB-005. Admin login = email code + authenticator
-  app, no Google, no password (team, 2026-10-04).
-- **Next task:** WEB-005 (admin website login). Full order:
+- **WEB-005** merged 2026-10-07: admin website login (email code + authenticator app), every page locked, 30 min idle /
+  12 h sessions (DF-30). Checked in a real browser against real Supabase + backend.
+- **Now:** nothing in progress. The team gave the go-ahead for BE-024 (2026-10-07), to be started in a **new session**.
+- **Next task:** BE-024 (fix found during WEB-005: database connections lose the `glide` schema after a rollback; until
+  then, restart the backend if it answers 500 "relation does not exist"), then BE-017 + APP-006. Full order:
   [tasks/README.md § Build order](tasks/README.md#build-order).
 - **Supabase (dev project):** `https://uwvaebgbdqitbnymoqfq.supabase.co`, phone login via Twilio, test numbers `919000000001…004`
-  (no SMS sent; their codes are in the team's password manager, not in git). Public keys only in the repo; secret keys never. The team rotates the secret key before
+  (no SMS sent; their codes are in the team's password manager, not in git). Admin login emails go through Brevo (custom
+  SMTP, set up by the team 2026-10-07); the Magic Link email shows only the code, no link (template in WEB-005; changed by the team 2026-10-07). Public keys only in the repo;
+  secret keys never. The team rotates the secret key before
   production.
 - **Blocked on the team:** nothing.
 - **Waiting on the team (not blocking yet):** turn Google sign-in off in Supabase; WhatsApp Business API approval; launch

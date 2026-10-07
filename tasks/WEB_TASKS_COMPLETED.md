@@ -38,3 +38,41 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** `server-only`, no `NEXT_PUBLIC_` vars, no logging, backend error text never reaches pages, no redirects followed
   (tokens can't leak to another host); `pnpm audit --prod` clean
 - **Database:** none
+
+### WEB-005 · Admin login: email code + authenticator app
+- **Completed:** 2026-10-07 (team's OK) · **Commits:** `d0b2f2e` `b353724` `a1cd835` `27b95bd` `f665e58` `59014f1` `1ad9e7e` `b1b5f7d` `2465e9f` `4a0ad4e` `313091c` + this one · PR #12
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
+- **Needs from team:** same Supabase project; the first admin's email. Done 2026-10-07: custom SMTP via Brevo (Supabase's
+  built-in email allows ~2 a hour; Brevo's IP blocking turned off for SMTP keys, since Supabase's servers change address).
+  Magic Link email template (Authentication → Emails), code only, because a link logs in through the browser, which the
+  admin website doesn't use (DF-20), and redirects to the Site URL:
+  subject `Your Glide Admin login code`; body: "Enter this code on the Glide Admin login page: `{{ .Token }}`. It works for
+  10 minutes and only once. If you didn't try to log in, ignore this email: Glide Admin also asks for the code from the
+  authenticator app."
+- **Flow:** email → 6-digit code from the email → first time: set up an authenticator app (QR) → enter its code → admin home.
+  Everything under the panel requires login; session expires after inactivity; logout.
+- **Done when:**
+  - [x] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
+    (Vitest: 127 admin tests, incl. `guard.test.ts`, `actions.test.ts`, `pages.test.tsx`, `forms.test.tsx`)
+  - [x] Security: Supabase is called only from the Next.js server (DF-20); session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
+    (checked in the browser too: `__Host-` cookie httpOnly/Secure/Strict, `document.cookie` empty, no token in pages or JS bundles)
+  - [x] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
+    (headless Chrome, real Supabase + backend, 2026-10-07: the team member's email, invited by `admin@glide.test`: email
+    code → authenticator setup → home → logout → second login with the authenticator code; an email without a login gets
+    the same screens and every code is refused. "No access" for a non-admin *with* a login: unit tests + BE-020's backend
+    check; no such email account to try in the browser)
+- **Built:** login screens (`/login`, `/login/code`, `/login/mfa/setup`, `/login/mfa`, `/login/continue`, `/no-access`) with
+  Server Actions; `src/auth/`: encrypted `__Host-` session cookie (`jose`, AES-256-GCM), server-only Supabase Auth REST
+  client, `guard()` used by `proxy.ts` (login required everywhere, 30 min idle / 12 h, token refresh), `requireAdmin()`
+  (asks the backend) for every admin page; admin home with logout; `app/error.tsx`; email codes 6–10 digits (dev sends 8).
+  New settings `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `ADMIN_SESSION_SECRET`; new dependency `jose` 6.2.12; DF-30
+- **Tests:** `actions.test.ts` 28, `guard.test.ts` 20, `supabase-auth.test.ts` 18, `pages.test.tsx` 14, `forms.test.tsx` 10,
+  `session.test.ts` 8, `require-admin.test.ts` 5, `proxy.test.ts` 3, `env.test.ts` +2; admin total 127. CI smoke checks
+  that `/` redirects to `/login`
+- **Security:** Supabase only from the Next.js server; no tokens in browser JavaScript or JS bundles (checked); cookie httpOnly,
+  Secure, SameSite=strict, `__Host-`; MFA required (proxy + `requireAdmin()` + backend `aal2`); non-admins signed out before
+  any authenticator; emails without a login can't be told apart; our own error words. Known gap: login rate limits before
+  hosting (WEB-9xx)
+- **Database:** none
+- **Verified by:** Claude in headless Chrome against real Supabase (Brevo SMTP) + local backend, 2026-10-07 (see Done when);
+  found and fixed 8-digit email codes and the silent bounce after a good code; found BE-024

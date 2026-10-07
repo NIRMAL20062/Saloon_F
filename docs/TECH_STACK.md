@@ -54,7 +54,7 @@ Our backend is the only thing that reads or writes the data; Supabase Realtime a
 |---|---|
 | Purpose | For our team only (not salon-facing, not customer-facing) |
 | Framework | Next.js (App Router) + TypeScript + Tailwind CSS |
-| Login | Email code + authenticator app through Supabase, on the Next.js server only (DF-16, DF-20) |
+| Login | Email code + authenticator app through Supabase, on the Next.js server only; session in an encrypted httpOnly cookie (`jose`) (DF-16, DF-20, DF-30) |
 | API types | Generated from `docs/api/openapi.yaml` with `openapi-typescript`, never hand-copied |
 | Package manager | pnpm |
 

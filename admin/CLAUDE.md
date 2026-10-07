@@ -10,9 +10,13 @@ Root rules: [../CLAUDE.md](../CLAUDE.md). Tasks: [../tasks/WEB_TASKS.md](../task
 ```
 src/app/            routes (App Router). Every page is rendered per request (see layout.tsx: nonce CSP).
 src/api/            backend client (server only): schema.d.ts generated from the spec, client.ts, errors.ts (ApiError)
+src/auth/           admin login (WEB-005): encrypted session cookie, Supabase login client, guard (used by proxy.ts),
+                    requireAdmin() for pages
+src/app/login/      login screens + their Server Actions; src/app/no-access/; src/app/page.tsx = admin home
 src/env.ts          server-only config, validated with zod; the server refuses to start if it's invalid
 src/instrumentation.ts  runs env validation once at startup
-src/proxy.ts        per-request nonce Content-Security-Policy (Next 16 "proxy" = old "middleware")
+src/proxy.ts        every page: login required (redirect to /login), idle logout, token refresh; nonce CSP
+                    (Next 16 "proxy" = old "middleware")
 src/security/       CSP builder + static security headers (used by proxy.ts and next.config.ts)
 src/test/           Vitest setup
 ```
@@ -28,7 +32,10 @@ src/test/           Vitest setup
   throws `ApiError`. Branch on `error.code`; show our own text plus `error.requestId` (DF-27).
 - Never render raw backend error text. Show our own message plus the request ID.
 - No inline `<script>` or `style=` that bypasses the nonce CSP. No `dangerouslySetInnerHTML`.
-- Not deployable until admin login exists (Phase 1, D-013).
+- **Every admin page starts with `const admin = await requireAdmin()`** (the proxy is the first check, not the only one).
+  Login pages are listed in `PUBLIC_PATHS` (`src/auth/guard.ts`); nothing else is public.
+- Login state lives only in the encrypted httpOnly cookie. Never send tokens to client components or browser storage.
+- Not deployable until the login has its own rate limits (WEB-9xx, docs/SECURITY.md).
 - New env var: add it to the zod schema in `src/env.ts`, to `.env.example`, and to the tests.
 
 ## Tests

@@ -8,16 +8,6 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Now: Phase 1, Admin login and salon verification
 
-### WEB-005 · Admin login: email code + authenticator app
-- **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-002, BE-020 · Decisions: D-013, D-016, DF-16
-- **Needs from team:** same Supabase project; the first admin's email.
-- **Flow:** email → 6-digit code from the email → first time: set up an authenticator app (QR) → enter its code → admin home.
-  Everything under the panel requires login; session expires after inactivity; logout.
-- **Done when:**
-  - [ ] Tests: every screen state; logged-out user is redirected to login from every page; non-admin account sees "no access"
-  - [ ] Security: Supabase is called only from the Next.js server (DF-20); session cookie httpOnly + secure + sameSite; no tokens in the browser's JavaScript; MFA required
-  - [ ] Flow: in the browser, the first admin logs in end to end; a non-admin email is refused
-
 ### WEB-006 · Admins page: invite more admins
 - **Phase:** 1 · **Status:** ⬜ To do · **Depends on:** WEB-005 · Decision: D-013
 - **Flow:** Admins → list (name, email, added by, date) → "Invite admin" → email → they receive the invite and log in (WEB-005 flow).
@@ -46,4 +36,5 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 
 ## Pre-launch (outline)
 
-- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login. _Needs from team: a free hosting account (e.g. Vercel)._
+- ⬜ **WEB-9xx** Admin panel on free hosting, reachable only after login, **with its own login rate limits** (per client IP and
+  per email; SECURITY.md known gap). _Needs from team: a free hosting account (e.g. Vercel)._
