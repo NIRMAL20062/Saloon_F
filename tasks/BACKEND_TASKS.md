@@ -7,7 +7,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
 ## Now: Phase 1, Login and accounts
 
 ### BE-025 · Services own the database transaction
-- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-024 · Decisions: D-025, D-027
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-024 · Decisions: D-025, D-027
 - **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
   slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
   nowhere to go. Needed before BE-017.
