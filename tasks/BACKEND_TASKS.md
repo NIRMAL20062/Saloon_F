@@ -55,7 +55,7 @@ Order across App / Web / Backend: [README.md § Build order](README.md#build-ord
   decision and every bank-details view writes an audit row; OpenAPI updated.
 
 ### BE-024 · Fix: database connections lose the `glide` schema after a rollback
-- **Phase:** 1 · **Status:** ⬜ To do · **Owner:** - · **Depends on:** BE-023 · Decisions: D-042, DF-26
+- **Phase:** 1 · **Status:** 🔄 In progress · **Owner:** Claude · **Depends on:** BE-023 · Decisions: D-042, DF-26
 - **Why:** found while testing WEB-005 (2026-10-04): after Supabase's connection pooler closed idle connections, the backend's
   new connections answered `relation "admins" does not exist` (HTTP 500) until the backend was restarted. Any long-running
   backend hits it, including the app's `/v1/me`.
