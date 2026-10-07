@@ -15,8 +15,8 @@ src/auth/           admin login (WEB-005): encrypted session cookie, Supabase lo
 src/app/login/      login screens + their Server Actions; src/app/no-access/; src/app/page.tsx = admin home
 src/env.ts          server-only config, validated with zod; the server refuses to start if it's invalid
 src/instrumentation.ts  runs env validation once at startup
-src/proxy.ts        every page: login required (redirect to /login), idle logout, token refresh; nonce CSP
-                    (Next 16 "proxy" = old "middleware")
+src/proxy.ts        every page and prefetch: login required (redirect to /login), idle logout, token refresh;
+                    nonce CSP (Next 16 "proxy" = old "middleware"). Skips /api and static files only
 src/security/       CSP builder + static security headers (used by proxy.ts and next.config.ts)
 src/test/           Vitest setup
 ```
@@ -33,7 +33,10 @@ src/test/           Vitest setup
 - Never render raw backend error text. Show our own message plus the request ID.
 - No inline `<script>` or `style=` that bypasses the nonce CSP. No `dangerouslySetInnerHTML`.
 - **Every admin page starts with `const admin = await requireAdmin()`** (the proxy is the first check, not the only one).
-  Login pages are listed in `PUBLIC_PATHS` (`src/auth/guard.ts`); nothing else is public.
+  Login pages are listed in `PUBLIC_PATHS` (`src/auth/guard.ts`); nothing else is public. `readSession()` applies the
+  30-minute / 12-hour limits itself (DF-30).
+- **The proxy skips `/api`**: any future Route Handler under `/api` must call `requireAdmin()` itself (WEB-008).
+- Never make the proxy's matcher skip requests by header (`missing` / `has`): a client chooses its headers (WEB-008).
 - Login state lives only in the encrypted httpOnly cookie. Never send tokens to client components or browser storage.
 - Not deployable until the login has its own rate limits (WEB-9xx, docs/SECURITY.md).
 - New env var: add it to the zod schema in `src/env.ts`, to `.env.example`, and to the tests.
