@@ -188,6 +188,37 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** a pull request could change the script too, but that change shows in its diff like any CI change
 - **Database:** no migration. V5 keeps its two tables (written before the one-change rule; it has run on the dev database)
 
+### BE-025 · Services own the database transaction
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `dd7d06c` `e3a52e4` `960428f` `4212c51` `8aa10e2` `2d10f0e`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-024 · Decisions: D-025, D-027
+- **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
+  slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
+  nowhere to go. Needed before BE-017.
+- **Needs from team:** nothing.
+- **Scope:**
+  - one transaction helper that services call; repositories run inside the caller's transaction and never open their own
+  - existing services moved to it (users/profile, admins/invites + audit log)
+  - Not included: row-level security itself (BE-017); any change to what the API does
+- **Done when:**
+  - [x] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
+  - [x] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
+  - [x] Database: none
+  - [x] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
+- **Built:** `db/Transactor` (one `transaction { }` per piece of work; the block can't suspend, so no Supabase call runs
+  inside); `UserRepository` and `AdminRepository` run inside the caller's transaction; new `UserService`; `AdminService`
+  owns its transactions, with the Supabase calls of an invite between them; the admin check in front of `/v1/admin` goes
+  through the service. Only `Transactor` opens transactions. No API change
+- **Tests:** `TransactorTest` 3, `UserServiceTest` 2, `AdminRepositoryTest` +1 (invite and audit row kept or dropped
+  together). Backend total 130
+- **Security:** no new queries, routes, env vars or logging; audit row in the same transaction as the change (tested);
+  `/feature-security-check` PASS
+- **Database:** none
+- **Verified by:** Claude, backend from the branch on the Supabase dev database: test number …003 profile saved with the same
+  values, same side again 200, a switch 409, one-letter name 400, profile unchanged; `admin@glide.test` (email code from the
+  admin API + test authenticator) `/v1/admin/me` 200, invite of an existing login 201 (no email), again 409, a customer 403;
+  test admin, its login and the test authenticator removed afterwards. Not run on the phone (no app change)
+
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

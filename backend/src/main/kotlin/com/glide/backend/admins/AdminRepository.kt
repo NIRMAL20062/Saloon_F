@@ -4,18 +4,14 @@ import com.glide.backend.audit.AuditLog
 import com.glide.backend.db.DbNow
 import com.glide.backend.db.timestamptz
 import com.glide.shared.admin.AdminStatus
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.util.UUID
 import kotlin.uuid.ExperimentalUuidApi
@@ -45,26 +41,29 @@ data class Admin(
     val invitedBy: UUID?,
 )
 
-/** Who our admins are (D-013). Every change writes its audit row in the same transaction (DF-28). */
+/**
+ * Who our admins are (D-013). Every change writes its audit row in the same transaction (DF-28). Runs inside the caller's
+ * transaction ([com.glide.backend.db.Transactor], BE-025); never opens its own.
+ */
 interface AdminRepository {
-    suspend fun find(userId: UUID): Admin?
+    fun find(userId: UUID): Admin?
 
-    suspend fun findByEmail(email: String): Admin?
+    fun findByEmail(email: String): Admin?
 
     /** INVITED → ACTIVE on the admin's first login with the authenticator app. Already ACTIVE: unchanged, no audit row. */
-    suspend fun activate(
+    fun activate(
         userId: UUID,
         requestId: String?,
     ): Admin
 
     /** Adds the first admin (no inviter). Null when there already is one: later admins are invited by admins. */
-    suspend fun addFirst(
+    fun addFirst(
         userId: UUID,
         email: String,
     ): Admin?
 
     /** Adds an invited admin. Null when that login or email is already an admin. */
-    suspend fun addInvited(
+    fun addInvited(
         userId: UUID,
         email: String,
         invitedBy: UUID,
@@ -73,101 +72,93 @@ interface AdminRepository {
 }
 
 @OptIn(ExperimentalUuidApi::class)
-class ExposedAdminRepository(
-    private val database: Database,
-) : AdminRepository {
-    override suspend fun find(userId: UUID): Admin? =
-        db {
-            Admins
-                .selectAll()
-                .where { Admins.userId eq userId.toKotlinUuid() }
-                .singleOrNull()
-                ?.toAdmin()
-        }
+class ExposedAdminRepository : AdminRepository {
+    override fun find(userId: UUID): Admin? =
+        Admins
+            .selectAll()
+            .where { Admins.userId eq userId.toKotlinUuid() }
+            .singleOrNull()
+            ?.toAdmin()
 
-    override suspend fun findByEmail(email: String): Admin? =
-        db {
-            Admins
-                .selectAll()
-                .where { Admins.email eq email }
-                .singleOrNull()
-                ?.toAdmin()
-        }
+    override fun findByEmail(email: String): Admin? =
+        Admins
+            .selectAll()
+            .where { Admins.email eq email }
+            .singleOrNull()
+            ?.toAdmin()
 
-    override suspend fun activate(
+    override fun activate(
         userId: UUID,
         requestId: String?,
-    ): Admin =
-        db {
-            val id = userId.toKotlinUuid()
-            // Only an INVITED row matches, so parallel first requests activate (and audit) exactly once.
-            val changed =
-                Admins.update({ (Admins.userId eq id) and (Admins.status eq AdminStatus.INVITED) }) {
-                    it[status] = AdminStatus.ACTIVE
-                    it[activatedAt] = DbNow
-                }
-            if (changed == 1) {
-                AuditLog.record(
-                    actor = userId,
-                    action = "ADMIN_ACTIVATED",
-                    entityType = ENTITY,
-                    entityId = userId.toString(),
-                    requestId = requestId,
-                    before = statusJson(AdminStatus.INVITED),
-                    after = statusJson(AdminStatus.ACTIVE),
-                )
+    ): Admin {
+        val id = userId.toKotlinUuid()
+        // Only an INVITED row matches, so parallel first requests activate (and audit) exactly once.
+        val changed =
+            Admins.update({ (Admins.userId eq id) and (Admins.status eq AdminStatus.INVITED) }) {
+                it[status] = AdminStatus.ACTIVE
+                it[activatedAt] = DbNow
             }
-            Admins
-                .selectAll()
-                .where { Admins.userId eq id }
-                .single()
-                .toAdmin()
+        if (changed == 1) {
+            AuditLog.record(
+                actor = userId,
+                action = "ADMIN_ACTIVATED",
+                entityType = ENTITY,
+                entityId = userId.toString(),
+                requestId = requestId,
+                before = statusJson(AdminStatus.INVITED),
+                after = statusJson(AdminStatus.ACTIVE),
+            )
         }
+        return Admins
+            .selectAll()
+            .where { Admins.userId eq id }
+            .single()
+            .toAdmin()
+    }
 
-    override suspend fun addFirst(
+    override fun addFirst(
         userId: UUID,
         email: String,
     ): Admin? = add(userId, email, invitedBy = null, requestId = null, action = "ADMIN_ADDED")
 
-    override suspend fun addInvited(
+    override fun addInvited(
         userId: UUID,
         email: String,
         invitedBy: UUID,
         requestId: String?,
     ): Admin? = add(userId, email, invitedBy, requestId, action = "ADMIN_INVITED")
 
-    private suspend fun add(
+    private fun add(
         userId: UUID,
         email: String,
         invitedBy: UUID?,
         requestId: String?,
         action: String,
-    ): Admin? =
-        db {
-            // ON CONFLICT DO NOTHING covers every unique rule at once: the login, the email, and "only one first admin".
-            val inserted =
-                Admins
-                    .insertIgnore {
-                        it[Admins.userId] = userId.toKotlinUuid()
-                        it[Admins.email] = email
-                        it[status] = AdminStatus.INVITED
-                        it[Admins.invitedBy] = invitedBy?.toKotlinUuid()
-                    }.insertedCount
-            if (inserted == 0) return@db null
-            AuditLog.record(
-                actor = invitedBy,
-                action = action,
-                entityType = ENTITY,
-                entityId = userId.toString(),
-                requestId = requestId,
-                after =
-                    buildJsonObject {
-                        put("email", JsonPrimitive(email))
-                        put("status", JsonPrimitive(AdminStatus.INVITED.name))
-                    },
-            )
-            Admin(userId, email, AdminStatus.INVITED, invitedBy)
-        }
+    ): Admin? {
+        // ON CONFLICT DO NOTHING covers every unique rule at once: the login, the email, and "only one first admin".
+        val inserted =
+            Admins
+                .insertIgnore {
+                    it[Admins.userId] = userId.toKotlinUuid()
+                    it[Admins.email] = email
+                    it[status] = AdminStatus.INVITED
+                    it[Admins.invitedBy] = invitedBy?.toKotlinUuid()
+                }.insertedCount
+        if (inserted == 0) return null
+        AuditLog.record(
+            actor = invitedBy,
+            action = action,
+            entityType = ENTITY,
+            entityId = userId.toString(),
+            requestId = requestId,
+            after =
+                buildJsonObject {
+                    put("email", JsonPrimitive(email))
+                    put("status", JsonPrimitive(AdminStatus.INVITED.name))
+                },
+        )
+        return Admin(userId, email, AdminStatus.INVITED, invitedBy)
+    }
 
     private fun statusJson(status: AdminStatus) = buildJsonObject { put("status", JsonPrimitive(status.name)) }
 
@@ -178,8 +169,6 @@ class ExposedAdminRepository(
             status = this[Admins.status],
             invitedBy = this[Admins.invitedBy]?.toJavaUuid(),
         )
-
-    private suspend fun <T> db(block: () -> T): T = withContext(Dispatchers.IO) { transaction(database) { block() } }
 
     private companion object {
         const val ENTITY = "admin"
