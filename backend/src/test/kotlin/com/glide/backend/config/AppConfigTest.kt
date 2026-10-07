@@ -1,9 +1,11 @@
 package com.glide.backend.config
 
+import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AppConfigTest {
@@ -17,6 +19,7 @@ class AppConfigTest {
             "CORS_ALLOWED_ORIGINS" to "https://admin.example.com, http://localhost:3000",
             "SUPABASE_URL" to "https://abcd.supabase.co/",
             "SUPABASE_SECRET_KEY" to SECRET_KEY,
+            "BANK_DETAILS_KEY" to BANK_KEY,
         )
 
     @Test
@@ -210,6 +213,39 @@ class AppConfigTest {
     }
 
     @Test
+    fun `reads the bank details key and never prints it`() {
+        val config = AppConfig.fromEnv(valid, "1")
+
+        assertEquals(32, config.bankDetailsKey?.size)
+        assertFalse(config.toString().contains(BANK_KEY))
+    }
+
+    @Test
+    fun `the bank details key is optional on a laptop and required on staging and production`() {
+        assertNull(AppConfig.fromEnv(valid - "BANK_DETAILS_KEY" + ("APP_ENV" to "local"), "1").bankDetailsKey)
+        listOf("staging", "production").forEach { env ->
+            val error =
+                assertFailsWith<InvalidConfigException> {
+                    AppConfig.fromEnv(
+                        valid - "BANK_DETAILS_KEY" + ("APP_ENV" to env) + ("CORS_ALLOWED_ORIGINS" to ""),
+                        "1",
+                    )
+                }
+            assertTrue(error.problems.any { it.startsWith("BANK_DETAILS_KEY is required") }, error.problems.toString())
+        }
+    }
+
+    @Test
+    fun `a bank details key that isn't 32 bytes of base64 is refused without echoing it`() {
+        listOf("short", Base64.getEncoder().encodeToString(ByteArray(16)), "not base64 at all!!").forEach { bad ->
+            val error =
+                assertFailsWith<InvalidConfigException> { AppConfig.fromEnv(valid + ("BANK_DETAILS_KEY" to bad), "1") }
+            assertTrue(error.problems.any { it.startsWith("BANK_DETAILS_KEY must be 32 random bytes") })
+            assertFalse(error.message!!.contains(bad))
+        }
+    }
+
+    @Test
     fun `the legacy service_role key is accepted`() {
         val legacy = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.c2lnbmF0dXJl"
 
@@ -218,5 +254,6 @@ class AppConfigTest {
 
     private companion object {
         const val SECRET_KEY = "sb_secret_test_only_0123456789abcdef"
+        val BANK_KEY: String = Base64.getEncoder().encodeToString(ByteArray(32) { 1 })
     }
 }

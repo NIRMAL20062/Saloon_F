@@ -14,7 +14,7 @@ class MigrationTest {
 
     @Test
     fun `all migrations apply and re-running them is a no-op`() {
-        val second = DatabaseFactory.migrate(dataSource)
+        val second = DatabaseFactory.migrate(TestDatabase.config)
 
         assertEquals(0, second.migrationsExecuted)
         assertTrue(second.success)
@@ -27,7 +27,9 @@ class MigrationTest {
         // job does (BE-034).
         Flyway
             .configure()
-            .dataSource(dataSource)
+            .dataSource(TestDatabase.config.jdbcUrl, TestDatabase.config.user, TestDatabase.config.password)
+            .schemas(DatabaseFactory.SCHEMA)
+            .defaultSchema(DatabaseFactory.SCHEMA)
             .locations("classpath:db/migration")
             .load()
             .validate()
@@ -38,7 +40,7 @@ class MigrationTest {
         val flyway =
             Flyway
                 .configure()
-                .dataSource(dataSource)
+                .dataSource(TestDatabase.config.jdbcUrl, TestDatabase.config.user, TestDatabase.config.password)
                 .cleanDisabled(true)
                 .load()
 

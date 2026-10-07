@@ -5,18 +5,24 @@ import com.atlassian.oai.validator.model.Request
 import com.atlassian.oai.validator.model.SimpleResponse
 import com.atlassian.oai.validator.report.ValidationReport
 import com.glide.backend.TestTokens
+import com.glide.backend.db.ExposedTransactor
+import com.glide.backend.db.TestDatabase
 import com.glide.backend.fakeDependencies
 import com.glide.backend.module
+import com.glide.backend.salons.ExposedSalonRepository
 import com.glide.backend.testConfig
+import com.glide.backend.users.ExposedUserRepository
 import com.glide.shared.api.ApiRoutes
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.server.application.Application
 import io.ktor.server.application.plugin
@@ -129,6 +135,62 @@ class OpenApiContractTest {
                 assertEquals(status, response.status.value)
                 assertMatchesSpec(ApiRoutes.ADMIN_INVITES, response, Request.Method.POST)
             }
+        }
+
+    @Test
+    fun `salon responses match the spec`() =
+        testApplication {
+            TestDatabase.dataSource // migrated
+            val deps =
+                fakeDependencies().copy(
+                    transactor = ExposedTransactor(TestDatabase.exposed),
+                    users = ExposedUserRepository(),
+                    salons = ExposedSalonRepository(),
+                )
+            application { module(testConfig(database = TestDatabase.config), deps) }
+            val token = TestTokens.token(phone = "91" + (7_000_000_000L + (System.nanoTime() % 999_999_999L)))
+            val send = { method: HttpMethod, path: String, body: String? ->
+                runBlocking {
+                    client.request(path) {
+                        this.method = method
+                        bearerAuth(token)
+                        if (body != null) {
+                            contentType(ContentType.Application.Json)
+                            setBody(body)
+                        }
+                    }
+                }
+            }
+            val profile =
+                """
+                {"name":"Glow","address":{"line1":"1 Road","area":"Area","city":"Pune","state":"MAHARASHTRA",
+                 "pincode":"411001"},"type":"MEN"}
+                """.trimIndent()
+            val check = { method: HttpMethod, path: String, body: String?, status: Int ->
+                runBlocking {
+                    val response = send(method, path, body)
+                    assertEquals(status, response.status.value, response.bodyAsText())
+                    assertMatchesSpec(path, response, Request.Method.valueOf(method.value))
+                }
+            }
+
+            check(HttpMethod.Post, ApiRoutes.SALON_SALONS, profile, 403) // the salon side isn't chosen yet
+            check(HttpMethod.Get, ApiRoutes.SALON_ME, null, 404)
+            send(HttpMethod.Put, ApiRoutes.ME_SIDE, """{"side":"SALON"}""")
+            check(HttpMethod.Post, ApiRoutes.SALON_SALONS, profile.replace("Glow", ""), 400)
+            check(HttpMethod.Post, ApiRoutes.SALON_SALONS, profile, 201)
+            check(HttpMethod.Post, ApiRoutes.SALON_SALONS, profile, 409)
+            check(HttpMethod.Get, ApiRoutes.SALON_ME, null, 200)
+            check(HttpMethod.Put, ApiRoutes.SALON_PROFILE, profile, 200)
+
+            // Bank details and submitting (BE-032).
+            val bank = """{"accountHolderName":"Asha","accountNumber":"50100123456789","ifsc":"HDFC0001234"}"""
+            check(HttpMethod.Get, ApiRoutes.SALON_BANK_DETAILS, null, 404)
+            check(HttpMethod.Post, ApiRoutes.SALON_SUBMIT, null, 409)
+            check(HttpMethod.Put, ApiRoutes.SALON_BANK_DETAILS, bank.replace("HDFC0001234", "nope"), 400)
+            check(HttpMethod.Put, ApiRoutes.SALON_BANK_DETAILS, bank, 200)
+            check(HttpMethod.Get, ApiRoutes.SALON_BANK_DETAILS, null, 200)
+            check(HttpMethod.Post, ApiRoutes.SALON_SUBMIT, null, 200)
         }
 
     @Test

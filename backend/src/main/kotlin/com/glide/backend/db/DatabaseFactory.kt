@@ -15,6 +15,12 @@ object DatabaseFactory {
      */
     const val SCHEMA = "glide"
 
+    /**
+     * The limited role every pooled connection works as (BE-031, D-027): not superuser, owner of nothing, no BYPASSRLS, so
+     * row-level security applies. Created by migration V6; Flyway itself runs as the owner login.
+     */
+    const val APP_ROLE = "glide_app"
+
     fun createDataSource(config: DatabaseConfig): HikariDataSource =
         HikariDataSource(
             HikariConfig().apply {
@@ -22,10 +28,10 @@ object DatabaseFactory {
                 username = config.user
                 password = config.password
                 poolName = "glide-db"
-                // Every connection works in our schema, so SQL and Exposed use unqualified names. The setting is
-                // committed when the connection opens: with auto-commit off it would otherwise sit in the connection's
-                // first transaction, and a rollback of that transaction would undo it for good (BE-024).
-                connectionInitSql = "SET search_path TO $SCHEMA"
+                // Every connection works in our schema, so SQL and Exposed use unqualified names, and as the limited role
+                // (BE-031). Both settings are committed when the connection opens: with auto-commit off they would
+                // otherwise sit in the connection's first transaction, and a rollback of it would undo them for good (BE-024).
+                connectionInitSql = "SET search_path TO $SCHEMA; SET ROLE $APP_ROLE"
                 isIsolateInternalQueries = true
                 maximumPoolSize = MAX_POOL_SIZE
                 connectionTimeout = CONNECTION_TIMEOUT_MS
@@ -35,13 +41,14 @@ object DatabaseFactory {
         )
 
     /**
-     * Applies pending migrations from `src/main/resources/db/migration`.
+     * Applies pending migrations from `src/main/resources/db/migration`, as the owner login itself (not the pool's limited
+     * role). Run it before [createDataSource]: the pool needs the role V6 creates.
      * `clean` is disabled so no environment can ever wipe its database through Flyway.
      */
-    fun migrate(dataSource: DataSource): MigrateResult =
+    fun migrate(config: DatabaseConfig): MigrateResult =
         Flyway
             .configure()
-            .dataSource(dataSource)
+            .dataSource(config.jdbcUrl, config.user, config.password)
             .schemas(SCHEMA)
             .defaultSchema(SCHEMA)
             .createSchemas(true)

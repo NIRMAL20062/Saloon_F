@@ -1,6 +1,7 @@
 package com.glide.backend.users
 
 import com.glide.backend.auth.AuthenticatedUser
+import com.glide.backend.db.ExposedTransactor
 import com.glide.backend.db.TestDatabase
 import com.glide.shared.me.UserSide
 import kotlinx.coroutines.Dispatchers
@@ -16,14 +17,17 @@ import kotlin.test.assertNull
 
 /** Real PostgreSQL (Testcontainers) with the real migrations. */
 class UserRepositoryTest {
-    private val repository = ExposedUserRepository(TestDatabase.exposed)
+    private val repository = ExposedUserRepository()
+    private val transactor = ExposedTransactor(TestDatabase.exposed)
+
+    private suspend fun <T> tx(block: () -> T): T = transactor.transaction(block = block)
 
     @Test
     fun `first request creates the user with no side yet`() =
         runBlocking {
             val id = UUID.randomUUID()
 
-            val user = repository.ensure(AuthenticatedUser(id, "919000000001"))
+            val user = tx { repository.ensure(AuthenticatedUser(id, "919000000001")) }
 
             assertEquals(AppUser(id, "919000000001", null), user)
             assertEquals(1, rowCount(id))
@@ -36,7 +40,7 @@ class UserRepositoryTest {
 
             val user = AuthenticatedUser(id, "919000000002")
 
-            (1..10).map { async(Dispatchers.IO) { repository.ensure(user) } }.awaitAll()
+            (1..10).map { async(Dispatchers.IO) { tx { repository.ensure(user) } } }.awaitAll()
 
             assertEquals(1, rowCount(id))
         }
@@ -45,29 +49,30 @@ class UserRepositoryTest {
     fun `phone changed in Supabase is synced, a missing phone keeps the stored one`() =
         runBlocking {
             val id = UUID.randomUUID()
-            repository.ensure(AuthenticatedUser(id, "919000000003"))
+            tx { repository.ensure(AuthenticatedUser(id, "919000000003")) }
 
-            assertEquals("919000000009", repository.ensure(AuthenticatedUser(id, "919000000009")).phone)
-            assertEquals("919000000009", repository.ensure(AuthenticatedUser(id, null)).phone)
+            assertEquals("919000000009", tx { repository.ensure(AuthenticatedUser(id, "919000000009")) }.phone)
+            assertEquals("919000000009", tx { repository.ensure(AuthenticatedUser(id, null)) }.phone)
         }
 
     @Test
     fun `the side is saved once and is final`() =
         runBlocking {
             val id = UUID.randomUUID()
-            repository.ensure(AuthenticatedUser(id, "919000000004"))
+            tx { repository.ensure(AuthenticatedUser(id, "919000000004")) }
 
-            assertEquals(UserSide.SALON, repository.chooseSide(id, UserSide.SALON)?.side)
-            assertEquals(UserSide.SALON, repository.chooseSide(id, UserSide.SALON)?.side) // same answer again: fine
-            assertNull(repository.chooseSide(id, UserSide.CUSTOMER)) // a switch: refused
-            assertEquals(UserSide.SALON, repository.ensure(AuthenticatedUser(id, "919000000004")).side)
+            assertEquals(UserSide.SALON, tx { repository.chooseSide(id, UserSide.SALON) }?.side)
+            // The same answer again: fine.
+            assertEquals(UserSide.SALON, tx { repository.chooseSide(id, UserSide.SALON) }?.side)
+            assertNull(tx { repository.chooseSide(id, UserSide.CUSTOMER) }) // a switch: refused
+            assertEquals(UserSide.SALON, tx { repository.ensure(AuthenticatedUser(id, "919000000004")) }.side)
         }
 
     @Test
     fun `the database itself refuses to change a chosen side`() {
         val id = UUID.randomUUID()
-        runBlocking { repository.ensure(AuthenticatedUser(id, "919000000005")) }
-        runBlocking { repository.chooseSide(id, UserSide.CUSTOMER) }
+        runBlocking { tx { repository.ensure(AuthenticatedUser(id, "919000000005")) } }
+        runBlocking { tx { repository.chooseSide(id, UserSide.CUSTOMER) } }
 
         assertFailsWith<SQLException> {
             TestDatabase.dataSource.connection.use { conn ->
@@ -83,18 +88,18 @@ class UserRepositoryTest {
     fun `the profile is saved and read back from postgres`() =
         runBlocking {
             val id = UUID.randomUUID()
-            repository.ensure(AuthenticatedUser(id, "919000000020"))
+            tx { repository.ensure(AuthenticatedUser(id, "919000000020")) }
 
-            repository.updateProfile(id, ProfileInput.Valid("Meera", "meera@example.com"))
+            tx { repository.updateProfile(id, ProfileInput.Valid("Meera", "meera@example.com")) }
 
-            val read = repository.ensure(AuthenticatedUser(id, "919000000020"))
+            val read = tx { repository.ensure(AuthenticatedUser(id, "919000000020")) }
             assertEquals("Meera" to "meera@example.com", read.name to read.email)
         }
 
     @Test
     fun `the database itself refuses a one-letter name or a malformed email`() {
         val id = UUID.randomUUID()
-        runBlocking { repository.ensure(AuthenticatedUser(id, "919000000021")) }
+        runBlocking { tx { repository.ensure(AuthenticatedUser(id, "919000000021")) } }
 
         listOf(
             "UPDATE app_users SET name = 'A' WHERE id = ?",

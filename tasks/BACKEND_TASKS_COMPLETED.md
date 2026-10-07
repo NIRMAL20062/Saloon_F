@@ -188,6 +188,139 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Security:** a pull request could change the script too, but that change shows in its diff like any CI change
 - **Database:** no migration. V5 keeps its two tables (written before the one-change rule; it has run on the dev database)
 
+### BE-025 · Services own the database transaction
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `dd7d06c` `e3a52e4` `960428f` `4212c51` `8aa10e2` `2d10f0e`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-024 · Decisions: D-025, D-027
+- **Why:** project review (2026-10-07): each repository method opens its own transaction, so "check, then write" (e.g. check a
+  slot, then book it) can't be one step, and row-level security's per-transaction `set_config('app.salon_id', …, true)` has
+  nowhere to go. Needed before BE-017.
+- **Needs from team:** nothing.
+- **Scope:**
+  - one transaction helper that services call; repositories run inside the caller's transaction and never open their own
+  - existing services moved to it (users/profile, admins/invites + audit log)
+  - Not included: row-level security itself (BE-017); any change to what the API does
+- **Done when:**
+  - [x] Tests: a service doing two repository writes keeps neither when the second fails; all existing tests green
+  - [x] Security: no behaviour change; the audit row is still written in the same transaction as the change (DF-28)
+  - [x] Database: none
+  - [x] Flow: on the Supabase database, app login → profile saved, and an admin invite, still work
+- **Built:** `db/Transactor` (one `transaction { }` per piece of work; the block can't suspend, so no Supabase call runs
+  inside); `UserRepository` and `AdminRepository` run inside the caller's transaction; new `UserService`; `AdminService`
+  owns its transactions, with the Supabase calls of an invite between them; the admin check in front of `/v1/admin` goes
+  through the service. Only `Transactor` opens transactions. No API change
+- **Tests:** `TransactorTest` 3, `UserServiceTest` 2, `AdminRepositoryTest` +1 (invite and audit row kept or dropped
+  together). Backend total 130
+- **Security:** no new queries, routes, env vars or logging; audit row in the same transaction as the change (tested);
+  `/feature-security-check` PASS
+- **Database:** none
+- **Verified by:** Claude, backend from the branch on the Supabase dev database: test number …003 profile saved with the same
+  values, same side again 200, a switch 409, one-letter name 400, profile unchanged; `admin@glide.test` (email code from the
+  admin API + test authenticator) `/v1/admin/me` 200, invite of an existing login 201 (no email), again 409, a customer 403;
+  test admin, its login and the test authenticator removed afterwards. Not run on the phone (no app change)
+
+
+### BE-031 · Limited database role and salon context (row-level security groundwork)
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `84ee2a3` `208ca4d` `66f11ca` `6b09d1f`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-025 · Decisions: D-027, DF-26
+- **Why:** first part of BE-017, split off so each PR stays small (review 2026-10-07). Row-level security (D-027) needs the
+  backend's queries to run as a role that is neither superuser, owner nor `BYPASSRLS`; on Supabase our `postgres` login has
+  `BYPASSRLS`, so policies would do nothing for it. The project review also asked that tests run as that role.
+- **Needs from team:** nothing (no new secret: see Scope).
+- **Scope:**
+  - migration: role `glide_app` (no login, no `BYPASSRLS`), allowed to read/write our tables in `glide`; `audit_log` only
+    read and insert; the same for tables added later
+  - every pooled connection switches to it (`SET ROLE glide_app`, committed when the connection opens, like BE-024);
+    Flyway keeps migrating as the owner login
+  - `Transactor` can run a transaction for one salon: sets `app.salon_id` for that transaction only (`set_config(…, true)`)
+  - tests run as `glide_app` too (the shared test pool is the backend's pool)
+  - Not included: any salon table (BE-017); policies for a customer's own data (later, with the first such table)
+- **Done when:**
+  - [x] Tests: pooled connections are `glide_app`, not superuser, no `BYPASSRLS`; a test table with forced row-level security:
+    salon A's transaction sees only A's rows, can't write B's, and with no salon set sees none; the salon setting doesn't
+    outlive its transaction; `glide_app` can't change `audit_log` or create tables; all existing tests green as `glide_app`
+  - [x] Security: no new secret; the owner login is used only by Flyway
+  - [x] Database: one migration (the role and its grants); applied to the Supabase dev database by the backend at startup
+  - [x] Flow: backend on the Supabase database: `/v1/me`, profile save and `/v1/admin/me` still work as `glide_app`
+- **Built:** migration V6: role `glide_app` (no login, no password, not superuser, owner of nothing, no `BYPASSRLS`), with
+  read/write on our tables (audit log read + insert; migration history read), also for tables added later; every pooled
+  connection does `SET ROLE glide_app` (committed as it opens); Flyway migrates as the owner login before the pool starts;
+  `transactor.transaction(salon)` sets `app.salon_id` for that transaction only. BE-017 was split into BE-031, BE-017,
+  BE-032, BE-033 (same scope). DF-31 records the role switch instead of a second login
+- **Tests:** `AppRoleTest` 6 (role attributes; a probe table with forced RLS: salon A sees only A, no salon sees none, A
+  can't write B; the setting ends with its transaction; no changes to the audit log or migration history, no new tables).
+  Every existing test now runs as `glide_app`. Backend total 136
+- **Security:** no new secret; on Supabase the owner login has `BYPASSRLS`, so the role switch is what makes policies apply;
+  `/feature-security-check` PASS
+- **Database:** V6, applied to the Supabase dev database 2026-10-07 (`success=true`); the pooler doesn't carry the role
+  switch over to other clients (checked)
+- **Verified by:** Claude on the Supabase dev database: `/v1/me`, profile save, side, `/v1/admin/me`, an admin invite
+  (audit row written by `glide_app`) all OK; on the team phone (moto g54) with the backend of BE-017's branch, which
+  contains this one: login, reopen, logout, onboarding (customer and salon), backend down → Retry
+
+
+### BE-017 · Salons and owners
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `044b4f3` `949453c` `e074677` `0449baf` `a56ea02` `b558109` `1d1e2da`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-016, BE-031 · Spec: PRODUCT §3, §6.1 · Decisions: D-025–D-027, D-033, D-035, D-036, D-039, D-046, DF-32
+- **Needs from team:** nothing (fields answered 2026-10-07: D-046).
+- **Scope:**
+  - `salons` (name, phone, address, type men/women/unisex, **status** DRAFT → UNDER_VERIFICATION → LIVE, or REJECTED with a
+    reason, or SUSPENDED) and `salon_members` (salon, phone, user, role OWNER / STAFF (D-039), status ACTIVE / REMOVED), one
+    migration each, row-level security forced on both
+  - `POST /v1/salon/salons` (creator becomes OWNER; only a person whose side is SALON, D-030) · `GET /v1/salon/me` (my salon
+    and role) · `PUT /v1/salon/salon` (owner edits the profile while not live)
+  - one salon per person (D-035); every salon route takes the salon from the signed-in person's membership and checks the role
+    (D-036); everything except a staff member's own appointments is OWNER-only (D-039)
+- **Done when:**
+  - [x] Tests: create → DRAFT with the creator as OWNER; a second salon for the same person refused; a customer refused;
+    **salon A can't read or change salon B** (every route); validation errors
+  - [x] Database: migrations with constraints (exactly one OWNER per salon, one active membership per phone, valid statuses);
+    RLS enabled + forced; test: `glide_app` with salon A set sees zero rows of salon B, with no salon set sees none
+  - [x] Security: salon id never trusted from the request; role checked on every route
+  - [x] Flow: on the Supabase database, test number A creates "Test Salon A" and reads it back; test number B can't see it
+- **Built:** V7 `salons` (profile per D-046/DF-32, status, forced RLS: a row only in its own salon's transaction); V8
+  `salon_members` (one active membership per login and per phone across salons, one owner per salon, an owner has a login;
+  forced RLS: the salon's transaction or the member themself); `RowSecurity` (salon and person per transaction);
+  `POST /v1/salon/salons`, `GET /v1/salon/me`, `PUT /v1/salon/salon` (no salon id in any route, D-036); `Phones.indian`;
+  contract + OpenAPI + admin types. The generic 404 now replaces only a bare 404, so `NO_SALON` keeps its code
+- **Tests:** `SalonTablesTest` 6, `SalonMembersTablesTest` 6, `SalonRoutesTest` 11 (incl. a 4-request race, staff can't
+  edit, two salons isolated), `PhonesTest` 2, `ContractSerializationTest` +2, `OpenApiContractTest` +1. Backend total 162
+- **Security:** salon only from membership; owner-only edits; RLS forced on both tables; validation mirrors the database;
+  SECURITY.md updated; `/feature-security-check` PASS. Tracked: an unexpected database error's log can hold row values (BE-026)
+- **Database:** V7, V8 (applied to the Supabase dev database 2026-10-07)
+- **Verified by:** Claude on the Supabase dev database with two throwaway logins (created, read, refused a second salon,
+  B couldn't see A, landline phone, edit; all deleted afterwards); on the team phone (moto g54): login, reopen, logout,
+  onboarding customer + salon side, backend down → Retry. The salon screens come with APP-006
+
+
+### BE-032 · Bank details (encrypted) and "submit for verification"
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `dd25e14` `bad1dbf` `76dfcd7` `218e73c` `790eea8`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** BE-017 · Spec: PRODUCT §6.1 · Decisions: D-033, DF-24, DF-33
+- **Needs from team:** `BANK_DETAILS_KEY` in `.env` (`openssl rand -base64 32`; DF-33). Until then the bank routes answer 503.
+- **Scope:** `salon_bank_details` (account holder name, account number **encrypted**, IFSC; masked in every app response,
+  DF-24); `PUT /v1/salon/bank-details` (owner only) · `POST /v1/salon/submit-for-verification` (needs a complete profile and
+  bank details; DRAFT or REJECTED → UNDER_VERIFICATION)
+- **Done when:**
+  - [x] Tests: save → masked; submit without bank details refused; submit → UNDER_VERIFICATION; resubmit after REJECTED;
+    STAFF → 403; salon A can't read or change salon B's bank details
+  - [x] Database: migration with IFSC format check; RLS forced; the stored value is not the account number in clear
+  - [x] Security: account number encrypted at rest with a key from env, masked in responses, never logged; audit-logged once
+    BE-019 lands
+  - [x] Flow: on the Supabase database, "Test Salon A" saves bank details and submits → UNDER_VERIFICATION
+- **Built:** `BANK_DETAILS_KEY` (32 bytes base64; optional on a laptop → bank routes 503; required on staging/production;
+  never printed); `FieldCipher` (AES-256-GCM, Java built-in, salon id bound in, `v1:` prefix); V9 `salon_bank_details`
+  (encrypted only, last 4 apart, IFSC check, forced RLS); `PUT|GET /v1/salon/bank-details` (owner, masked),
+  `POST /v1/salon/submit-for-verification` (DRAFT/REJECTED + bank details → UNDER_VERIFICATION, safe retry). DF-33
+- **Tests:** `FieldCipherTest` 4, `AppConfigTest` +3, `SalonBankDetailsTablesTest` 4, `SalonBankRoutesTest` 10, contract
+  tests (bank and submit answers match the spec). Backend total 183
+- **Security:** account number encrypted at rest, bound to its salon, refused in clear by the database, last 4 only in
+  responses and errors, never logged, owner only; SECURITY.md updated; `/feature-security-check` PASS. Audit rows: BE-019
+- **Database:** V9 (applied to the Supabase dev database 2026-10-07)
+- **Verified by:** Claude on the Supabase dev database (throwaway owners and a throwaway key, all deleted afterwards): submit
+  without bank → 409, wrong IFSC → 400, saved and read masked, stored `v1:…` only, submit → UNDER_VERIFICATION, retry
+  same, another salon sees nothing; on the team phone (moto g54): login, System status UP, reopen, logout. The bank screens
+  come with APP-006
+
+
 ## Platform backlog
 
 ### BE-023 · Our database on Supabase's Postgres

@@ -7,6 +7,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
+import io.ktor.server.http.content.HttpStatusCodeContent
 import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.NotFoundException
 import io.ktor.server.plugins.PayloadTooLargeException
@@ -57,8 +58,9 @@ fun Application.configureErrorHandling() {
             // Missing, expired or invalid login token. The app's answer is always the same: sign in again.
             call.respondError(status, ErrorCodes.UNAUTHORIZED, "Please sign in again.")
         }
-        status(HttpStatusCode.NotFound) { call, status ->
-            call.respondError(status, ErrorCodes.NOT_FOUND, "No such endpoint.")
+        status(HttpStatusCode.NotFound) { status: HttpStatusCode ->
+            // Only a bare 404 (no route matched). A route's own 404 already carries its envelope, e.g. NO_SALON (BE-017).
+            if (content is HttpStatusCodeContent) call.respondError(status, ErrorCodes.NOT_FOUND, "No such endpoint.")
         }
         status(HttpStatusCode.MethodNotAllowed) { call, status ->
             call.respondError(status, ErrorCodes.METHOD_NOT_ALLOWED, "Method not allowed on this endpoint.")

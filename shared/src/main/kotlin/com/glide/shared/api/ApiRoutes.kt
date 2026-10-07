@@ -25,4 +25,19 @@ object ApiRoutes {
 
     /** Invite another admin by email (BE-020). Admins only. */
     const val ADMIN_INVITES = "$V1/admin/admins/invites"
+
+    /** Create the signed-in person's salon; they become its owner (BE-017). Salon side only. */
+    const val SALON_SALONS = "$V1/salon/salons"
+
+    /** The signed-in person's one salon and their role in it (BE-017, D-036). */
+    const val SALON_ME = "$V1/salon/me"
+
+    /** The owner edits the salon's profile while it isn't live (BE-017). */
+    const val SALON_PROFILE = "$V1/salon/salon"
+
+    /** The owner saves (PUT) or reads (GET) the salon's bank details, always masked (BE-032, DF-24). */
+    const val SALON_BANK_DETAILS = "$V1/salon/bank-details"
+
+    /** The owner sends the salon to our team for verification (BE-032, D-033). */
+    const val SALON_SUBMIT = "$V1/salon/submit-for-verification"
 }

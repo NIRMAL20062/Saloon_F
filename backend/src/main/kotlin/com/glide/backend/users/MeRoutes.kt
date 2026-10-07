@@ -16,11 +16,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 
-fun Route.meRoutes(users: UserRepository) {
+fun Route.meRoutes(users: UserService) {
     authenticate(USER_AUTH) {
         // Who is signed in, and which side of the app to show them (D-024).
         get(ApiRoutes.ME) {
-            call.respond(users.ensure(call.user()).toResponse())
+            call.respond(users.me(call.user()).toResponse())
         }
 
         // The person's own name and optional email (BE-018). Only ever their own row: the id comes from the token.
@@ -32,8 +32,7 @@ fun Route.meRoutes(users: UserRepository) {
                 }
 
                 is ProfileInput.Valid -> {
-                    val user = users.ensure(call.user())
-                    call.respond(users.updateProfile(user.id, input).toResponse())
+                    call.respond(users.updateProfile(call.user(), input).toResponse())
                 }
             }
         }
@@ -41,8 +40,7 @@ fun Route.meRoutes(users: UserRepository) {
         // Onboarding answer: "customer or salon?". Final once chosen (D-030); the same answer again is fine.
         put(ApiRoutes.ME_SIDE) {
             val request = call.receive<UpdateSideRequest>()
-            val user = users.ensure(call.user())
-            val saved = users.chooseSide(user.id, request.side)
+            val saved = users.chooseSide(call.user(), request.side)
             if (saved == null) {
                 call.respondError(
                     HttpStatusCode.Conflict,

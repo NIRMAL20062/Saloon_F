@@ -1,5 +1,7 @@
 package com.glide.backend.config
 
+import java.util.Base64
+
 enum class AppEnv { LOCAL, TEST, STAGING, PRODUCTION }
 
 data class DatabaseConfig(
@@ -45,6 +47,8 @@ data class AppConfig(
     /** Max requests per minute from one client IP, across all endpoints. */
     val rateLimitPerMinute: Int,
     val supabase: SupabaseConfig,
+    /** Encrypts salons' bank account numbers (BE-032, DF-33). Null on a laptop without it: the bank routes answer 503. */
+    val bankDetailsKey: SecretBytes? = null,
 ) {
     companion object {
         /**
@@ -131,6 +135,22 @@ data class AppConfig(
                 }
             }
 
+            val bankKeyRaw = env["BANK_DETAILS_KEY"]?.trim()?.ifEmpty { null }
+            val bankDetailsKey =
+                bankKeyRaw?.let { raw ->
+                    runCatching { Base64.getDecoder().decode(raw) }
+                        .getOrNull()
+                        ?.takeIf { it.size == BANK_KEY_BYTES }
+                        ?.let(::SecretBytes)
+                        ?: null.also {
+                            problems +=
+                                "BANK_DETAILS_KEY must be 32 random bytes in base64 (openssl rand -base64 32)"
+                        }
+                }
+            if (bankKeyRaw == null && (appEnv == AppEnv.STAGING || appEnv == AppEnv.PRODUCTION)) {
+                problems += "BANK_DETAILS_KEY is required in $appEnv (bank details are encrypted with it)"
+            }
+
             if (problems.isNotEmpty()) throw InvalidConfigException(problems)
             return AppConfig(
                 appEnv,
@@ -140,10 +160,12 @@ data class AppConfig(
                 origins,
                 rateLimit,
                 SupabaseConfig(supabaseUrl, secretKey),
+                bankDetailsKey,
             )
         }
 
         private const val DEFAULT_PORT = 8080
+        private const val BANK_KEY_BYTES = 32
         private const val DEFAULT_RATE_LIMIT = 300
         private val SUPABASE_URL_REGEX = Regex("^https?://[A-Za-z0-9.-]+(:\\d{1,5})?$")
         private const val MAX_RATE_LIMIT = 100_000

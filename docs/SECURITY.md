@@ -30,6 +30,9 @@ Per-feature checklist: run `/feature-security-check` (see `.claude/skills/featur
 | Admin routes: login must be in `admins` (matched on Supabase user id, not email) **and** have passed the authenticator app (`aal2`), else 403 NOT_ADMIN / MFA_REQUIRED; every `/v1/admin` route is checked | `admins/AdminAccess.kt` | `AdminRoutesTest` |
 | Supabase secret key only from the environment, never printed; the publishable key is refused in its place; Supabase error text (may contain emails) never logged | `config/AppConfig.kt`, `admins/AuthAdmin.kt` | `AppConfigTest`, `SupabaseAuthAdminTest` |
 | Audit log is append-only (UPDATE / DELETE / TRUNCATE refused by the database); admin changes write their row in the same transaction | `V5`, `audit/AuditLog.kt` | `AdminTablesTest`, `AdminRepositoryTest` |
+| Salon data by salon: the salon comes only from the signed-in person's membership (no salon id in any route, D-036); owner-only edits; one salon per person (D-035); staff can read, not edit | `salons/SalonService.kt`, `salons/SalonRoutes.kt` | `SalonRoutesTest` |
+| Row-level security forced on salon tables; the backend's queries run as `glide_app` (not superuser, owner of nothing, no `BYPASSRLS`; Supabase's `postgres` login has it); salon and person set per transaction only (DF-31) | `V6`–`V8`, `db/DatabaseFactory.kt`, `db/RowSecurity.kt` | `AppRoleTest`, `SalonTablesTest`, `SalonMembersTablesTest` |
+| Bank account numbers stored only encrypted (AES-256-GCM, key `BANK_DETAILS_KEY` from the environment, bound to the salon; the database refuses a plain value); only the last 4 digits in any response or error; owner only; never logged (DF-24, DF-33) | `crypto/FieldCipher.kt`, `V9`, `salons/SalonService.kt` | `FieldCipherTest`, `SalonBankDetailsTablesTest`, `SalonBankRoutesTest` |
 | Admin website: every page needs email code **and** authenticator app; logged-out → /login; idle 30 min / 12 h → logged out (DF-30), checked by the proxy on every request (prefetches too) **and** by `readSession()`; a refused login ends on /login with its cookie deleted, never in a redirect loop (WEB-008) | `admin/src/proxy.ts`, `auth/guard.ts`, `auth/cookies.ts`, `auth/require-admin.ts` | `guard.test.ts`, `proxy.test.ts`, `cookies.test.ts`, `require-admin.test.ts`, `app/pages.test.tsx` |
 | Admin session: encrypted (AES-256-GCM) `__Host-` cookie, httpOnly + Secure + SameSite=strict; Supabase called only from the Next.js server, no tokens in browser JavaScript (DF-20) | `admin/src/auth/session.ts`, `auth/supabase-auth.ts` | `session.test.ts`, `actions.test.ts` |
 | `flyway clean` disabled everywhere | `db/DatabaseFactory.kt` | `MigrationTest` |
@@ -47,14 +50,13 @@ secret scanning + CodeQL + Dependabot (BE-012), auth + roles + tenant isolation 
 | Gap | Why it's open | Task |
 |---|---|---|
 | Rate limit uses the direct client IP | behind a proxy all users share one IP; needs the proxy's forwarded-header config once hosting is known | BE-9xx (Pre-launch) |
-| Salon membership and role checks come next (logins and admin access exist: BE-016, BE-020, WEB-005) | Phase 1 | BE-017 |
 | Admin login has no rate limit of its own: flooding it can use up Supabase's email allowance or get our server's IP briefly blocked at Supabase (codes stay unguessable) | not hosted yet; limits per client IP and per email need the host's forwarded-IP header | WEB-9xx (before hosting) |
 
 ## Secrets
 
 | Secret | Lives in | Never in |
 |---|---|---|
-| DB passwords, Supabase service-role key, Razorpay key secret + webhook secret, WhatsApp token, R2 keys | `.env` locally (put there by the team); hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
+| DB passwords, Supabase service-role key, bank details key (`BANK_DETAILS_KEY`, also in the team password manager), Razorpay key secret + webhook secret, WhatsApp token, R2 keys | `.env` locally (put there by the team); hosting provider env vars; GitHub Actions secrets for CI/CD | git, app, logs |
 | Android signing keystore + passwords | GitHub Actions secrets (base64) + team password manager | git |
 | `google-services.json` | GitHub Actions secret; local copy git-ignored | git |
 | Test-user credentials | team password manager | git |
