@@ -2,7 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { type Admin, checkAdmin } from "./admin-check";
-import { readSession } from "./cookies";
+import { hasSessionCookie, readSession } from "./cookies";
 
 /**
  * Every admin page starts with `const admin = await requireAdmin()`. The proxy already sends logged-out visitors to
@@ -11,7 +11,8 @@ import { readSession } from "./cookies";
  */
 export const requireAdmin = cache(async (): Promise<Admin> => {
   const session = await readSession();
-  if (!session) redirect("/login");
+  // A cookie without a usable session (idle, too old, unreadable) is a login that ended; the proxy deletes it there.
+  if (!session) redirect((await hasSessionCookie()) ? "/login?expired=1" : "/login");
   if (!session.mfa) redirect("/login/mfa");
   const check = await checkAdmin(session.accessToken);
   switch (check.kind) {

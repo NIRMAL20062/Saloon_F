@@ -157,6 +157,8 @@ describe("backend client", () => {
       fetch: (input) =>
         new Promise<Response>((_, reject) => {
           const { signal } = input as Request;
+          // On a busy machine the 20 ms can be over before this runs; the abort event won't fire a second time.
+          if (signal.aborted) reject(signal.reason);
           signal.addEventListener("abort", () => reject(signal.reason));
         }),
     });

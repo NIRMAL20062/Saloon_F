@@ -76,3 +76,52 @@ Newest at the bottom. Each entry keeps the commits so anyone can `git show <hash
 - **Database:** none
 - **Verified by:** Claude in headless Chrome against real Supabase (Brevo SMTP) + local backend, 2026-10-07 (see Done when);
   found and fixed 8-digit email codes and the silent bounce after a good code; found BE-024
+
+### WEB-008 · Fix: admin login security follow-up (from the WEB-005 re-check)
+- **Completed:** 2026-10-07 (team's go-ahead, merged) · **Commits:** `1c83018` `5e44677` `0db5018` `9001708` `8982355` `bbd23ac` `5f64b2e`
+- **Phase:** 1 · **Status:** ✅ Done · **Owner:** Claude · **Depends on:** WEB-005 · Decisions: DF-20, DF-30
+- **Why:** a re-check of WEB-005 (2026-10-07, finished just after it merged) proved two holes on a running copy of the admin
+  website: an idle session could still open admin pages by adding a prefetch header, and a token the backend refuses sent
+  the browser round `/` → `/login?expired=1` → `/` without end.
+- **Needs from team:** nothing.
+- **Scope:**
+  - `admin/src/proxy.ts` no longer skips requests with `purpose: prefetch` / `next-router-prefetch`: prefetches are checked
+    like any page request. Browser prefetches (`Sec-Purpose`) don't count as activity; Next.js's own link prefetches can't
+    be told apart (Next removes their headers before the proxy) and count like a visit, as they follow a hover or scroll.
+  - The matcher's `/api` exclusion no longer skips pages that merely start with "api" (e.g. `/api-keys`).
+  - `readSession()` / `requireAdmin()` refuse sessions idle for 30 minutes or older than 12 hours themselves (DF-30), so
+    pages don't rely on the proxy alone.
+  - The proxy deletes the session cookie on `/login?expired=1`, and the login page never sends a visitor back to `/` when
+    `expired` is in the address.
+  - `admin/CLAUDE.md`: the proxy skips `/api`, so any future `/api` route must call `requireAdmin()` itself.
+  - Not included: login rate limiting (known gap in docs/SECURITY.md); any other change to the WEB-005 flow.
+- **Done when:**
+  - [x] Tests: the proxy's matcher runs on prefetch requests (and still skips `/api` and static files); an idle session's
+    prefetch is sent to log in, and a browser prefetch doesn't record activity; `/api-keys` is covered; `readSession()` gives nothing for an idle or
+    too-old session and `requireAdmin()` then sends to `/login?expired=1`; `/login?expired=1` deletes the session cookie;
+    the login page with `expired` doesn't redirect to `/`
+  - [x] Security: no admin page or Server Action works with an idle or too-old session, whatever the headers; a token the
+    backend refuses ends on the login page, never in a loop
+  - [x] Database: none
+  - [x] Flow: in the browser, against the real backend + Supabase: an idle session gets the login page with and without a
+    prefetch header; a session whose token the backend refuses ends on the login page with the "logged out" message and
+    no loop; logging in again works
+- **Tests:** admin total 148 (+21): `proxy.test.ts` (matcher via Next's `unstable_doesMiddlewareMatch`: prefetches covered,
+  `/api` and static files skipped, `/api-keys` covered; idle session with each prefetch header; browser prefetch isn't
+  activity; `/login?expired=1` deletes the cookie), `guard.test.ts` (prefetch limits and activity; logged-out page),
+  `cookies.test.ts` (new: `readSession()` limits, `hasSessionCookie()`), `require-admin.test.ts` (stale cookie),
+  `pages.test.tsx` (no bounce with `expired`). Also fixed a race in `client.test.ts`'s hanging-backend fake (flaky timeout)
+- **Security:** `/feature-security-check` PASS. Every request is checked, prefetches included; stale sessions are refused at the
+  proxy, `readSession()` and `requireAdmin()`. The cookie deletion on `/login?expired=1` can't be triggered from another site
+  (the SameSite=strict cookie isn't sent cross-site, and nothing is deleted without it)
+- **Database:** none
+- **Notes:** a project review (2026-10-07) found that Next.js removes `next-router-prefetch` and `rsc` before the proxy runs
+  (confirmed in `next/dist/server/web/adapter.js`), so Next's own link prefetches count as activity (they follow a hover or
+  scroll); only browser prefetches (`Sec-Purpose`) don't. Same review: the `/api` exclusion also skipped pages like `/api-keys`
+- **Verified by:** Claude in headless Chrome against the local admin website (WEB-008 code, a throwaway session key so test
+  cookies could be made) + backend + real Supabase, around a real `admin@glide.test` login (email code from the admin API +
+  test authenticator; no email sent): 14 checks passed. An idle session gets 307 to `/login?expired=1` with its cookie deleted
+  and no admin data, with each prefetch header and without; a browser prefetch doesn't record activity, a page view and
+  Next's router prefetch do; a token the backend refuses → `/login?expired=1` after 2 page loads (no loop), message + email
+  form shown, cookie gone; a new login afterwards opens the admin home. The email step itself wasn't sent in the browser
+  (`admin@glide.test` has no inbox); it is unchanged from WEB-005

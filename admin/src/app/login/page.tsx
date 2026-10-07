@@ -6,8 +6,9 @@ import { sendCode } from "./actions";
 import { EmailForm } from "./forms";
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
-  if ((await readSession())?.mfa) redirect("/");
   const { expired } = await searchParams;
+  // After a logout, show the form: going back to / with a session the backend refused would loop (WEB-008).
+  if (!expired && (await readSession())?.mfa) redirect("/");
   return (
     <AuthCard
       title="Log in"

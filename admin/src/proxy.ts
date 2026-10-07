@@ -6,15 +6,18 @@ import { supabaseAuth } from "./auth/supabase-auth";
 import { buildCsp, createNonce } from "./security/csp";
 
 /**
- * Runs before every page: sends anyone without a full admin login to /login (WEB-005, DF-30), keeps the session alive
- * (activity, token refresh), and adds a fresh nonce-based Content-Security-Policy. Pages check again with
- * requireAdmin(); this is the first line, not the only one.
+ * Runs before every page, prefetches included: sends anyone without a full admin login to /login (WEB-005, DF-30),
+ * keeps the session alive (activity, token refresh), and adds a fresh nonce-based Content-Security-Policy. Pages check
+ * again with requireAdmin(); this is the first line, not the only one.
  */
 export async function proxy(request: NextRequest) {
-  const decision = await guard(request.nextUrl.pathname, request.cookies.get(SESSION_COOKIE)?.value, Date.now(), {
-    secret: getEnv().ADMIN_SESSION_SECRET,
-    refresh: (refreshToken) => supabaseAuth().refresh(refreshToken),
-  });
+  const decision = await guard(
+    request.nextUrl.pathname,
+    request.cookies.get(SESSION_COOKIE)?.value,
+    Date.now(),
+    { secret: getEnv().ADMIN_SESSION_SECRET, refresh: (refreshToken) => supabaseAuth().refresh(refreshToken) },
+    { prefetch: isPrefetch(request.headers), expired: request.nextUrl.searchParams.has("expired") },
+  );
 
   if (decision.kind === "redirect") {
     const response = NextResponse.redirect(new URL(decision.location, request.url));
@@ -22,8 +25,9 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // The page must see a renewed session in this same request, so update the request's cookie too.
+  // The page must see a renewed or deleted session in this same request, so update the request's cookie too.
   if (decision.cookie) request.cookies.set(SESSION_COOKIE, decision.cookie.value);
+  if (decision.clearCookie) request.cookies.delete(SESSION_COOKIE);
 
   const nonce = createNonce();
   const csp = buildCsp(nonce, process.env.NODE_ENV === "development");
@@ -36,18 +40,21 @@ export async function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
   if (decision.cookie) response.cookies.set(SESSION_COOKIE, decision.cookie.value, cookieOptions(decision.cookie.maxAgeMs));
+  if (decision.clearCookie) response.cookies.set(SESSION_COOKIE, "", { ...cookieOptions(0), maxAge: 0 });
   return response;
 }
 
+/**
+ * A browser prefetch (`<link rel=prefetch>`, speculation rules). Next.js's own link prefetches can't be told apart here:
+ * Next removes `next-router-prefetch` and `rsc` before the proxy runs. They happen when a link is hovered or scrolls
+ * into view, so they count as activity like any visit (DF-30).
+ */
+function isPrefetch(headers: Headers): boolean {
+  return headers.get("purpose") === "prefetch" || headers.get("sec-purpose")?.startsWith("prefetch") === true;
+}
+
 export const config = {
-  matcher: [
-    {
-      // Pages and Server Actions only: skip API routes, static files and prefetches.
-      source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-  ],
+  // Pages, Server Actions and prefetches; not static files. Not /api or /api/…: an /api route must call requireAdmin()
+  // itself (a page like /api-keys is still covered). Never skip requests by header: a client chooses its headers (WEB-008).
+  matcher: ["/((?!api/|api$|_next/static|_next/image|favicon.ico$).*)"],
 };

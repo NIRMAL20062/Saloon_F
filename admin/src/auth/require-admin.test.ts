@@ -3,12 +3,12 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { fakeRedirect, redirectOf } from "@/test/next-fakes";
 import type { AdminSession } from "./session";
 
-const state: { session: AdminSession | null } = { session: null };
+const state: { session: AdminSession | null; hasCookie: boolean } = { session: null, hasCookie: false };
 const checkAdmin = vi.fn();
 
 vi.mock("next/navigation", () => ({ redirect: (url: string) => fakeRedirect(url) }));
 vi.mock("react", async (original) => ({ ...(await original<typeof import("react")>()), cache: <T>(fn: T) => fn }));
-vi.mock("./cookies", () => ({ readSession: async () => state.session }));
+vi.mock("./cookies", () => ({ readSession: async () => state.session, hasSessionCookie: async () => state.hasCookie }));
 vi.mock("./admin-check", () => ({ checkAdmin: (token: string) => checkAdmin(token) }));
 
 const { requireAdmin } = await import("./require-admin");
@@ -18,6 +18,7 @@ const admin = { id: "u", email: "a@b.in", status: "ACTIVE" };
 
 beforeEach(() => {
   state.session = session;
+  state.hasCookie = true;
   checkAdmin.mockReset();
 });
 
@@ -30,6 +31,7 @@ test("returns the admin when the backend confirms them", async () => {
 
 test("no session → login; no MFA yet → authenticator code", async () => {
   state.session = null;
+  state.hasCookie = false;
   expect(await redirectOf(() => requireAdmin())).toBe("/login");
 
   state.session = { ...session, mfa: false };
@@ -45,4 +47,11 @@ test.each([
   checkAdmin.mockResolvedValue({ kind });
 
   expect(await redirectOf(() => requireAdmin())).toBe(url);
+});
+
+test("a cookie without a usable session (idle, too old, unreadable) → logged-out message, before asking the backend", async () => {
+  state.session = null;
+
+  expect(await redirectOf(() => requireAdmin())).toBe("/login?expired=1");
+  expect(checkAdmin).not.toHaveBeenCalled();
 });

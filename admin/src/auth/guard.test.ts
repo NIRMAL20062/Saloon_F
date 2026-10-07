@@ -77,6 +77,43 @@ describe("session limits (DF-30)", () => {
   });
 });
 
+describe("the logged-out page (WEB-008)", () => {
+  test("/login?expired=1 deletes the session cookie, so a login the backend refused can't bounce back to /", async () => {
+    expect(await guard("/login", await cookieFor(base), NOW, deps, { expired: true })).toEqual({ kind: "allow", clearCookie: true });
+  });
+
+  test("plain /login keeps it, and without a cookie there is nothing to delete", async () => {
+    expect(await guard("/login", await cookieFor(base), NOW, deps)).toEqual({ kind: "allow" });
+    expect(await guard("/login", undefined, NOW, deps, { expired: true })).toEqual({ kind: "allow" });
+  });
+});
+
+describe("prefetches (WEB-008)", () => {
+  const prefetch = { prefetch: true };
+
+  test("are held to the same limits", async () => {
+    const idle = { ...base, lastSeenAt: NOW - IDLE_LIMIT_MS };
+
+    expect(await guard("/", await cookieFor(idle), NOW, deps, prefetch)).toEqual({ kind: "redirect", location: "/login?expired=1", clearCookie: true });
+    expect(await guard("/", undefined, NOW, deps, prefetch)).toMatchObject({ kind: "redirect", location: "/login" });
+    expect(await guard("/", await cookieFor({ ...base, mfa: false }), NOW, deps, prefetch)).toMatchObject({ location: "/login/mfa" });
+  });
+
+  test("don't count as activity: the browser prefetches links on its own", async () => {
+    expect(await guard("/", await cookieFor({ ...base, lastSeenAt: NOW - TOUCH_EVERY_MS }), NOW, deps, prefetch)).toEqual({ kind: "allow" });
+  });
+
+  test("still renew a token about to expire, keeping the last real activity", async () => {
+    const soon = { ...base, accessExpiresAt: NOW + REFRESH_MARGIN_MS - 1, lastSeenAt: NOW - 5 * 60_000 };
+    const refresh = vi.fn(async () => ({ accessToken: base.accessToken, refreshToken: "rt2", expiresAt: NOW + 3_600_000 }));
+
+    const decision = await guard("/", await cookieFor(soon), NOW, { secret: SECRET, refresh }, prefetch);
+
+    const saved = await unseal<AdminSession>((decision as { cookie: { value: string } }).cookie.value, SECRET);
+    expect(saved).toMatchObject({ refreshToken: "rt2", lastSeenAt: soon.lastSeenAt });
+  });
+});
+
 describe("token refresh", () => {
   const soon = { ...base, accessExpiresAt: NOW + REFRESH_MARGIN_MS - 1 };
 

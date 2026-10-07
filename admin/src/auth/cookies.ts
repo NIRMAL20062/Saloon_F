@@ -10,12 +10,23 @@ import {
   type PendingLogin,
   seal,
   SESSION_COOKIE,
+  sessionState,
   unseal,
 } from "./session";
 
-/** The admin's session from the cookie, or null. Readable in pages; writing works only in Server Actions. */
+/**
+ * The admin's session from the cookie, or null when there is none, it can't be read, or it is idle or too old (DF-30):
+ * pages and actions apply the limits themselves, not only the proxy (WEB-008). Readable in pages; writing works only
+ * in Server Actions.
+ */
 export async function readSession(): Promise<AdminSession | null> {
-  return unseal<AdminSession>((await cookies()).get(SESSION_COOKIE)?.value, getEnv().ADMIN_SESSION_SECRET);
+  const session = await unseal<AdminSession>((await cookies()).get(SESSION_COOKIE)?.value, getEnv().ADMIN_SESSION_SECRET);
+  return session && sessionState(session, Date.now()) === "active" ? session : null;
+}
+
+/** Whether the browser sent a session cookie at all, usable or not: tells a login that ended from no login. */
+export async function hasSessionCookie(): Promise<boolean> {
+  return Boolean((await cookies()).get(SESSION_COOKIE)?.value);
 }
 
 export async function writeSession(session: AdminSession): Promise<void> {

@@ -59,6 +59,14 @@ describe("login page", () => {
 
     expect(await redirectOf(() => LoginPage(params()))).toBe("/");
   });
+
+  test("after a logout the form is shown even if a session is still there, never a bounce back to / (WEB-008)", async () => {
+    state.session = { ...aal1, mfa: true };
+
+    render(await LoginPage(params({ expired: "1" })));
+
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+  });
 });
 
 describe("email code page", () => {
